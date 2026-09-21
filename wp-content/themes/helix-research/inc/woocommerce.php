@@ -1,0 +1,429 @@
+<?php
+/**
+ * WooCommerce integration and conversion layer.
+ *
+ * @package HelixResearch
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+/* -------------------------------------------------------------------------
+ * Layout wrappers
+ * ---------------------------------------------------------------------- */
+
+remove_action( 'woocommerce_before_main_content', 'woocommerce_output_content_wrapper', 10 );
+remove_action( 'woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10 );
+remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar', 10 );
+
+/**
+ * Open the shop wrapper.
+ */
+function helix_wc_wrapper_start() {
+	if ( is_shop() || is_product_taxonomy() ) {
+		$title = woocommerce_page_title( false );
+		$intro = is_shop()
+			? __( 'Analytically characterized reference materials for laboratory research use. Purity, lot and certificate shown on every listing.', 'helix-research' )
+			: '';
+		helix_page_hero( wp_strip_all_tags( $title ), $intro );
+	}
+	echo '<div class="hx-wrap hx-shop"><div class="hx-shop__main">';
+}
+add_action( 'woocommerce_before_main_content', 'helix_wc_wrapper_start', 10 );
+
+/**
+ * Close the shop wrapper and print the sidebar.
+ */
+function helix_wc_wrapper_end() {
+	echo '</div>';
+	if ( ( is_shop() || is_product_taxonomy() ) && is_active_sidebar( 'shop-sidebar' ) ) {
+		echo '<aside class="hx-shop__aside">';
+		dynamic_sidebar( 'shop-sidebar' );
+		echo '</aside>';
+	}
+	echo '</div>';
+}
+add_action( 'woocommerce_after_main_content', 'helix_wc_wrapper_end', 10 );
+
+/**
+ * Hide the duplicate archive title (the hero prints it).
+ */
+add_filter( 'woocommerce_show_page_title', '__return_false' );
+
+/**
+ * Grid density.
+ *
+ * @return int
+ */
+function helix_loop_columns() {
+	return 3;
+}
+add_filter( 'loop_shop_columns', 'helix_loop_columns', 20 );
+
+/**
+ * Products per page.
+ *
+ * @return int
+ */
+function helix_products_per_page() {
+	return 12;
+}
+add_filter( 'loop_shop_per_page', 'helix_products_per_page', 20 );
+
+/**
+ * Related products count.
+ *
+ * @param array $args Args.
+ * @return array
+ */
+function helix_related_args( $args ) {
+	$args['posts_per_page'] = 3;
+	$args['columns']        = 3;
+	return $args;
+}
+add_filter( 'woocommerce_output_related_products_args', 'helix_related_args', 20 );
+
+/* -------------------------------------------------------------------------
+ * Product cards
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Purity flag on the card image.
+ */
+function helix_loop_purity_flag() {
+	global $product;
+	if ( ! $product ) {
+		return;
+	}
+	$purity = get_post_meta( $product->get_id(), '_rc_purity', true );
+	if ( $purity ) {
+		printf( '<span class="hx-card__purity">%s %s</span>', esc_html( $purity ), esc_html__( 'HPLC', 'helix-research' ) );
+	}
+	if ( ! $product->is_in_stock() ) {
+		printf( '<span class="hx-card__oos">%s</span>', esc_html__( 'Awaiting next lot', 'helix-research' ) );
+	}
+}
+add_action( 'woocommerce_before_shop_loop_item_title', 'helix_loop_purity_flag', 9 );
+
+/**
+ * Spec line under the card title.
+ */
+function helix_loop_spec_line() {
+	global $product;
+	if ( ! $product ) {
+		return;
+	}
+
+	$bits = array();
+	$cas  = get_post_meta( $product->get_id(), '_rc_cas', true );
+	$form = get_post_meta( $product->get_id(), '_rc_formula', true );
+	$lot  = get_post_meta( $product->get_id(), '_rc_lot', true );
+
+	if ( $cas ) {
+		$bits[] = sprintf( /* translators: %s: CAS registry number. */ __( 'CAS %s', 'helix-research' ), $cas );
+	}
+	if ( $form ) {
+		$bits[] = $form;
+	}
+	if ( $lot ) {
+		$bits[] = sprintf( /* translators: %s: lot number. */ __( 'Lot %s', 'helix-research' ), $lot );
+	}
+
+	if ( $bits ) {
+		printf( '<p class="hx-card__spec">%s</p>', esc_html( implode( ' · ', $bits ) ) );
+	}
+}
+add_action( 'woocommerce_after_shop_loop_item_title', 'helix_loop_spec_line', 6 );
+
+/**
+ * COA link on the card.
+ */
+function helix_loop_coa_link() {
+	global $product;
+	if ( ! $product ) {
+		return;
+	}
+	$coa = get_post_meta( $product->get_id(), '_rc_coa_url', true );
+	if ( ! $coa ) {
+		return;
+	}
+	printf(
+		'<a class="hx-card__coa" href="%s" target="_blank" rel="noopener">%s %s</a>',
+		esc_url( $coa ),
+		helix_icon( 'document', 15 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
+		esc_html__( 'View COA', 'helix-research' )
+	);
+}
+add_action( 'woocommerce_after_shop_loop_item', 'helix_loop_coa_link', 9 );
+
+/**
+ * Cart button label.
+ *
+ * @param string $text Default text.
+ * @return string
+ */
+function helix_add_to_cart_text( $text ) {
+	return is_product() ? __( 'Add to order', 'helix-research' ) : $text;
+}
+add_filter( 'woocommerce_product_single_add_to_cart_text', 'helix_add_to_cart_text' );
+
+/* -------------------------------------------------------------------------
+ * Single product
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Research-use badge directly under the product title.
+ */
+function helix_single_ruo() {
+	helix_ruo_badge();
+}
+add_action( 'woocommerce_single_product_summary', 'helix_single_ruo', 6 );
+
+/**
+ * Key specs table above the price.
+ */
+function helix_single_specs() {
+	global $product;
+	if ( ! $product || ! function_exists( 'rc_get_specs' ) ) {
+		return;
+	}
+
+	$specs = rc_get_specs( $product->get_id() );
+	if ( empty( $specs ) ) {
+		return;
+	}
+
+	echo '<div class="hx-specs"><table><tbody>';
+	foreach ( $specs as $label => $value ) {
+		printf(
+			'<tr><th scope="row">%s</th><td>%s</td></tr>',
+			esc_html( $label ),
+			wp_kses_post( $value )
+		);
+	}
+	echo '</tbody></table></div>';
+}
+add_action( 'woocommerce_single_product_summary', 'helix_single_specs', 25 );
+
+/**
+ * Reassurance list and COA button below the add-to-cart form.
+ */
+function helix_single_assurances() {
+	global $product;
+	if ( ! $product ) {
+		return;
+	}
+
+	$coa = get_post_meta( $product->get_id(), '_rc_coa_url', true );
+
+	echo '<div class="hx-assure">';
+
+	if ( $coa ) {
+		printf(
+			'<a class="hx-btn hx-btn--ghost hx-btn--block" href="%s" target="_blank" rel="noopener">%s %s</a>',
+			esc_url( $coa ),
+			helix_icon( 'document', 18 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
+			esc_html__( 'Download certificate of analysis', 'helix-research' )
+		);
+	}
+
+	$items = array(
+		array( 'truck', __( 'Ships same business day on orders placed before 2:00 PM CT', 'helix-research' ) ),
+		array( 'snow', __( 'Insulated, desiccated packaging with tracking on every parcel', 'helix-research' ) ),
+		array( 'lock', __( 'Encrypted checkout; card details never touch our servers', 'helix-research' ) ),
+		array( 'shield', __( 'Lot mismatch or transit damage replaced or refunded within 30 days', 'helix-research' ) ),
+	);
+
+	echo '<ul class="hx-assure__list">';
+	foreach ( $items as $item ) {
+		printf(
+			'<li>%s<span>%s</span></li>',
+			helix_icon( $item[0], 17 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
+			esc_html( $item[1] )
+		);
+	}
+	echo '</ul></div>';
+}
+add_action( 'woocommerce_after_add_to_cart_form', 'helix_single_assurances', 20 );
+
+/**
+ * Handling tab.
+ *
+ * @param array $tabs Tabs.
+ * @return array
+ */
+function helix_product_tabs( $tabs ) {
+	if ( isset( $tabs['description'] ) ) {
+		$tabs['description']['title'] = __( 'Product data', 'helix-research' );
+	}
+	if ( isset( $tabs['reviews'] ) ) {
+		$tabs['reviews']['title'] = __( 'Customer feedback', 'helix-research' );
+	}
+
+	$tabs['helix_handling'] = array(
+		'title'    => __( 'Storage &amp; handling', 'helix-research' ),
+		'priority' => 25,
+		'callback' => 'helix_handling_tab',
+	);
+
+	$tabs['helix_terms'] = array(
+		'title'    => __( 'Terms of sale', 'helix-research' ),
+		'priority' => 40,
+		'callback' => 'helix_terms_tab',
+	);
+
+	return $tabs;
+}
+add_filter( 'woocommerce_product_tabs', 'helix_product_tabs' );
+
+/**
+ * Storage and handling tab body.
+ */
+function helix_handling_tab() {
+	global $product;
+
+	$custom = $product ? get_post_meta( $product->get_id(), '_rc_handling', true ) : '';
+
+	echo '<div class="hx-prose">';
+	if ( $custom ) {
+		echo wp_kses_post( wpautop( $custom ) );
+	} else {
+		echo '<ul>';
+		printf( '<li>%s</li>', esc_html__( 'Store sealed vials at -20 °C, desiccated and protected from light.', 'helix-research' ) );
+		printf( '<li>%s</li>', esc_html__( 'Allow vials to equilibrate to room temperature before opening to prevent condensation on the lyophilizate.', 'helix-research' ) );
+		printf( '<li>%s</li>', esc_html__( 'Reconstitute with an appropriate laboratory-grade solvent; record the solvent, concentration and date on the vial.', 'helix-research' ) );
+		printf( '<li>%s</li>', esc_html__( 'Avoid repeated freeze–thaw cycles; aliquot reconstituted material for single-use volumes.', 'helix-research' ) );
+		printf( '<li>%s</li>', esc_html__( 'Handle with standard laboratory PPE and dispose of material according to your institution\'s chemical waste procedures.', 'helix-research' ) );
+		echo '</ul>';
+	}
+	echo '</div>';
+}
+
+/**
+ * Terms of sale tab body.
+ */
+function helix_terms_tab() {
+	echo '<div class="hx-prose">';
+	printf( '<p>%s</p>', esc_html( helix_ruo_notice( 'long' ) ) );
+	printf(
+		'<p>%s</p>',
+		esc_html__( 'By placing an order you confirm that you are a qualified purchaser acquiring this material for laboratory research, that you will not administer it to humans or animals, and that you will not resell or repackage it for such use. Orders that indicate otherwise are cancelled and refunded.', 'helix-research' )
+	);
+	echo '</div>';
+}
+
+/**
+ * Sticky mobile add-to-cart bar.
+ */
+function helix_sticky_bar() {
+	if ( ! is_product() ) {
+		return;
+	}
+
+	global $product;
+	if ( ! $product instanceof WC_Product ) {
+		return;
+	}
+	?>
+	<div class="hx-sticky-bar" data-hx-sticky hidden>
+		<div class="hx-sticky-bar__info">
+			<span class="hx-sticky-bar__title"><?php echo esc_html( wp_trim_words( $product->get_name(), 5 ) ); ?></span>
+			<span class="hx-sticky-bar__price"><?php echo wp_kses_post( $product->get_price_html() ); ?></span>
+		</div>
+		<?php if ( $product->is_in_stock() ) : ?>
+			<button type="button" class="hx-btn hx-btn--sm" data-hx-sticky-add><?php esc_html_e( 'Add to order', 'helix-research' ); ?></button>
+		<?php else : ?>
+			<span class="hx-sticky-bar__oos"><?php esc_html_e( 'Awaiting next lot', 'helix-research' ); ?></span>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+add_action( 'wp_footer', 'helix_sticky_bar' );
+
+/* -------------------------------------------------------------------------
+ * Cart and checkout
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Free-shipping progress meter shown in the cart and drawer.
+ */
+function helix_free_shipping_meter() {
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return;
+	}
+
+	$threshold = (float) apply_filters( 'helix_free_shipping_threshold', (float) get_option( 'rc_free_shipping_threshold', 0 ) );
+	if ( $threshold <= 0 ) {
+		return;
+	}
+
+	$subtotal = (float) WC()->cart->get_displayed_subtotal();
+	$progress = min( 100, ( $subtotal / $threshold ) * 100 );
+
+	echo '<div class="hx-ship-meter">';
+	if ( $subtotal >= $threshold ) {
+		printf( '<p>%s %s</p>', helix_icon( 'check', 16 ), esc_html__( 'Free shipping applied to this order.', 'helix-research' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	} else {
+		printf(
+			'<p>%s</p>',
+			wp_kses_post( sprintf(
+				/* translators: %s: formatted currency amount. */
+				__( 'Add %s more to qualify for free shipping.', 'helix-research' ),
+				wc_price( $threshold - $subtotal )
+			) )
+		);
+	}
+	printf(
+		'<div class="hx-ship-meter__track"><span style="width:%s%%"></span></div>',
+		esc_attr( number_format( $progress, 2, '.', '' ) )
+	);
+	echo '</div>';
+}
+add_action( 'woocommerce_before_cart_table', 'helix_free_shipping_meter', 5 );
+add_action( 'woocommerce_before_checkout_form', 'helix_free_shipping_meter', 5 );
+
+/**
+ * Trust row under the checkout form.
+ */
+function helix_checkout_trust() {
+	$items = array(
+		array( 'lock', __( 'PCI-compliant encrypted payment', 'helix-research' ) ),
+		array( 'document', __( 'COA for your lot emailed with dispatch', 'helix-research' ) ),
+		array( 'truck', __( 'Tracked, insulated shipping', 'helix-research' ) ),
+	);
+
+	echo '<ul class="hx-checkout-trust">';
+	foreach ( $items as $item ) {
+		printf( '<li>%s<span>%s</span></li>', helix_icon( $item[0], 17 ), esc_html( $item[1] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+	echo '</ul>';
+}
+add_action( 'woocommerce_review_order_after_submit', 'helix_checkout_trust', 20 );
+
+/**
+ * Keep the header cart badge in sync.
+ *
+ * @param array $fragments Fragments.
+ * @return array
+ */
+function helix_cart_count_fragment( $fragments ) {
+	ob_start();
+	printf(
+		'<span class="hx-cart-count" data-hx-cart-count>%s</span>',
+		esc_html( WC()->cart ? WC()->cart->get_cart_contents_count() : 0 )
+	);
+	$fragments['span.hx-cart-count'] = ob_get_clean();
+	return $fragments;
+}
+add_filter( 'woocommerce_add_to_cart_fragments', 'helix_cart_count_fragment' );
+
+/**
+ * Empty-cart copy that points back at the catalog.
+ */
+function helix_empty_cart_cta() {
+	printf(
+		'<p class="hx-empty-cart"><a class="hx-btn" href="%s">%s</a></p>',
+		esc_url( get_permalink( wc_get_page_id( 'shop' ) ) ),
+		esc_html__( 'Browse the catalog', 'helix-research' )
+	);
+}
+add_action( 'woocommerce_cart_is_empty', 'helix_empty_cart_cta', 20 );

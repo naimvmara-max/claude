@@ -1,0 +1,19 @@
+/*
+Theme Name: Helix Research
+Theme URI: https://example.com/helix-research
+Author: Helix Research
+Description: A conversion-focused WooCommerce theme for research-chemical and reference-standard suppliers. Ships with laboratory specification tables, lot-level Certificate of Analysis surfacing, quantity price breaks and a research-use-only compliance layer. All front-end copy is written for laboratory / in-vitro research audiences only.
+Version: 1.0.0
+Requires at least: 6.2
+Tested up to: 6.6
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: helix-research
+Tags: e-commerce, woocommerce, custom-colors, custom-logo, custom-menu, featured-images, full-width-template, block-styles, wide-blocks, translation-ready
+WC requires at least: 7.0
+WC tested up to: 9.1
+*/
+
+/* Styles live in assets/css/main.css — this file exists for the theme header
+   and for anyone who wants to drop in quick overrides via a child theme. */

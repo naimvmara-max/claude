@@ -1,0 +1,30 @@
+/* Minimal fallback styles, loaded only when the active theme has not declared
+   add_theme_support( 'research-commerce' ). The Helix Research theme styles
+   these elements itself. */
+.rc-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 20, .72); }
+.rc-gate[hidden] { display: none; }
+.rc-gate__box { background: #fff; border-radius: 12px; padding: 28px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.rc-gate__list { margin: 16px 0; padding-left: 18px; font-size: 14px; }
+.rc-gate__actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 20px; }
+.rc-gate__decline { background: none; border: 0; text-decoration: underline; cursor: pointer; font-size: 14px; }
+.rc-gate__fine { font-size: 12px; color: #667; margin-top: 14px; }
+.rc-btn { display: inline-block; background: #1f7a5a; color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.rc-btn:hover { background: #17614a; color: #fff; }
+.rc-ruo { font-size: 13px; font-weight: 600; color: #7a5c12; background: #fff8e8; border: 1px solid #e8d5a3; border-radius: 6px; padding: 8px 12px; display: inline-block; }
+.rc-ack { border: 1px solid #e8d5a3; background: #fff8e8; border-radius: 8px; padding: 14px; margin: 18px 0; }
+.rc-lookup { border: 1px solid #e2e9e6; border-radius: 12px; padding: 20px; }
+.rc-lookup__form { display: flex; gap: 8px; flex-wrap: wrap; }
+.rc-lookup__form input[type="text"] { flex: 1; min-width: 200px; padding: 10px; border: 1px solid #d5ded9; border-radius: 8px; }
+.rc-lookup__result { margin-top: 18px; border-top: 1px solid #e2e9e6; padding-top: 18px; }
+.rc-lookup__result th { text-align: left; font-weight: 500; color: #667; padding: 4px 12px 4px 0; }
+.rc-lookup__miss { color: #a3543a; }
+.rc-form { display: grid; gap: 14px; max-width: 640px; }
+.rc-form input, .rc-form select, .rc-form textarea { width: 100%; padding: 10px; border: 1px solid #d5ded9; border-radius: 8px; }
+.rc-form textarea { min-height: 130px; }
+.rc-form__note { font-size: 12px; color: #667; }
+.rc-form__status { font-weight: 600; }
+.rc-form__status.is-ok { color: #1f7a5a; }
+.rc-form__status.is-error { color: #a3543a; }
+.rc-honey { position: absolute; left: -9999px; }
+.rc-tiers { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.rc-tiers th, .rc-tiers td { border-top: 1px solid #e2e9e6; padding: 8px 0; text-align: left; font-size: 14px; }
