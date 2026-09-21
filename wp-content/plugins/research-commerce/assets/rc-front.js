@@ -9,24 +9,39 @@
 	var data = window.rcData || {};
 	var STORAGE_KEY = 'rc_research_ack';
 
+	// Days <= 0 means "ask once per browser session", which is what you want
+	// while reviewing the site — and what some operators want in production.
+	var days = parseInt(data.gateDays, 10);
+	if (isNaN(days)) {
+		days = 30;
+	}
+	var perSession = days <= 0;
+
+	function store() {
+		return perSession ? window.sessionStorage : window.localStorage;
+	}
+
 	function readAck() {
 		try {
-			var raw = window.localStorage.getItem(STORAGE_KEY);
+			var raw = store().getItem(STORAGE_KEY);
 			if (!raw) {
 				return false;
 			}
-			return parseInt(raw, 10) > Date.now();
+			return perSession ? true : parseInt(raw, 10) > Date.now();
 		} catch (e) {
+			// Storage can be unavailable in a third-party iframe or with site
+			// data blocked; fall back to a cookie so the gate still works.
 			return document.cookie.indexOf(STORAGE_KEY + '=1') !== -1;
 		}
 	}
 
-	function writeAck(days) {
-		var expires = Date.now() + (days * 86400000);
+	function writeAck() {
+		var expires = perSession ? 1 : Date.now() + (days * 86400000);
 		try {
-			window.localStorage.setItem(STORAGE_KEY, String(expires));
+			store().setItem(STORAGE_KEY, String(expires));
 		} catch (e) {
-			document.cookie = STORAGE_KEY + '=1;path=/;max-age=' + (days * 86400) + ';SameSite=Lax';
+			document.cookie = STORAGE_KEY + '=1;path=/'
+				+ (perSession ? '' : ';max-age=' + (days * 86400)) + ';SameSite=Lax';
 		}
 	}
 
@@ -39,6 +54,7 @@
 	// appears once.
 	if (window.location.search.indexOf('rc_gate=reset') !== -1) {
 		try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+		try { window.sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
 		document.cookie = STORAGE_KEY + '=;path=/;max-age=0;SameSite=Lax';
 	}
 
@@ -52,7 +68,7 @@
 		if (accept) {
 			accept.focus();
 			accept.addEventListener('click', function () {
-				writeAck(parseInt(data.gateDays, 10) || 30);
+				writeAck();
 				gate.hidden = true;
 				document.documentElement.style.overflow = '';
 			});

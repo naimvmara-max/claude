@@ -60,6 +60,7 @@ class RC_Settings {
 				'type'    => 'number',
 				'default' => 30,
 				'section' => 'compliance',
+				'hint'    => __( 'Set to 0 to ask once per browser session instead, which is also the easiest way to review the gate yourself.', 'research-commerce' ),
 			),
 			'rc_gate_decline_url'          => array(
 				'label'   => __( 'Send visitors here if they decline', 'research-commerce' ),
