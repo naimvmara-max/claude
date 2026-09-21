@@ -200,3 +200,9 @@ body:not(.hx-dark) .rc-bundle__badge { background: var(--hx-bg-tint); color: var
 body.hx-dark div.product form.cart .quantity input[type="number"] { background: #131313; color: #fff; border-color: var(--hx-line); }
 body.hx-dark .hx-nav__list a { white-space: nowrap; }
 body.hx-dark .hx-nav__list { gap: 1.6rem; }
+
+/* A listing held back until its report is published. */
+.rc-awaiting-coa {
+	border: 1px solid var(--hx-warn-line); background: var(--hx-warn-bg); color: var(--hx-warn-ink);
+	border-radius: var(--hx-radius); padding: .9rem 1.1rem; font-size: .87rem; margin: 1.25rem 0 0;
+}

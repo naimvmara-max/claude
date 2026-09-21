@@ -30,6 +30,9 @@ class RC_Compliance {
 		add_action( 'woocommerce_before_single_product', array( __CLASS__, 'product_page_notice' ), 5 );
 		add_action( 'woocommerce_before_cart', array( __CLASS__, 'cart_notice' ), 5 );
 
+		add_filter( 'woocommerce_is_purchasable', array( __CLASS__, 'require_coa' ), 10, 2 );
+		add_action( 'woocommerce_single_product_summary', array( __CLASS__, 'awaiting_coa_notice' ), 29 );
+
 		add_action( 'save_post_product', array( __CLASS__, 'scan_product_copy' ), 20, 2 );
 		add_action( 'admin_notices', array( __CLASS__, 'copy_warning_notice' ) );
 	}
@@ -234,6 +237,42 @@ class RC_Compliance {
 		}
 
 		return $hits;
+	}
+
+	/**
+	 * The catalog states that a listing without a certificate is not available
+	 * for purchase. This enforces that rather than leaving it as a claim.
+	 *
+	 * @param bool       $purchasable Current state.
+	 * @param WC_Product $product     Product.
+	 * @return bool
+	 */
+	public static function require_coa( $purchasable, $product ) {
+		if ( ! $purchasable || ! get_option( 'rc_require_coa', 1 ) ) {
+			return $purchasable;
+		}
+
+		return rc_has_coa( $product->get_id() );
+	}
+
+	/**
+	 * Say why, where the add-to-cart button would have been.
+	 */
+	public static function awaiting_coa_notice() {
+		global $product;
+
+		if ( ! $product instanceof WC_Product || ! get_option( 'rc_require_coa', 1 ) ) {
+			return;
+		}
+
+		if ( rc_has_coa( $product->get_id() ) || ! $product->is_in_stock() ) {
+			return;
+		}
+
+		printf(
+			'<p class="rc-awaiting-coa">%s</p>',
+			esc_html__( 'Awaiting certificate of analysis. This lot is not offered for sale until its report is published.', 'research-commerce' )
+		);
 	}
 
 	/**

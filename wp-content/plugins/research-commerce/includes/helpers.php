@@ -183,3 +183,34 @@ function rc_get_tiers() {
 	 */
 	return apply_filters( 'rc_tiers', $tiers );
 }
+
+/**
+ * Is a certificate attached to this listing?
+ *
+ * @param int $product_id Product ID.
+ * @return bool
+ */
+function rc_has_coa( $product_id ) {
+	$url = get_post_meta( $product_id, '_rc_coa_url', true );
+
+	/**
+	 * Filter whether a product counts as certified.
+	 *
+	 * @param bool $has_coa    Result.
+	 * @param int  $product_id Product ID.
+	 */
+	return (bool) apply_filters( 'rc_has_coa', ! empty( $url ), $product_id );
+}
+
+/**
+ * Is the certificate a file to download, or a report page to open?
+ *
+ * @param int $product_id Product ID.
+ * @return string 'file' or 'report'.
+ */
+function rc_coa_link_type( $product_id ) {
+	$url = (string) get_post_meta( $product_id, '_rc_coa_url', true );
+	$path = wp_parse_url( $url, PHP_URL_PATH );
+
+	return ( $path && preg_match( '/\.(pdf|jpe?g|png)$/i', $path ) ) ? 'file' : 'report';
+}

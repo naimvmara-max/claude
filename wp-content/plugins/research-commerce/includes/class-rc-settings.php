@@ -87,6 +87,13 @@ class RC_Settings {
 				'default' => '',
 				'section' => 'compliance',
 			),
+			'rc_require_coa'               => array(
+				'label'   => __( 'Only sell listings that have a certificate attached', 'research-commerce' ),
+				'type'    => 'checkbox',
+				'default' => 1,
+				'section' => 'compliance',
+				'hint'    => __( 'The catalog copy says a listing without a certificate is not available for purchase. This enforces it: such products cannot be added to an order.', 'research-commerce' ),
+			),
 			'rc_tiers'                     => array(
 				'label'   => __( 'Quantity price breaks', 'research-commerce' ),
 				'type'    => 'text',

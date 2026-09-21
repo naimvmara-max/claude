@@ -358,11 +358,18 @@ function helix_single_assurances() {
 	echo '<div class="hx-assure">';
 
 	if ( $coa ) {
+		// A hosted report page is opened, not downloaded — and an independent
+		// verification link is worth naming as one.
+		$is_file = ! function_exists( 'rc_coa_link_type' ) || 'file' === rc_coa_link_type( $product->get_id() );
+		$label   = $is_file
+			? __( 'Download certificate of analysis', 'helix-research' )
+			: __( 'View the independent lab report', 'helix-research' );
+
 		printf(
 			'<a class="hx-btn hx-btn--ghost hx-btn--block" href="%s" target="_blank" rel="noopener">%s %s</a>',
 			esc_url( $coa ),
 			helix_icon( 'document', 18 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
-			esc_html__( 'Download certificate of analysis', 'helix-research' )
+			esc_html( $label )
 		);
 	}
 
