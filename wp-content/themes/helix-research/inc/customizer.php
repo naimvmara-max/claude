@@ -9,6 +9,15 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Is the storefront running the dark Phantom palette?
+ *
+ * @return bool
+ */
+function helix_is_dark() {
+	return 'dark' === get_theme_mod( 'helix_theme_mode', 'dark' );
+}
+
+/**
  * The catalog URL.
  *
  * Resolves the WooCommerce shop page rather than assuming a /shop/ slug, so
@@ -59,6 +68,9 @@ function helix_page_url( $slug ) {
 function helix_defaults() {
 	return array(
 		'announcement_enable'  => true,
+		'promo_code'           => 'PHANTOM15',
+		'promo_text'           => __( 'First order? Use code', 'helix-research' ),
+		'promo_suffix'         => __( 'for 15% off', 'helix-research' ),
 		'announcement_text'    => __( 'Lot-specific HPLC &amp; MS certificates published with every batch. Orders placed before 2:00 PM CT ship same day.', 'helix-research' ),
 		'announcement_link'    => '',
 		'header_support'       => __( 'Technical support: support@example.com', 'helix-research' ),
@@ -143,6 +155,9 @@ function helix_customize_register( $wp_customize ) {
 
 	$fields = array(
 		'announcement_enable' => array( 'helix_announcement', 'checkbox' ),
+		'promo_code'          => array( 'helix_announcement', 'text' ),
+		'promo_text'          => array( 'helix_announcement', 'text' ),
+		'promo_suffix'        => array( 'helix_announcement', 'text' ),
 		'announcement_text'   => array( 'helix_announcement', 'textarea' ),
 		'announcement_link'   => array( 'helix_announcement', 'url' ),
 
@@ -213,6 +228,23 @@ function helix_customize_register( $wp_customize ) {
 		'label'   => __( 'Hero Image', 'helix-research' ),
 		'section' => 'helix_hero',
 	) ) );
+
+	$wp_customize->add_setting( 'helix_theme_mode', array(
+		'default'           => 'dark',
+		'sanitize_callback' => function ( $value ) {
+			return in_array( $value, array( 'dark', 'light' ), true ) ? $value : 'dark';
+		},
+	) );
+	$wp_customize->add_control( 'helix_theme_mode', array(
+		'label'       => __( 'Theme', 'helix-research' ),
+		'description' => __( 'Dark is the Phantom storefront palette. Light is the clinical-supply look.', 'helix-research' ),
+		'section'     => 'helix_header',
+		'type'        => 'select',
+		'choices'     => array(
+			'dark'  => __( 'Dark', 'helix-research' ),
+			'light' => __( 'Light', 'helix-research' ),
+		),
+	) );
 
 	// Brand colors.
 	$wp_customize->add_section( 'helix_colors', array(

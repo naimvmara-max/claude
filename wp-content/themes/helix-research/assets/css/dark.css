@@ -1,0 +1,202 @@
+/* =========================================================================
+   Phantom dark theme
+   Loaded after main.css. Everything here is either a token override or a
+   component that assumed a light background.
+   ====================================================================== */
+
+body.hx-dark {
+	--hx-bg: #0a0a0a;
+	--hx-bg-soft: #111111;
+	--hx-bg-tint: #151515;
+	--hx-line: #272727;
+	--hx-ink: #ffffff;
+	--hx-body: #c4c4c4;
+	--hx-muted: #8a8a8a;
+	--hx-accent: #ffffff;
+	--hx-deep: #000000;
+	--hx-warn-bg: #1d1708;
+	--hx-warn-line: #43371a;
+	--hx-warn-ink: #d7b462;
+	--hx-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 10px 30px rgba(0, 0, 0, .5);
+	--hx-shadow-lg: 0 30px 70px rgba(0, 0, 0, .7);
+	--hx-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+	--hx-display: "Archivo Black", var(--hx-sans);
+
+	background: var(--hx-bg);
+	color: var(--hx-body);
+}
+
+/* Type ------------------------------------------------------------------ */
+body.hx-dark h1,
+body.hx-dark h2,
+body.hx-dark .hx-hero h1,
+body.hx-dark div.product .product_title {
+	font-family: var(--hx-display);
+	font-weight: 400;
+	letter-spacing: -.01em;
+	text-transform: uppercase;
+}
+body.hx-dark .hx-eyebrow,
+body.hx-dark .hx-nav__list a,
+body.hx-dark .hx-specs th,
+body.hx-dark .hx-tiers caption,
+body.hx-dark .hx-spec-card__label,
+body.hx-dark .rc-calc__grid span,
+body.hx-dark .hx-footer h3,
+body.hx-dark .hx-announce {
+	font-family: var(--hx-mono);
+	text-transform: uppercase;
+	letter-spacing: .12em;
+}
+body.hx-dark .hx-nav__list a { font-size: .74rem; }
+body.hx-dark .hx-logo__text { font-family: var(--hx-mono); letter-spacing: .22em; text-transform: uppercase; font-weight: 500; }
+body.hx-dark .hx-logo__mark { background: transparent; border: 1px solid var(--hx-line); color: #fff; }
+
+/* Surfaces -------------------------------------------------------------- */
+body.hx-dark .hx-header { background: rgba(10, 10, 10, .94); border-bottom-color: var(--hx-line); }
+body.hx-dark .hx-announce { background: #000; color: var(--hx-muted); font-size: .68rem; border-bottom: 1px solid var(--hx-line); }
+body.hx-dark .hx-hero { background: linear-gradient(180deg, #111 0%, var(--hx-bg) 70%); }
+body.hx-dark .hx-page-hero { background: var(--hx-bg-soft); border-bottom-color: var(--hx-line); }
+body.hx-dark .hx-trust,
+body.hx-dark .hx-section--coa { background: var(--hx-bg-soft); border-color: var(--hx-line); }
+body.hx-dark .hx-trust__icon { background: var(--hx-bg); border-color: var(--hx-line); color: #fff; }
+body.hx-dark .hx-steps li,
+body.hx-dark .hx-cat,
+body.hx-dark .hx-faq__item,
+body.hx-dark .hx-spec-card,
+body.hx-dark .rc-lookup,
+body.hx-dark .rc-calc,
+body.hx-dark ul.products li.product {
+	background: var(--hx-bg-soft);
+	border-color: var(--hx-line);
+}
+body.hx-dark .hx-section--dark { background: #000; }
+body.hx-dark .hx-cta-band { background: var(--hx-bg-soft); border-block: 1px solid var(--hx-line); }
+body.hx-dark .hx-cta-band p { color: var(--hx-muted); }
+body.hx-dark .hx-footer { background: #000; border-top: 1px solid var(--hx-line); }
+
+/* Buttons --------------------------------------------------------------- */
+body.hx-dark .hx-btn {
+	background: #fff; color: #000; border-color: #fff;
+	font-family: var(--hx-mono); text-transform: uppercase; letter-spacing: .1em; font-size: .78rem;
+}
+body.hx-dark .hx-btn:hover { background: #d8d8d8; border-color: #d8d8d8; color: #000; }
+body.hx-dark .hx-btn--ghost { background: transparent; color: #fff; border-color: var(--hx-line); }
+body.hx-dark .hx-btn--ghost:hover { background: #1b1b1b; border-color: #3a3a3a; color: #fff; }
+body.hx-dark ul.products li.product .button,
+body.hx-dark div.product form.cart .button,
+body.hx-dark a.button,
+body.hx-dark button.button,
+body.hx-dark input.button {
+	background: #fff !important; color: #000 !important; border: 1px solid #fff !important;
+	font-family: var(--hx-mono); text-transform: uppercase; letter-spacing: .1em;
+}
+body.hx-dark ul.products li.product .button:hover,
+body.hx-dark div.product form.cart .button:hover { background: #d8d8d8 !important; }
+
+/* Product surfaces ------------------------------------------------------ */
+body.hx-dark div.product .woocommerce-product-gallery {
+	background: #0d0d0d; border: 1px solid var(--hx-line); border-radius: var(--hx-radius-lg); padding: 1.5rem;
+}
+body.hx-dark div.product .woocommerce-product-gallery img { background: transparent; mix-blend-mode: normal; }
+body.hx-dark .hx-specs { border-color: var(--hx-line); background: transparent; }
+body.hx-dark .hx-specs th { background: transparent; color: var(--hx-muted); font-size: .68rem; font-weight: 500; }
+body.hx-dark .hx-specs td { color: #e4e4e4; font-weight: 400; text-align: right; }
+body.hx-dark .hx-specs th, body.hx-dark .hx-specs td { border-bottom-color: var(--hx-line); padding: .85rem .9rem; }
+body.hx-dark .hx-tiers { border-color: var(--hx-line); }
+body.hx-dark .hx-tiers caption { background: transparent; color: var(--hx-muted); border-bottom: 1px solid var(--hx-line); }
+body.hx-dark .hx-tiers th { color: #e4e4e4; }
+body.hx-dark .hx-tiers td:last-child { color: #fff; }
+body.hx-dark .hx-tiers tr.is-active { background: #1a1a1a; }
+body.hx-dark .hx-card__purity { background: #fff; color: #000; font-family: var(--hx-mono); letter-spacing: .06em; }
+body.hx-dark .hx-card__oos { background: #1b1b1b; color: var(--hx-muted); border-color: var(--hx-line); }
+body.hx-dark span.onsale { background: #fff; color: #000; border-color: #fff; }
+body.hx-dark div.product p.price,
+body.hx-dark ul.products li.product .price { color: #fff; }
+body.hx-dark div.product .stock { color: #6fcf8f; }
+body.hx-dark div.product .stock.out-of-stock { color: #cf8b6f; }
+
+/* The product summary, laid out like the brand page ---------------------- */
+body.hx-dark div.product .product_title { font-size: clamp(2.6rem, 6vw, 4rem); line-height: .95; margin: .25rem 0 .75rem; }
+.hx-product-eyebrow { font-family: var(--hx-mono); text-transform: uppercase; letter-spacing: .18em; font-size: .7rem; color: var(--hx-muted); margin: 0; }
+.hx-product-compound { font-family: var(--hx-mono); text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; color: var(--hx-muted); margin: 0 0 1.25rem; }
+body.hx-dark div.product .woocommerce-product-details__short-description {
+	border-left: 2px solid var(--hx-line); padding-left: 1rem; color: #cfcfcf; font-size: .98rem;
+}
+
+/* Forms, tabs, panels --------------------------------------------------- */
+body.hx-dark input, body.hx-dark select, body.hx-dark textarea,
+body.hx-dark .rc-calc__grid input,
+body.hx-dark .hx-search input[type="search"],
+body.hx-dark .rc-lookup__form input[type="text"] {
+	background: #131313; border-color: var(--hx-line); color: #f0f0f0;
+}
+body.hx-dark input::placeholder, body.hx-dark textarea::placeholder { color: #666; }
+body.hx-dark .rc-calc__out { background: #0f0f0f; border: 1px solid var(--hx-line); }
+body.hx-dark .rc-calc__out dd { color: #fff; }
+body.hx-dark .rc-calc__tab.is-active { color: #fff; border-bottom-color: #fff; }
+body.hx-dark div.product .woocommerce-tabs ul.tabs { border-bottom-color: var(--hx-line); }
+body.hx-dark div.product .woocommerce-tabs ul.tabs li.active a { color: #fff; border-bottom-color: #fff; }
+body.hx-dark .woocommerce-message,
+body.hx-dark .woocommerce-info,
+body.hx-dark .woocommerce-error { background: var(--hx-bg-soft); color: var(--hx-body); border-top-color: #fff; }
+
+/* Compliance layer ------------------------------------------------------ */
+body.hx-dark .rc-gate { background: rgba(0, 0, 0, .88); }
+body.hx-dark .rc-gate__box { background: #0f0f0f; border: 1px solid var(--hx-line); }
+body.hx-dark .hx-ruo-badge,
+body.hx-dark .rc-ruo,
+body.hx-dark .hx-hero__note { background: var(--hx-warn-bg); border-color: var(--hx-warn-line); color: var(--hx-warn-ink); }
+body.hx-dark .rc-ack { background: var(--hx-warn-bg); border-color: var(--hx-warn-line); }
+body.hx-dark .rc-ack label { color: var(--hx-warn-ink); }
+
+/* Promo bar with a copyable code ---------------------------------------- */
+.hx-promo { display: flex; align-items: center; justify-content: center; gap: .6rem; flex-wrap: wrap; }
+.hx-promo__code {
+	font-family: var(--hx-mono, monospace); letter-spacing: .14em; text-transform: uppercase;
+	background: #1c1c1c; border: 1px solid #333; color: #fff;
+	padding: .2rem .55rem; border-radius: 4px; cursor: pointer; font-size: .7rem;
+}
+.hx-promo__code:hover { background: #262626; }
+.hx-promo__hint { font-size: .62rem; color: #6d6d6d; letter-spacing: .14em; }
+.hx-promo__hint.is-copied { color: #6fcf8f; }
+
+/* Quantity bundles ------------------------------------------------------ */
+.rc-bundles { margin: 1.5rem 0 0; width: 100%; }
+.rc-bundles__label { font-family: var(--hx-mono, monospace); text-transform: uppercase; letter-spacing: .16em; font-size: .68rem; color: var(--hx-muted); margin: 0 0 .75rem; }
+.rc-bundle {
+	display: flex; align-items: center; gap: .9rem;
+	border: 1px solid var(--hx-line); border-radius: var(--hx-radius);
+	padding: 1rem 1.15rem; margin-bottom: .6rem; cursor: pointer;
+	background: var(--hx-bg-soft); transition: border-color .15s ease, background .15s ease;
+}
+.rc-bundle:hover { border-color: #3d3d3d; }
+.rc-bundle.is-selected { border-color: #fff; background: #151515; }
+.rc-bundle input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.rc-bundle__box { width: 18px; height: 18px; border: 1px solid #3d3d3d; border-radius: 3px; flex: none; position: relative; }
+.rc-bundle.is-selected .rc-bundle__box { background: #fff; border-color: #fff; }
+.rc-bundle.is-selected .rc-bundle__box::after {
+	content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px;
+	border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.rc-bundle__text { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.rc-bundle__name { color: var(--hx-ink); font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.rc-bundle__badge {
+	font-family: var(--hx-mono, monospace); text-transform: uppercase; letter-spacing: .1em; font-size: .6rem;
+	background: #2a2a2a; color: #e6e6e6; border: 1px solid #3d3d3d; border-radius: 3px; padding: .15rem .4rem;
+}
+.rc-bundle__meta { font-family: var(--hx-mono, monospace); text-transform: uppercase; letter-spacing: .1em; font-size: .64rem; color: var(--hx-muted); }
+.rc-bundle__price { margin-left: auto; color: var(--hx-ink); font-size: 1.25rem; font-weight: 600; white-space: nowrap; }
+body:not(.hx-dark) .rc-bundle { background: #fff; }
+body:not(.hx-dark) .rc-bundle.is-selected { border-color: var(--hx-accent); background: var(--hx-bg-soft); }
+body:not(.hx-dark) .rc-bundle.is-selected .rc-bundle__box { background: var(--hx-accent); border-color: var(--hx-accent); }
+body:not(.hx-dark) .rc-bundle.is-selected .rc-bundle__box::after { border-color: #fff; }
+body:not(.hx-dark) .rc-bundle__badge { background: var(--hx-bg-tint); color: var(--hx-ink); border-color: var(--hx-line); }
+
+/* The add-to-cart row sits below the bundle cards, which are full width. */
+.woocommerce div.product form.cart { flex-direction: column; align-items: stretch; }
+.woocommerce div.product form.cart .hx-cart-row { display: flex; gap: .75rem; align-items: center; width: 100%; margin-top: 1rem; }
+.woocommerce div.product form.cart .hx-cart-row .button { flex: 1; }
+body.hx-dark div.product form.cart .quantity input[type="number"] { background: #131313; color: #fff; border-color: var(--hx-line); }
+body.hx-dark .hx-nav__list a { white-space: nowrap; }
+body.hx-dark .hx-nav__list { gap: 1.6rem; }

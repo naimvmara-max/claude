@@ -128,6 +128,11 @@ class RC_Pricing {
 			return;
 		}
 
+		// The bundle selector already shows these prices as choices.
+		if ( class_exists( 'RC_Bundles' ) && RC_Bundles::is_rendered() ) {
+			return;
+		}
+
 		$tiers = rc_get_tiers();
 		if ( ! $tiers ) {
 			return;

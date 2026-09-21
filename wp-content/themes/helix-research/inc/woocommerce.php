@@ -175,12 +175,74 @@ add_filter( 'woocommerce_product_single_add_to_cart_text', 'helix_add_to_cart_te
  * ---------------------------------------------------------------------- */
 
 /**
- * Research-use badge directly under the product title.
+ * The heading shows the catalog code alone; the fill size sits above it as an
+ * eyebrow and the compound below it, so the three read as one block instead of
+ * one long line.
+ */
+function helix_single_title() {
+	global $product;
+
+	$title = get_the_title();
+
+	if ( $product ) {
+		$quantity = trim( (string) get_post_meta( $product->get_id(), '_rc_quantity', true ) );
+
+		// Strip a trailing fill size when the eyebrow already shows it.
+		if ( $quantity ) {
+			$pattern = '/\s*' . preg_quote( $quantity, '/' ) . '$/i';
+			$title   = preg_replace( $pattern, '', $title );
+
+			// Also match "30mg" where the meta reads "30 mg".
+			$compact = preg_replace( '/\s+/', '', $quantity );
+			$title   = preg_replace( '/\s*' . preg_quote( $compact, '/' ) . '$/i', '', $title );
+		}
+	}
+
+	printf( '<h1 class="product_title entry-title">%s</h1>', esc_html( $title ) );
+}
+
+/**
+ * Fill size above the title, the way the brand page leads.
+ */
+function helix_single_eyebrow() {
+	global $product;
+	if ( ! $product ) {
+		return;
+	}
+
+	$quantity = get_post_meta( $product->get_id(), '_rc_quantity', true );
+	if ( $quantity ) {
+		printf( '<p class="hx-product-eyebrow">%s</p>', esc_html( $quantity ) );
+	}
+}
+add_action( 'woocommerce_single_product_summary', 'helix_single_eyebrow', 4 );
+
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_title', 5 );
+add_action( 'woocommerce_single_product_summary', 'helix_single_title', 5 );
+
+/**
+ * The compound the catalog code refers to, directly under the title.
+ */
+function helix_single_compound() {
+	global $product;
+	if ( ! $product ) {
+		return;
+	}
+
+	$compound = get_post_meta( $product->get_id(), '_rc_compound', true );
+	if ( $compound && 0 !== strcasecmp( $compound, $product->get_name() ) ) {
+		printf( '<p class="hx-product-compound">%s</p>', esc_html( $compound ) );
+	}
+}
+add_action( 'woocommerce_single_product_summary', 'helix_single_compound', 6 );
+
+/**
+ * Research-use badge under the product title.
  */
 function helix_single_ruo() {
 	helix_ruo_badge();
 }
-add_action( 'woocommerce_single_product_summary', 'helix_single_ruo', 6 );
+add_action( 'woocommerce_single_product_summary', 'helix_single_ruo', 7 );
 
 /**
  * The four specs a buyer checks before adding to the order. The full table

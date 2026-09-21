@@ -74,12 +74,25 @@ function helix_announcement_bar() {
 	}
 
 	$link = helix_opt( 'announcement_link' );
+	$code = helix_opt( 'promo_code' );
+
 	echo '<div class="hx-announce"><div class="hx-wrap">';
-	if ( $link ) {
+
+	if ( $code ) {
+		// A first-order code the visitor can copy with one tap.
+		printf(
+			'<span class="hx-promo">%1$s <button type="button" class="hx-promo__code" data-hx-copy="%2$s">%2$s</button> %3$s <span class="hx-promo__hint" data-hx-copy-hint>%4$s</span></span>',
+			esc_html( helix_opt( 'promo_text' ) ),
+			esc_attr( $code ),
+			esc_html( helix_opt( 'promo_suffix' ) ),
+			esc_html__( 'Tap to copy', 'helix-research' )
+		);
+	} elseif ( $link ) {
 		printf( '<a href="%s">%s</a>', esc_url( $link ), wp_kses_post( $text ) );
 	} else {
 		echo wp_kses_post( $text );
 	}
+
 	echo '</div></div>';
 }
 

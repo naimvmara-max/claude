@@ -85,3 +85,50 @@
 		}, { passive: true });
 	}
 }());
+
+/* Copy the promo code from the announcement bar ------------------------- */
+(function () {
+	'use strict';
+
+	var button = document.querySelector('[data-hx-copy]');
+	if (!button) {
+		return;
+	}
+
+	var hint = document.querySelector('[data-hx-copy-hint]');
+	var original = hint ? hint.textContent : '';
+
+	button.addEventListener('click', function () {
+		var code = button.getAttribute('data-hx-copy');
+
+		var done = function () {
+			if (!hint) { return; }
+			hint.textContent = 'Copied';
+			hint.classList.add('is-copied');
+			setTimeout(function () {
+				hint.textContent = original;
+				hint.classList.remove('is-copied');
+			}, 2000);
+		};
+
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			navigator.clipboard.writeText(code).then(done, fallback);
+		} else {
+			fallback();
+		}
+
+		function fallback() {
+			// execCommand still works where the async clipboard API is blocked,
+			// which includes some third-party iframes.
+			var field = document.createElement('textarea');
+			field.value = code;
+			field.setAttribute('readonly', '');
+			field.style.position = 'absolute';
+			field.style.left = '-9999px';
+			document.body.appendChild(field);
+			field.select();
+			try { document.execCommand('copy'); done(); } catch (e) { /* nothing to do */ }
+			document.body.removeChild(field);
+		}
+	});
+}());

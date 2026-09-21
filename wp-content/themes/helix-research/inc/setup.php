@@ -104,6 +104,9 @@ add_action( 'widgets_init', 'helix_widgets_init' );
  * @return array
  */
 function helix_body_classes( $classes ) {
+	if ( helix_is_dark() ) {
+		$classes[] = 'hx-dark';
+	}
 	if ( ! is_active_sidebar( 'shop-sidebar' ) ) {
 		$classes[] = 'no-shop-sidebar';
 	}

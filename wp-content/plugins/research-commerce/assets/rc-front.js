@@ -253,3 +253,48 @@
 
 	recalc();
 }());
+
+/* Quantity bundles ----------------------------------------------------- */
+(function () {
+	'use strict';
+
+	var wrap = document.querySelector('[data-rc-bundles]');
+	if (!wrap) {
+		return;
+	}
+
+	var qty = document.querySelector('form.cart .quantity input[type="number"]');
+
+	wrap.addEventListener('change', function (event) {
+		var input = event.target;
+		if (!input || input.name !== 'rc_bundle') {
+			return;
+		}
+
+		wrap.querySelectorAll('.rc-bundle').forEach(function (card) {
+			card.classList.toggle('is-selected', card.contains(input));
+		});
+
+		if (qty) {
+			qty.value = input.value;
+			// Let the tier table and anything else listening react.
+			qty.dispatchEvent(new Event('input', { bubbles: true }));
+			qty.dispatchEvent(new Event('change', { bubbles: true }));
+		}
+	});
+
+	// Typing in the quantity field directly should keep the cards honest.
+	if (qty) {
+		qty.addEventListener('input', function () {
+			var value = parseInt(qty.value, 10);
+			var match = wrap.querySelector('input[name="rc_bundle"][value="' + value + '"]');
+
+			wrap.querySelectorAll('.rc-bundle').forEach(function (card) {
+				var radio = card.querySelector('input[name="rc_bundle"]');
+				var selected = !!match && radio === match;
+				card.classList.toggle('is-selected', selected);
+				radio.checked = selected;
+			});
+		});
+	}
+}());
