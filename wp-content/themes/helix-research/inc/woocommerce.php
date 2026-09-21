@@ -179,9 +179,47 @@ function helix_single_ruo() {
 add_action( 'woocommerce_single_product_summary', 'helix_single_ruo', 6 );
 
 /**
- * Key specs table above the price.
+ * The four specs a buyer checks before adding to the order. The full table
+ * follows the add-to-cart form so the buy action stays above the fold.
+ *
+ * @return string[] Spec labels, in display order.
  */
-function helix_single_specs() {
+function helix_key_spec_labels() {
+	return apply_filters( 'helix_key_spec_labels', array(
+		__( 'Assayed purity', 'research-commerce' ),
+		__( 'Lot in stock', 'research-commerce' ),
+		__( 'Quantity per vial', 'research-commerce' ),
+		__( 'Physical form', 'research-commerce' ),
+	) );
+}
+
+/**
+ * Render a spec table.
+ *
+ * @param array  $specs Label => value.
+ * @param string $class Extra class.
+ * @param string $id    Optional element id.
+ */
+function helix_render_spec_table( $specs, $class = '', $id = '' ) {
+	printf(
+		'<div class="hx-specs %s"%s><table><tbody>',
+		esc_attr( $class ),
+		$id ? ' id="' . esc_attr( $id ) . '"' : ''
+	);
+	foreach ( $specs as $label => $value ) {
+		printf(
+			'<tr><th scope="row">%s</th><td>%s</td></tr>',
+			esc_html( $label ),
+			wp_kses_post( $value )
+		);
+	}
+	echo '</tbody></table></div>';
+}
+
+/**
+ * Condensed specs directly above the add-to-cart form.
+ */
+function helix_single_key_specs() {
 	global $product;
 	if ( ! $product || ! function_exists( 'rc_get_specs' ) ) {
 		return;
@@ -192,17 +230,53 @@ function helix_single_specs() {
 		return;
 	}
 
-	echo '<div class="hx-specs"><table><tbody>';
-	foreach ( $specs as $label => $value ) {
+	$keys = helix_key_spec_labels();
+	$top  = array();
+	foreach ( $keys as $label ) {
+		if ( isset( $specs[ $label ] ) ) {
+			$top[ $label ] = $specs[ $label ];
+		}
+	}
+
+	if ( empty( $top ) ) {
+		return;
+	}
+
+	helix_render_spec_table( $top, 'hx-specs--key' );
+
+	if ( count( $specs ) > count( $top ) ) {
 		printf(
-			'<tr><th scope="row">%s</th><td>%s</td></tr>',
-			esc_html( $label ),
-			wp_kses_post( $value )
+			'<p class="hx-specs__more"><a href="#hx-full-specs">%s</a></p>',
+			esc_html__( 'Full specifications and sequence ↓', 'helix-research' )
 		);
 	}
-	echo '</tbody></table></div>';
 }
-add_action( 'woocommerce_single_product_summary', 'helix_single_specs', 25 );
+add_action( 'woocommerce_single_product_summary', 'helix_single_key_specs', 25 );
+
+/**
+ * The complete specification table, below the buy area.
+ */
+function helix_single_full_specs() {
+	global $product;
+	if ( ! $product || ! function_exists( 'rc_get_specs' ) ) {
+		return;
+	}
+
+	$specs = rc_get_specs( $product->get_id() );
+	$keys  = helix_key_spec_labels();
+
+	foreach ( $keys as $label ) {
+		unset( $specs[ $label ] );
+	}
+
+	if ( empty( $specs ) ) {
+		return;
+	}
+
+	printf( '<h2 class="hx-specs__heading">%s</h2>', esc_html__( 'Full specification', 'helix-research' ) );
+	helix_render_spec_table( $specs, 'hx-specs--full', 'hx-full-specs' );
+}
+add_action( 'woocommerce_single_product_summary', 'helix_single_full_specs', 45 );
 
 /**
  * Reassurance list and COA button below the add-to-cart form.

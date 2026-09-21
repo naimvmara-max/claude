@@ -549,3 +549,6 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 .rc-ruo--cart { margin-bottom: 1rem; }
 .rc-lookup__title { font-size: 1.05rem; margin-bottom: 1rem; }
 .hx-empty { color: var(--hx-muted); }
+.hx-specs--key th { width: 48%; }
+.hx-specs__more { margin: -.5rem 0 1.25rem; font-size: .85rem; }
+.hx-specs__heading { font-size: 1.05rem; margin: 2rem 0 .75rem; }
