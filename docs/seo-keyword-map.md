@@ -56,15 +56,42 @@ in this export, the work is translated product and documentation pages with
 not machine translation, because a lab buyer spots bad German instantly. Start
 with GHK-Cu and BPC-157 in German only, measure, then decide.
 
+## Catalog codes and the full compound names
+
+Listings, titles and product copy use the catalog code the vial label carries —
+`GLP-RT`, `GLP-SEM`, `GLP-TZ`, `TESA`, and `BPC-157`, `GHK-Cu`, `MOTS-c` where
+code and compound are already the same. The full chemical name lives in three
+places only:
+
+1. The **Compound** row of the specification table (visible on the page).
+2. The **search title** — `GLP-RT 10 mg (Retatrutide) | 98.7% Purity | …`.
+3. **Structured data** as `alternateName`, and the Merchant feed title.
+
+That row in the spec table is not decoration. Google requires structured data
+and meta to reflect what a visitor actually sees; a page whose title says
+"Retatrutide" while nothing on the page does is cloaking, and the penalty for it
+is the loss of exactly the rankings this file is about. One visible row keeps
+the markup honest while the branding stays on the code.
+
+The mapping lives in `data/phantom-catalog.csv` under `Meta: _rc_compound`, and
+the field is editable per product under **Research data**.
+
+**Label mismatch to resolve:** the printed vials read SEMAGLUTIDE and
+TIRZAPETIDE in full, while the site will list GLP-SEM and GLP-TZ. A buyer
+ordering "GLP-SEM" and receiving a vial marked "SEMAGLUTIDE" has a discrepancy
+between their paperwork and their label — the same discrepancy the COA lookup
+exists to prevent. Pick one naming system and make the labels, the listings and
+the certificates agree.
+
 ## Page → keyword map
 
 | Page | Primary | Secondary |
 | --- | --- | --- |
-| `/product/ghk-cu-50-mg/` | ghk cu kaufen | buy ghkcu, ghkcu price, ghk cu preis, comprar ghk cu, köpa ghk cu, ghk cu pris |
-| `/product/bpc-157-10-mg/` | bpc 157 price | buy bpc, bpc kaufen, bpc 157 preis, bpc 157 prix, bpc 157 pris |
-| `/product/retatrutide-10-mg/` | retatrutide price | retatrutide preis, retatrutide kaufen |
-| `/product/tesamorelin-10-mg/` | tesa kaufen | tesa preis, tesa price, precio tesa, köpa tesa |
-| `/product/mots-c-10-mg/` | motsc kaufen | motsc preis |
+| `/product/ghk-cu-50-mg/` (GHK-Cu) | ghk cu kaufen | buy ghkcu, ghkcu price, ghk cu preis, comprar ghk cu, köpa ghk cu, ghk cu pris |
+| `/product/bpc-157-10-mg/` (BPC-157) | bpc 157 price | buy bpc, bpc kaufen, bpc 157 preis, bpc 157 prix, bpc 157 pris |
+| `/product/glp-rt-10-mg/` (GLP-RT) | retatrutide price | retatrutide preis, retatrutide kaufen |
+| `/product/tesa-10-mg/` (TESA) | tesa kaufen | tesa preis, tesa price, precio tesa, köpa tesa |
+| `/product/mots-c-10-mg/` (MOTS-c) | motsc kaufen | motsc preis |
 | Catalog | research peptides with certificate of analysis | peptide reference standards |
 | `how-to-read-a-peptide-certificate-of-analysis` | how to read a peptide COA | certificate of analysis peptide |
 | `net-peptide-content-vs-gross-weight` | net peptide content | peptide gross vs net weight |

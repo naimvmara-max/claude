@@ -40,6 +40,10 @@ function rc_ruo_notice( $context = 'short' ) {
  */
 function rc_spec_fields() {
 	return array(
+		'_rc_compound'   => array(
+			'label'       => __( 'Compound', 'research-commerce' ),
+			'placeholder' => __( 'Full chemical name, e.g. Retatrutide', 'research-commerce' ),
+		),
 		'_rc_cas'        => array(
 			'label'       => __( 'CAS number', 'research-commerce' ),
 			'placeholder' => '000000-00-0',

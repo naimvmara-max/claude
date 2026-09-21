@@ -33,6 +33,15 @@
 	/* Research-use acknowledgement ------------------------------------- */
 	var gate = document.querySelector('[data-rc-gate]');
 
+	// ?rc_gate=reset forgets the stored confirmation, so the gate can be
+	// reviewed without clearing site data. The acceptance lives in the
+	// browser for the configured number of days, which is why it only
+	// appears once.
+	if (window.location.search.indexOf('rc_gate=reset') !== -1) {
+		try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+		document.cookie = STORAGE_KEY + '=;path=/;max-age=0;SameSite=Lax';
+	}
+
 	if (gate && !readAck()) {
 		gate.hidden = false;
 		document.documentElement.style.overflow = 'hidden';

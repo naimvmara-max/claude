@@ -125,7 +125,13 @@ class RC_Feed {
 			$description = trim( $description . ' ' . rc_ruo_notice( 'short' ) );
 		}
 
-		$title_bits = array( get_the_title( $id ) );
+		$compound   = get_post_meta( $id, '_rc_compound', true );
+		$name       = get_the_title( $id );
+		if ( $compound && false === stripos( $name, $compound ) ) {
+			$name = sprintf( '%s (%s)', $name, $compound );
+		}
+
+		$title_bits = array( $name );
 		if ( $purity ) {
 			$title_bits[] = $purity . ' ' . __( 'purity', 'research-commerce' );
 		}

@@ -81,9 +81,17 @@ class RC_SEO {
 	 */
 	public static function title_parts( $parts ) {
 		if ( is_singular( 'product' ) ) {
-			$id     = get_the_ID();
-			$purity = get_post_meta( $id, '_rc_purity', true );
-			$title  = get_the_title( $id );
+			$id       = get_the_ID();
+			$purity   = get_post_meta( $id, '_rc_purity', true );
+			$compound = get_post_meta( $id, '_rc_compound', true );
+			$title    = get_the_title( $id );
+
+			// The catalog code is what the listing and the vial label show;
+			// the full chemical name is what people search for, so the search
+			// title carries both.
+			if ( $compound && false === stripos( $title, $compound ) ) {
+				$title = sprintf( '%s (%s)', $title, $compound );
+			}
 
 			$bits = array( $title );
 			if ( $purity ) {
@@ -158,20 +166,41 @@ class RC_SEO {
 	 */
 	public static function description() {
 		if ( is_singular( 'product' ) ) {
-			$id      = get_the_ID();
-			$excerpt = get_post_field( 'post_excerpt', $id );
+			$id       = get_the_ID();
+			$excerpt  = get_post_field( 'post_excerpt', $id );
+			$compound = get_post_meta( $id, '_rc_compound', true );
 
 			if ( $excerpt ) {
-				return wp_strip_all_tags( $excerpt );
+				$excerpt = wp_strip_all_tags( $excerpt );
+
+				// Lead with the catalog code and the compound it refers to, so
+				// the snippet answers what the listing actually is. When the
+				// code already is the compound name, say it once.
+				if ( $compound && false === stripos( $excerpt, $compound ) ) {
+					$code  = preg_replace( '/\s+\d+\s*m?g$/i', '', get_the_title( $id ) );
+					$lead  = ( 0 === strcasecmp( trim( $code ), trim( $compound ) ) )
+						? $code
+						: sprintf( '%s (%s)', $code, $compound );
+
+					$excerpt = sprintf( '%s — %s', $lead, $excerpt );
+				}
+
+				return $excerpt;
 			}
 
 			$purity   = get_post_meta( $id, '_rc_purity', true );
 			$quantity = get_post_meta( $id, '_rc_quantity', true );
+			$compound = get_post_meta( $id, '_rc_compound', true );
+			$name     = get_the_title( $id );
+
+			if ( $compound && false === stripos( $name, $compound ) ) {
+				$name = sprintf( '%s (%s)', $name, $compound );
+			}
 
 			return trim( sprintf(
 				/* translators: 1: product name, 2: fill size, 3: purity. */
 				__( '%1$s reference material%2$s%3$s, supplied lyophilized with a lot-specific certificate of analysis. Research use only.', 'research-commerce' ),
-				get_the_title( $id ),
+				$name,
 				$quantity ? ', ' . $quantity . ' per vial' : '',
 				$purity ? ', assayed at ' . $purity . ' by RP-HPLC' : ''
 			) );
@@ -222,7 +251,18 @@ class RC_SEO {
 
 		// Open Graph.
 		printf( '<meta property="og:site_name" content="%s">' . "\n", esc_attr( get_bloginfo( 'name' ) ) );
-		printf( '<meta property="og:type" content="%s">' . "\n", is_singular( 'product' ) ? 'product' : ( is_singular() ? 'article' : 'website' ) );
+		// A static front page is still the website, not an article.
+		if ( is_singular( 'product' ) ) {
+			$og_type = 'product';
+		} elseif ( is_front_page() || is_home() ) {
+			$og_type = 'website';
+		} elseif ( is_singular( 'post' ) ) {
+			$og_type = 'article';
+		} else {
+			$og_type = 'website';
+		}
+
+		printf( '<meta property="og:type" content="%s">' . "\n", esc_attr( $og_type ) );
 		printf( '<meta property="og:title" content="%s">' . "\n", esc_attr( wp_get_document_title() ) );
 		if ( $description ) {
 			printf( '<meta property="og:description" content="%s">' . "\n", esc_attr( self::trim_description( $description ) ) );
@@ -414,6 +454,11 @@ class RC_SEO {
 			if ( $src ) {
 				$schema['image'] = $src[0];
 			}
+		}
+
+		$compound = get_post_meta( $product_id, '_rc_compound', true );
+		if ( $compound && false === stripos( $schema['name'], $compound ) ) {
+			$schema['alternateName'] = $compound;
 		}
 
 		$sku = get_post_meta( $product_id, '_sku', true );
