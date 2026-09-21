@@ -102,8 +102,16 @@ function helix_loop_purity_flag() {
 	}
 
 	$purity = get_post_meta( $product->get_id(), '_rc_purity', true );
+
 	if ( $purity ) {
 		printf( '<span class="hx-card__purity">%s %s</span>', esc_html( $purity ), esc_html__( 'HPLC', 'helix-research' ) );
+		return;
+	}
+
+	// No figure recorded yet, but the lot has a published report — say so,
+	// because that is the claim that matters.
+	if ( function_exists( 'rc_has_coa' ) && rc_has_coa( $product->get_id() ) ) {
+		printf( '<span class="hx-card__purity hx-card__purity--lab">%s</span>', esc_html__( 'Lab verified', 'helix-research' ) );
 	}
 }
 add_action( 'woocommerce_before_shop_loop_item_title', 'helix_loop_purity_flag', 9 );
@@ -253,6 +261,7 @@ add_action( 'woocommerce_single_product_summary', 'helix_single_ruo', 7 );
 function helix_key_spec_labels() {
 	return apply_filters( 'helix_key_spec_labels', array(
 		__( 'Assayed purity', 'research-commerce' ),
+		__( 'Verification', 'research-commerce' ),
 		__( 'Lot in stock', 'research-commerce' ),
 		__( 'Quantity per vial', 'research-commerce' ),
 		__( 'Physical form', 'research-commerce' ),

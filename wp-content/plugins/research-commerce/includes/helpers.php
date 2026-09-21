@@ -121,6 +121,20 @@ function rc_get_specs( $product_id ) {
 		$out[ $field['label'] ] = $value;
 	}
 
+	// When a report is linked, name the laboratory in the specification. The
+	// link is the evidence, so the row is worth showing even when the purity
+	// figure has not been copied across yet.
+	$lab = get_option( 'rc_lab_name', '' );
+	$coa = get_post_meta( $product_id, '_rc_coa_url', true );
+
+	if ( $lab && $coa ) {
+		$out[ __( 'Verification', 'research-commerce' ) ] = sprintf(
+			'<a href="%s" target="_blank" rel="noopener">%s</a>',
+			esc_url( $coa ),
+			esc_html( $lab )
+		);
+	}
+
 	/**
 	 * Filter the rendered specification rows.
 	 *

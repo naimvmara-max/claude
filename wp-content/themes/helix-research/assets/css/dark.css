@@ -206,3 +206,6 @@ body.hx-dark .hx-nav__list { gap: 1.6rem; }
 	border: 1px solid var(--hx-warn-line); background: var(--hx-warn-bg); color: var(--hx-warn-ink);
 	border-radius: var(--hx-radius); padding: .9rem 1.1rem; font-size: .87rem; margin: 1.25rem 0 0;
 }
+.hx-card__purity--lab { background: #1f7a5a; color: #fff; }
+body:not(.hx-dark) .hx-card__purity--lab { background: var(--hx-accent); color: #fff; }
+body.hx-dark .hx-specs td a { color: #fff; text-underline-offset: 3px; }

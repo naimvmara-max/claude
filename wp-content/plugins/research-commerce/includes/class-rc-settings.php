@@ -108,6 +108,13 @@ class RC_Settings {
 				'section' => 'commerce',
 				'hint'    => __( 'Used for the cart progress meter. Set the matching free-shipping rule in WooCommerce → Settings → Shipping. 0 hides the meter.', 'research-commerce' ),
 			),
+			'rc_lab_name'                  => array(
+				'label'   => __( 'Testing laboratory', 'research-commerce' ),
+				'type'    => 'text',
+				'default' => '',
+				'section' => 'compliance',
+				'hint'    => __( 'Named in the specification table and linked to the report, on every listing that has one. Leave blank to omit the row.', 'research-commerce' ),
+			),
 			'rc_brand_name'                => array(
 				'label'   => __( 'Brand name for structured data and the product feed', 'research-commerce' ),
 				'type'    => 'text',
