@@ -94,12 +94,16 @@ function helix_loop_purity_flag() {
 	if ( ! $product ) {
 		return;
 	}
+	// Out of stock is the more useful flag, and two badges collide on a
+	// narrow card — so the purity flag yields to it.
+	if ( ! $product->is_in_stock() ) {
+		printf( '<span class="hx-card__oos">%s</span>', esc_html__( 'Awaiting next lot', 'helix-research' ) );
+		return;
+	}
+
 	$purity = get_post_meta( $product->get_id(), '_rc_purity', true );
 	if ( $purity ) {
 		printf( '<span class="hx-card__purity">%s %s</span>', esc_html( $purity ), esc_html__( 'HPLC', 'helix-research' ) );
-	}
-	if ( ! $product->is_in_stock() ) {
-		printf( '<span class="hx-card__oos">%s</span>', esc_html__( 'Awaiting next lot', 'helix-research' ) );
 	}
 }
 add_action( 'woocommerce_before_shop_loop_item_title', 'helix_loop_purity_flag', 9 );

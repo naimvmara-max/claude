@@ -29,6 +29,7 @@ require_once RC_DIR . 'includes/class-rc-coa.php';
 require_once RC_DIR . 'includes/class-rc-compliance.php';
 require_once RC_DIR . 'includes/class-rc-pricing.php';
 require_once RC_DIR . 'includes/class-rc-quote-form.php';
+require_once RC_DIR . 'includes/class-rc-calculator.php';
 require_once RC_DIR . 'includes/class-rc-settings.php';
 require_once RC_DIR . 'includes/class-rc-installer.php';
 
@@ -46,6 +47,7 @@ function rc_bootstrap() {
 	RC_Compliance::init();
 	RC_Pricing::init();
 	RC_Quote_Form::init();
+	RC_Calculator::init();
 	RC_Settings::init();
 	RC_Installer::init();
 }

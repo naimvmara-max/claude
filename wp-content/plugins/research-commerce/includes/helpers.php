@@ -64,6 +64,10 @@ function rc_spec_fields() {
 			'label'       => __( 'Test method', 'research-commerce' ),
 			'placeholder' => 'RP-HPLC / ESI-MS',
 		),
+		'_rc_net_content' => array(
+			'label'       => __( 'Net peptide content', 'research-commerce' ),
+			'placeholder' => '82%',
+		),
 		'_rc_lot'        => array(
 			'label'       => __( 'Lot in stock', 'research-commerce' ),
 			'placeholder' => 'HX-24-0918',

@@ -330,8 +330,12 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 	background: #fff; color: var(--hx-muted); border: 1px solid var(--hx-line);
 	border-radius: 999px; padding: .25rem .6rem; font-size: .7rem; font-weight: 600;
 }
-.hx-card__coa { display: inline-flex; align-items: center; gap: .35rem; font-size: .78rem; font-weight: 600; margin-bottom: .75rem; text-decoration: none; }
+.hx-card__coa { display: inline-flex; align-self: flex-start; align-items: center; gap: .35rem; font-size: .78rem; font-weight: 600; margin-bottom: .75rem; text-decoration: none; }
 .woocommerce ul.products li.product .button {
+	/* Set explicitly so the card does not depend on WooCommerce's own
+	   stylesheet being enqueued. */
+	display: block;
+	width: 100%;
 	margin-top: auto !important;
 	background: var(--hx-accent) !important; color: #fff !important;
 	border-radius: var(--hx-radius) !important; padding: .65rem 1rem !important;
@@ -552,3 +556,41 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 .hx-specs--key th { width: 48%; }
 .hx-specs__more { margin: -.5rem 0 1.25rem; font-size: .85rem; }
 .hx-specs__heading { font-size: 1.05rem; margin: 2rem 0 .75rem; }
+
+/* Laboratory dilution calculator */
+.rc-calc { border: 1px solid var(--hx-line); border-radius: var(--hx-radius-lg); background: #fff; padding: 1.75rem; margin: 3rem 0; }
+.rc-calc__head h2 { font-size: 1.2rem; margin-bottom: .4rem; }
+.rc-calc__head p { font-size: .9rem; color: var(--hx-muted); max-width: 70ch; margin: 0; }
+.rc-calc__tabs { display: flex; gap: .25rem; flex-wrap: wrap; border-bottom: 1px solid var(--hx-line); margin: 1.5rem 0 1.25rem; }
+.rc-calc__tab { background: none; border: 0; border-bottom: 2px solid transparent; padding: .6rem .9rem; font: 600 .88rem var(--hx-sans); color: var(--hx-muted); cursor: pointer; }
+.rc-calc__tab:hover { color: var(--hx-ink); }
+.rc-calc__tab.is-active { color: var(--hx-ink); border-bottom-color: var(--hx-accent); }
+.rc-calc__panel { display: none; }
+.rc-calc__panel.is-active { display: block; }
+.rc-calc__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; }
+.rc-calc__grid label { display: grid; gap: .3rem; }
+.rc-calc__grid span { font-size: .8rem; font-weight: 600; color: var(--hx-ink); }
+.rc-calc__grid input { padding: .65rem .75rem; border: 1px solid var(--hx-line); border-radius: var(--hx-radius); font: 500 .95rem var(--hx-sans); width: 100%; }
+.rc-calc__grid input:focus { outline: 2px solid var(--hx-accent); outline-offset: 0; }
+.rc-calc__out { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin: 1.5rem 0 0; padding: 1.1rem; background: var(--hx-bg-soft); border-radius: var(--hx-radius); }
+.rc-calc__out div { display: grid; gap: .2rem; }
+.rc-calc__out dt { font-size: .78rem; color: var(--hx-muted); font-weight: 500; }
+.rc-calc__out dd { margin: 0; font: 600 1.15rem var(--hx-serif); color: var(--hx-ink); }
+.rc-calc__foot { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--hx-line); }
+.rc-calc__note { font-size: .82rem; color: var(--hx-muted); margin: 0 0 .5rem; max-width: 80ch; }
+.rc-calc__ruo { font-size: .76rem; color: var(--hx-warn-ink); margin: 0; }
+@media (max-width: 560px) {
+	.rc-calc { padding: 1.25rem; }
+	.rc-calc__tabs { gap: 0; }
+	.rc-calc__tab { padding: .55rem .6rem; font-size: .8rem; }
+}
+
+/* Catalog card corrections */
+.woocommerce ul.products li.product a,
+.woocommerce ul.products li.product a:hover { text-decoration: none; }
+.woocommerce ul.products li.product .woocommerce-loop-product__title { text-decoration: none; }
+.woocommerce ul.products li.product a:focus-visible { outline: 2px solid var(--hx-accent); outline-offset: 3px; }
+.hx-card__oos { white-space: nowrap; max-width: calc(100% - 3rem); overflow: hidden; text-overflow: ellipsis; }
+.hx-card__purity { white-space: nowrap; }
+.woocommerce ul.products li.product a img { aspect-ratio: 1 / 1; object-fit: contain; width: 100%; }
+.woocommerce div.product .woocommerce-product-gallery img { aspect-ratio: 1 / 1; object-fit: contain; background: var(--hx-bg-soft); }

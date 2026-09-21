@@ -118,3 +118,113 @@
 		}
 	}
 }());
+
+/* Laboratory dilution calculator ------------------------------------- */
+(function () {
+	'use strict';
+
+	var root = document.querySelector('[data-rc-calc]');
+	if (!root) {
+		return;
+	}
+
+	function field(name) {
+		return root.querySelector('[data-rc-field="' + name + '"]');
+	}
+
+	function value(name) {
+		var el = field(name);
+		if (!el) {
+			return 0;
+		}
+		var n = parseFloat(el.value);
+		return isFinite(n) ? n : 0;
+	}
+
+	function out(name, text) {
+		var el = root.querySelector('[data-rc-out="' + name + '"]');
+		if (el) {
+			el.textContent = text;
+		}
+	}
+
+	/**
+	 * Trim a number to a sensible number of significant figures for the bench:
+	 * small volumes need decimals, large concentrations do not.
+	 */
+	function fmt(n, unit) {
+		if (!isFinite(n) || n <= 0) {
+			return '—';
+		}
+		var decimals = n >= 100 ? 1 : (n >= 10 ? 2 : (n >= 1 ? 3 : 4));
+		var text = n.toFixed(decimals).replace(/\.?0+$/, '');
+		return text + ' ' + unit;
+	}
+
+	function recalc() {
+		// Panel 1 — solvent volume to concentration.
+		var content = value('content');
+		var net = value('net') || 100;
+		var volume = value('volume');
+		var weight = value('weight');
+
+		var mass = content * (net / 100);
+		out('mass', fmt(mass, 'mg'));
+
+		var conc = volume > 0 ? mass / volume : 0;
+		out('conc', conc > 0 ? fmt(conc, 'mg/mL') + '  (' + fmt(conc, 'µg/µL') + ')' : '—');
+
+		if (weight > 0 && conc > 0) {
+			// mg/mL is g/L, so molarity = (g/L) / (g/mol).
+			var molar = conc / weight;
+			out('molarity', molar >= 0.001 ? fmt(molar * 1000, 'mM') : fmt(molar * 1e6, 'µM'));
+		} else {
+			out('molarity', '— (enter MW)');
+		}
+
+		// Panel 2 — target concentration to solvent volume.
+		var tContent = value('t-content');
+		var tNet = value('t-net') || 100;
+		var tTarget = value('t-target');
+		var tMass = tContent * (tNet / 100);
+
+		out('t-mass', fmt(tMass, 'mg'));
+		out('t-volume', tTarget > 0 ? fmt(tMass / tTarget, 'mL') : '—');
+
+		// Panel 3 — C1V1 = C2V2.
+		var stock = value('d-stock');
+		var target = value('d-target');
+		var finalVol = value('d-final');
+
+		if (stock > 0 && target > 0 && finalVol > 0 && target <= stock) {
+			var take = (target * finalVol) / stock;
+			out('d-stock-vol', fmt(take, 'mL') + '  (' + fmt(take * 1000, 'µL') + ')');
+			out('d-diluent', fmt(finalVol - take, 'mL'));
+			out('d-factor', '1:' + (stock / target).toFixed(1).replace(/\.0$/, ''));
+		} else {
+			out('d-stock-vol', target > stock ? 'Working > stock' : '—');
+			out('d-diluent', '—');
+			out('d-factor', '—');
+		}
+	}
+
+	root.addEventListener('input', recalc);
+
+	root.querySelectorAll('[data-rc-tab]').forEach(function (tab) {
+		tab.addEventListener('click', function () {
+			var name = tab.getAttribute('data-rc-tab');
+
+			root.querySelectorAll('[data-rc-tab]').forEach(function (t) {
+				var active = t === tab;
+				t.classList.toggle('is-active', active);
+				t.setAttribute('aria-selected', active ? 'true' : 'false');
+			});
+
+			root.querySelectorAll('[data-rc-panel]').forEach(function (panel) {
+				panel.classList.toggle('is-active', panel.getAttribute('data-rc-panel') === name);
+			});
+		});
+	});
+
+	recalc();
+}());
