@@ -42,3 +42,4 @@
 .rc-calc__out dd { margin: 0; font-size: 18px; font-weight: 600; color: #0b1a17; }
 .rc-calc__note { font-size: 13px; color: #667; }
 .rc-calc__ruo { font-size: 12px; color: #7a5c12; }
+.rc-calc__grid label small { font-size: 11px; color: #667; font-weight: 500; }

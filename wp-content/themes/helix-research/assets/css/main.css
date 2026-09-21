@@ -596,3 +596,20 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 .hx-card__purity { white-space: nowrap; }
 .woocommerce ul.products li.product a img { aspect-ratio: 1 / 1; object-fit: contain; width: 100%; }
 .woocommerce div.product .woocommerce-product-gallery img { aspect-ratio: 1 / 1; object-fit: contain; background: var(--hx-bg-soft); }
+
+/* Calculator placement on product pages.
+   The summary column is always the tallest, so left to itself the calculator
+   lands in a new grid row and floats far below the photograph. Spanning the
+   summary across both rows lets the calculator sit directly under the image. */
+@media (min-width: 1025px) {
+	.woocommerce div.product .summary { grid-row: 1 / span 2; }
+	.woocommerce div.product .rc-calc {
+		grid-column: 1;
+		grid-row: 2;
+		align-self: start;
+		margin: 1.5rem 0 0;
+	}
+}
+.rc-calc__grid label small { font-size: .72rem; color: var(--hx-muted); font-weight: 500; }
+.rc-calc__head p { font-size: .88rem; }
+.rc-calc__tab { white-space: nowrap; }

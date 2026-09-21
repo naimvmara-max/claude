@@ -179,7 +179,7 @@
 			var molar = conc / weight;
 			out('molarity', molar >= 0.001 ? fmt(molar * 1000, 'mM') : fmt(molar * 1e6, 'µM'));
 		} else {
-			out('molarity', '— (enter MW)');
+			out('molarity', '— add molecular weight');
 		}
 
 		// Panel 2 — target concentration to solvent volume.
@@ -202,7 +202,7 @@
 			out('d-diluent', fmt(finalVol - take, 'mL'));
 			out('d-factor', '1:' + (stock / target).toFixed(1).replace(/\.0$/, ''));
 		} else {
-			out('d-stock-vol', target > stock ? 'Working > stock' : '—');
+			out('d-stock-vol', target > stock ? 'Cannot be stronger than what you have' : '—');
 			out('d-diluent', '—');
 			out('d-factor', '—');
 		}

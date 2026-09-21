@@ -115,92 +115,112 @@ class RC_Calculator {
 			data-net="<?php echo esc_attr( $defaults['net'] ); ?>">
 
 			<header class="rc-calc__head">
-				<h2><?php esc_html_e( 'Laboratory dilution calculator', 'research-commerce' ); ?></h2>
-				<p><?php esc_html_e( 'Preparation arithmetic for in-vitro work: solvent volume, resulting concentration, and the dilution step that follows. Figures are prefilled from this lot and can be overridden.', 'research-commerce' ); ?></p>
+				<h2><?php esc_html_e( 'Solution calculator', 'research-commerce' ); ?></h2>
+				<p><?php esc_html_e( 'Work out how much liquid to add, how strong the result will be, and how to make a weaker batch from it. The numbers are filled in from this lot — change any of them.', 'research-commerce' ); ?></p>
 			</header>
 
 			<div class="rc-calc__tabs" role="tablist">
 				<button type="button" class="rc-calc__tab is-active" role="tab" aria-selected="true" data-rc-tab="reconstitute">
-					<?php esc_html_e( 'Solvent → concentration', 'research-commerce' ); ?>
+					<?php esc_html_e( 'How strong?', 'research-commerce' ); ?>
 				</button>
 				<button type="button" class="rc-calc__tab" role="tab" aria-selected="false" data-rc-tab="target">
-					<?php esc_html_e( 'Target concentration → solvent', 'research-commerce' ); ?>
+					<?php esc_html_e( 'How much liquid?', 'research-commerce' ); ?>
 				</button>
 				<button type="button" class="rc-calc__tab" role="tab" aria-selected="false" data-rc-tab="dilute">
-					<?php esc_html_e( 'Dilution (C₁V₁ = C₂V₂)', 'research-commerce' ); ?>
+					<?php esc_html_e( 'Make it weaker', 'research-commerce' ); ?>
 				</button>
 			</div>
 
 			<div class="rc-calc__panel is-active" data-rc-panel="reconstitute">
 				<div class="rc-calc__grid">
-					<label><span><?php esc_html_e( 'Vial content (mg)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'Powder in the vial', 'research-commerce' ); ?></span>
 						<input type="number" step="0.1" min="0" data-rc-field="content" value="<?php echo esc_attr( $defaults['content'] ); ?>">
+						<small><?php esc_html_e( 'mg — what the label says', 'research-commerce' ); ?></small>
 					</label>
-					<label><span><?php esc_html_e( 'Net peptide content (%)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'How much of that is peptide', 'research-commerce' ); ?></span>
 						<input type="number" step="0.1" min="1" max="100" data-rc-field="net" value="<?php echo esc_attr( $defaults['net'] ); ?>">
+						<small><?php esc_html_e( '% — “net peptide content” on the certificate', 'research-commerce' ); ?></small>
 					</label>
-					<label><span><?php esc_html_e( 'Solvent volume (mL)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'Liquid you add', 'research-commerce' ); ?></span>
 						<input type="number" step="0.1" min="0.01" data-rc-field="volume" value="1">
+						<small><?php esc_html_e( 'mL of solvent', 'research-commerce' ); ?></small>
 					</label>
-					<label><span><?php esc_html_e( 'Molecular weight (g/mol)', 'research-commerce' ); ?></span>
-						<input type="number" step="0.01" min="0" data-rc-field="weight" value="<?php echo esc_attr( $defaults['weight'] ? $defaults['weight'] : '' ); ?>" placeholder="<?php esc_attr_e( 'optional — enables mM', 'research-commerce' ); ?>">
+					<label>
+						<span><?php esc_html_e( 'Molecular weight', 'research-commerce' ); ?></span>
+						<input type="number" step="0.01" min="0" data-rc-field="weight" value="<?php echo esc_attr( $defaults['weight'] ? $defaults['weight'] : '' ); ?>" placeholder="<?php esc_attr_e( 'optional', 'research-commerce' ); ?>">
+						<small><?php esc_html_e( 'g/mol — only needed for molarity', 'research-commerce' ); ?></small>
 					</label>
 				</div>
 
 				<dl class="rc-calc__out">
-					<div><dt><?php esc_html_e( 'Peptide in the vial', 'research-commerce' ); ?></dt><dd data-rc-out="mass">—</dd></div>
-					<div><dt><?php esc_html_e( 'Concentration', 'research-commerce' ); ?></dt><dd data-rc-out="conc">—</dd></div>
+					<div><dt><?php esc_html_e( 'Actual peptide in the vial', 'research-commerce' ); ?></dt><dd data-rc-out="mass">—</dd></div>
+					<div><dt><?php esc_html_e( 'Strength of the result', 'research-commerce' ); ?></dt><dd data-rc-out="conc">—</dd></div>
 					<div><dt><?php esc_html_e( 'Molarity', 'research-commerce' ); ?></dt><dd data-rc-out="molarity">—</dd></div>
 				</dl>
 			</div>
 
 			<div class="rc-calc__panel" data-rc-panel="target">
 				<div class="rc-calc__grid">
-					<label><span><?php esc_html_e( 'Vial content (mg)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'Powder in the vial', 'research-commerce' ); ?></span>
 						<input type="number" step="0.1" min="0" data-rc-field="t-content" value="<?php echo esc_attr( $defaults['content'] ); ?>">
+						<small><?php esc_html_e( 'mg — what the label says', 'research-commerce' ); ?></small>
 					</label>
-					<label><span><?php esc_html_e( 'Net peptide content (%)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'How much of that is peptide', 'research-commerce' ); ?></span>
 						<input type="number" step="0.1" min="1" max="100" data-rc-field="t-net" value="<?php echo esc_attr( $defaults['net'] ); ?>">
+						<small><?php esc_html_e( '% — from the certificate', 'research-commerce' ); ?></small>
 					</label>
-					<label><span><?php esc_html_e( 'Target concentration (mg/mL)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'Strength you want', 'research-commerce' ); ?></span>
 						<input type="number" step="0.1" min="0.001" data-rc-field="t-target" value="2">
+						<small><?php esc_html_e( 'mg per mL', 'research-commerce' ); ?></small>
 					</label>
 				</div>
 
 				<dl class="rc-calc__out">
-					<div><dt><?php esc_html_e( 'Peptide in the vial', 'research-commerce' ); ?></dt><dd data-rc-out="t-mass">—</dd></div>
-					<div><dt><?php esc_html_e( 'Solvent to add', 'research-commerce' ); ?></dt><dd data-rc-out="t-volume">—</dd></div>
+					<div><dt><?php esc_html_e( 'Actual peptide in the vial', 'research-commerce' ); ?></dt><dd data-rc-out="t-mass">—</dd></div>
+					<div><dt><?php esc_html_e( 'Liquid to add', 'research-commerce' ); ?></dt><dd data-rc-out="t-volume">—</dd></div>
 				</dl>
 			</div>
 
 			<div class="rc-calc__panel" data-rc-panel="dilute">
 				<div class="rc-calc__grid">
-					<label><span><?php esc_html_e( 'Stock concentration (mg/mL)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'Strength you already have', 'research-commerce' ); ?></span>
 						<input type="number" step="0.01" min="0.001" data-rc-field="d-stock" value="2">
+						<small><?php esc_html_e( 'mg per mL', 'research-commerce' ); ?></small>
 					</label>
-					<label><span><?php esc_html_e( 'Working concentration (mg/mL)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'Strength you want', 'research-commerce' ); ?></span>
 						<input type="number" step="0.001" min="0.0001" data-rc-field="d-target" value="0.1">
+						<small><?php esc_html_e( 'mg per mL', 'research-commerce' ); ?></small>
 					</label>
-					<label><span><?php esc_html_e( 'Final volume (mL)', 'research-commerce' ); ?></span>
+					<label>
+						<span><?php esc_html_e( 'How much you want to end up with', 'research-commerce' ); ?></span>
 						<input type="number" step="0.1" min="0.01" data-rc-field="d-final" value="1">
+						<small><?php esc_html_e( 'mL in total', 'research-commerce' ); ?></small>
 					</label>
 				</div>
 
 				<dl class="rc-calc__out">
-					<div><dt><?php esc_html_e( 'Stock to take', 'research-commerce' ); ?></dt><dd data-rc-out="d-stock-vol">—</dd></div>
-					<div><dt><?php esc_html_e( 'Diluent to add', 'research-commerce' ); ?></dt><dd data-rc-out="d-diluent">—</dd></div>
-					<div><dt><?php esc_html_e( 'Dilution factor', 'research-commerce' ); ?></dt><dd data-rc-out="d-factor">—</dd></div>
+					<div><dt><?php esc_html_e( 'Take this much of what you have', 'research-commerce' ); ?></dt><dd data-rc-out="d-stock-vol">—</dd></div>
+					<div><dt><?php esc_html_e( 'Top up with this much liquid', 'research-commerce' ); ?></dt><dd data-rc-out="d-diluent">—</dd></div>
+					<div><dt><?php esc_html_e( 'That is a dilution of', 'research-commerce' ); ?></dt><dd data-rc-out="d-factor">—</dd></div>
 				</dl>
 			</div>
 
 			<footer class="rc-calc__foot">
 				<p class="rc-calc__note">
-					<?php esc_html_e( 'Net peptide content corrects for water and counter-ion, which are part of the vial\'s gross weight but not of the peptide. Leave it at 100% only if your certificate reports net content of 100%.', 'research-commerce' ); ?>
+					<?php esc_html_e( 'Peptide powder is not 100% peptide — some of the weight is water and salt left over from purification. The certificate says how much is really peptide, so entering that figure keeps the strength honest. Leave it at 100% only if your certificate says 100%.', 'research-commerce' ); ?>
 					<?php if ( $article ) : ?>
-						<a href="<?php echo esc_url( get_permalink( $article ) ); ?>"><?php esc_html_e( 'How this arithmetic works →', 'research-commerce' ); ?></a>
+						<a href="<?php echo esc_url( get_permalink( $article ) ); ?>"><?php esc_html_e( 'The maths behind this →', 'research-commerce' ); ?></a>
 					<?php endif; ?>
 				</p>
-				<p class="rc-calc__ruo"><?php echo esc_html( rc_ruo_notice( 'short' ) ); ?> <?php esc_html_e( 'This tool performs laboratory preparation arithmetic only and is not guidance for any use in humans or animals.', 'research-commerce' ); ?></p>
+				<p class="rc-calc__ruo"><?php echo esc_html( rc_ruo_notice( 'short' ) ); ?> <?php esc_html_e( 'This tool works out laboratory mixing only. It is not guidance for any use in humans or animals.', 'research-commerce' ); ?></p>
 			</footer>
 		</section>
 		<?php
