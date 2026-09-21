@@ -1,0 +1,4 @@
+sku,name,panel_items,research_area,discount_percent,description
+PH-PANEL-REPAIR,Tissue Repair Research Panel,"PH-BPC-10,PH-TB5-10",Tissue repair and connective-tissue models,12,"Two peptides that appear together in the tissue-repair literature, supplied as one panel so a series can be run on matched lots."
+PH-PANEL-METAB,Metabolic Research Panel,"PH-RET-10,PH-TIR-30",Incretin receptor and metabolic models,12,"Two incretin receptor agonists supplied together for comparative work in metabolic models, on matched lots with reports for each."
+PH-PANEL-CELL,Cellular Research Panel,"PH-MOT-10,PH-GHK-50",Mitochondrial and cellular models,12,"A mitochondrial-derived peptide and a copper tripeptide complex, both used as reference materials in cell-culture work."

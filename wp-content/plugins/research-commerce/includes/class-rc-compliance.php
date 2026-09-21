@@ -187,6 +187,7 @@ class RC_Compliance {
 			// Required disclaimer wording.
 			'not a drug, supplement',
 			'not drugs, supplements',
+			'not drugs, not supplements',
 			'drugs, supplements',
 			'drug, supplement',
 			'dietary supplement',

@@ -9,7 +9,7 @@
 	<title>Helix Research — analytical articles</title>
 	<link>https://example.com</link>
 	<description>Documentation and analytical-method articles for a research-materials catalog.</description>
-	<pubDate>Mon, 21 Sep 2026 13:15:15 +0000</pubDate>
+	<pubDate>Mon, 21 Sep 2026 22:40:16 +0000</pubDate>
 	<language>en-US</language>
 	<wp:wxr_version>1.2</wp:wxr_version>
 	<wp:base_site_url>https://example.com</wp:base_site_url>
@@ -41,6 +41,11 @@
 		<wp:category_nicename><![CDATA[procurement]]></wp:category_nicename>
 		<wp:category_parent></wp:category_parent>
 		<wp:cat_name><![CDATA[Procurement]]></wp:cat_name>
+	</wp:category>
+	<wp:category>
+		<wp:category_nicename><![CDATA[compounds]]></wp:category_nicename>
+		<wp:category_parent></wp:category_parent>
+		<wp:cat_name><![CDATA[Compounds]]></wp:cat_name>
 	</wp:category>
 	<wp:tag>
 		<wp:tag_slug><![CDATA[certificate-of-analysis]]></wp:tag_slug>
@@ -118,10 +123,46 @@
 		<wp:tag_slug><![CDATA[procurement]]></wp:tag_slug>
 		<wp:tag_name><![CDATA[procurement]]></wp:tag_name>
 	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[bpc-157]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[bpc-157]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[literature]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[literature]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[research-areas]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[research-areas]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[tb-500]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[tb-500]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[thymosin-beta-4]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[thymosin-beta-4]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[semaglutide]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[semaglutide]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[tirzepatide]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[tirzepatide]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[retatrutide]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[retatrutide]]></wp:tag_name>
+	</wp:tag>
+	<wp:tag>
+		<wp:tag_slug><![CDATA[incretin]]></wp:tag_slug>
+		<wp:tag_name><![CDATA[incretin]]></wp:tag_name>
+	</wp:tag>
 	<item>
 		<title><![CDATA[How to Read a Peptide Certificate of Analysis]]></title>
 		<link>https://example.com/how-to-read-a-peptide-certificate-of-analysis/</link>
-		<pubDate>Mon, 03 Aug 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 13 Jul 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1000</guid>
 		<description></description>
@@ -188,8 +229,8 @@
 <p>Everything sold on this site is a reference material supplied for laboratory research use only. It is not a drug, supplement or food, and it is not supplied for human or veterinary use. This article describes analytical documentation and nothing else.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[A certificate of analysis is a test record, not a marketing document. Here is what each field means, which ones matter, and what a complete certificate must contain.]]></excerpt:encoded>
 		<wp:post_id>1000</wp:post_id>
-		<wp:post_date><![CDATA[2026-08-03 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-08-03 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-07-13 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-07-13 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[how-to-read-a-peptide-certificate-of-analysis]]></wp:post_name>
@@ -216,7 +257,7 @@
 	<item>
 		<title><![CDATA[Six Ways to Spot a Fabricated or Recycled Certificate of Analysis]]></title>
 		<link>https://example.com/spotting-a-fabricated-certificate-of-analysis/</link>
-		<pubDate>Mon, 10 Aug 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 20 Jul 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1001</guid>
 		<description></description>
@@ -281,8 +322,8 @@
 <p>That is the standard this site holds itself to, and it is the standard you should apply to every vendor you evaluate — including us. Every product here is a reference material supplied for laboratory research use only, and is not for human or veterinary use.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[Fake certificates are common and they follow patterns. Six checks you can run in under five minutes, using only the document itself.]]></excerpt:encoded>
 		<wp:post_id>1001</wp:post_id>
-		<wp:post_date><![CDATA[2026-08-10 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-08-10 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-07-20 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-07-20 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[spotting-a-fabricated-certificate-of-analysis]]></wp:post_name>
@@ -308,7 +349,7 @@
 	<item>
 		<title><![CDATA[What an HPLC Purity Number Actually Tells You]]></title>
 		<link>https://example.com/hplc-purity-what-it-means/</link>
-		<pubDate>Mon, 17 Aug 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 27 Jul 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1002</guid>
 		<description></description>
@@ -369,8 +410,8 @@
 <p>All products referenced on this site are reference materials supplied for laboratory research use only. They are not drugs, supplements or foods, and they are not supplied for human or veterinary use.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[99% purity by HPLC is an area percent of UV absorbance under one set of conditions — not a statement about the mass in your vial. What the number covers, and what it misses.]]></excerpt:encoded>
 		<wp:post_id>1002</wp:post_id>
-		<wp:post_date><![CDATA[2026-08-17 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-08-17 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-07-27 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-07-27 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[hplc-purity-what-it-means]]></wp:post_name>
@@ -396,7 +437,7 @@
 	<item>
 		<title><![CDATA[Mass Spectrometry Identity Confirmation, Explained for Purchasers]]></title>
 		<link>https://example.com/mass-spectrometry-identity-confirmation/</link>
-		<pubDate>Mon, 24 Aug 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 03 Aug 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1003</guid>
 		<description></description>
@@ -455,8 +496,8 @@
 <p>Every product referenced here is a reference material supplied for laboratory research use only. It is not a drug, supplement or food and is not supplied for human or veterinary use.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[HPLC says the material is one thing. Mass spectrometry says which thing. How to check the MS section of a certificate against the sequence yourself.]]></excerpt:encoded>
 		<wp:post_id>1003</wp:post_id>
-		<wp:post_date><![CDATA[2026-08-24 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-08-24 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-08-03 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-08-03 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[mass-spectrometry-identity-confirmation]]></wp:post_name>
@@ -482,7 +523,7 @@
 	<item>
 		<title><![CDATA[Why a 5 mg Vial Does Not Contain 5 mg of Peptide]]></title>
 		<link>https://example.com/net-peptide-content-vs-gross-weight/</link>
-		<pubDate>Mon, 31 Aug 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 10 Aug 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1004</guid>
 		<description></description>
@@ -561,8 +602,8 @@
 <p>All materials referenced here are reference materials supplied for laboratory research use only. They are not drugs, supplements or foods, and are not supplied for human or veterinary use.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[Gross weight includes water and counter-ions. Net peptide content is the fraction that is actually peptide — and the two can differ by 15–30% on a basic sequence.]]></excerpt:encoded>
 		<wp:post_id>1004</wp:post_id>
-		<wp:post_date><![CDATA[2026-08-31 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-08-31 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-08-10 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-08-10 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[net-peptide-content-vs-gross-weight]]></wp:post_name>
@@ -589,7 +630,7 @@
 	<item>
 		<title><![CDATA[Storage and Stability of Lyophilized Peptides in the Laboratory]]></title>
 		<link>https://example.com/storage-and-stability-of-lyophilized-peptides/</link>
-		<pubDate>Mon, 07 Sep 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 17 Aug 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1005</guid>
 		<description></description>
@@ -656,8 +697,8 @@
 <p>All materials described here are reference materials supplied for laboratory research use only. This article covers laboratory storage and handling and nothing else; it is not guidance for any use in humans or animals, for which these materials are not supplied.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[Temperature, moisture and oxygen are the three variables that degrade a peptide in storage. What each one does, and the handling practices that control them.]]></excerpt:encoded>
 		<wp:post_id>1005</wp:post_id>
-		<wp:post_date><![CDATA[2026-09-07 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-09-07 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-08-17 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-08-17 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[storage-and-stability-of-lyophilized-peptides]]></wp:post_name>
@@ -684,7 +725,7 @@
 	<item>
 		<title><![CDATA[Stock Solution and Dilution Arithmetic for Laboratory Peptide Work]]></title>
 		<link>https://example.com/stock-solution-and-dilution-arithmetic/</link>
-		<pubDate>Mon, 14 Sep 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 24 Aug 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1006</guid>
 		<description></description>
@@ -787,8 +828,8 @@
 <p>All materials referenced here are reference materials supplied for laboratory research use only, and the calculations above are laboratory preparation arithmetic for in-vitro work. These materials are not supplied for human or veterinary use.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[The four calculations that cover almost all bench work with a lyophilized reference material: mass to concentration, C1V1 = C2V2, mg/mL to molarity, and the net-content correction.]]></excerpt:encoded>
 		<wp:post_id>1006</wp:post_id>
-		<wp:post_date><![CDATA[2026-09-14 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-09-14 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-08-24 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-08-24 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[stock-solution-and-dilution-arithmetic]]></wp:post_name>
@@ -815,7 +856,7 @@
 	<item>
 		<title><![CDATA[Evaluating a Research-Materials Supplier: A 12-Point Documentation Checklist]]></title>
 		<link>https://example.com/evaluating-a-research-materials-supplier/</link>
-		<pubDate>Mon, 21 Sep 2026 13:15:15 +0000</pubDate>
+		<pubDate>Mon, 31 Aug 2026 22:40:16 +0000</pubDate>
 		<dc:creator><![CDATA[admin]]></dc:creator>
 		<guid isPermaLink="false">https://example.com/?p=1007</guid>
 		<description></description>
@@ -870,8 +911,8 @@
 <p>All products are reference materials supplied for laboratory research use only. They are not drugs, supplements or foods, and they are not supplied for human or veterinary use.</p>]]></content:encoded>
 		<excerpt:encoded><![CDATA[Price and purity claims are the easiest things for a vendor to state and the hardest to verify. Twelve checks that separate a documented supplier from a reseller.]]></excerpt:encoded>
 		<wp:post_id>1007</wp:post_id>
-		<wp:post_date><![CDATA[2026-09-21 13:15:15]]></wp:post_date>
-		<wp:post_date_gmt><![CDATA[2026-09-21 13:15:15]]></wp:post_date_gmt>
+		<wp:post_date><![CDATA[2026-08-31 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-08-31 22:40:16]]></wp:post_date_gmt>
 		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
 		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
 		<wp:post_name><![CDATA[evaluating-a-research-materials-supplier]]></wp:post_name>
@@ -893,6 +934,209 @@
 		<wp:postmeta>
 			<wp:meta_key><![CDATA[_helix_target_query]]></wp:meta_key>
 			<wp:meta_value><![CDATA[how to evaluate a peptide supplier]]></wp:meta_value>
+		</wp:postmeta>
+	</item>
+	<item>
+		<title><![CDATA[BPC-157 in the Literature: What Has Actually Been Studied]]></title>
+		<link>https://example.com/bpc-157-research-literature/</link>
+		<pubDate>Mon, 07 Sep 2026 22:40:16 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=1008</guid>
+		<description></description>
+		<content:encoded><![CDATA[<p>BPC-157 is a synthetic 15-residue peptide, sequence GEPPPGKPADDAGLV, derived from a partial sequence of a protein found in gastric juice. It is stable in aqueous solution relative to many peptides of similar length, which is one reason it appears so often in laboratory work.</p>
+
+<p>This page covers what the published literature investigates, and — more usefully — where it stops. If you are evaluating this compound for a research programme, the second part matters more than the first.</p>
+
+<h2>What the literature covers</h2>
+
+<p>Published work on BPC-157 clusters in a few areas:</p>
+
+<ul><li><strong>Connective tissue models.</strong> Tendon, ligament and muscle injury models in rodents, typically measuring repair rate, tensile properties or histological markers.</li><li><strong>Gastrointestinal models.</strong> Its origin is gastric, and a substantial portion of the early work examines gastric and intestinal lesion models.</li><li><strong>Vascular and angiogenic endpoints.</strong> Several papers examine vessel formation and blood-flow endpoints in injury models.</li><li><strong>Cell-culture work.</strong> Fibroblast migration and proliferation assays, which is where most in-vitro investigators encounter it.</li></ul>
+
+<p>A large share of this literature comes from a relatively small number of research groups. That is not a criticism of the work; it is a fact about the evidence base that anyone citing it should know, because independent replication across groups is the thing that turns a finding into a result.</p>
+
+<h2>What the literature does not establish</h2>
+
+<p>This is the part that matters, and the part every vendor page omits:</p>
+
+<ul><li><strong>There are no completed, published human clinical trials establishing efficacy for any indication.</strong> The compound has not been approved by any major regulator for any use.</li><li><strong>Rodent findings do not transfer automatically.</strong> Exposure scaling, route and metabolism differ enough that an effect in a rat tendon model is a hypothesis about humans, not a finding about them.</li><li><strong>Long-term safety data does not exist</strong> in any population, because the studies that would produce it have not been run.</li><li><strong>Mechanism is not settled.</strong> Several pathways have been proposed in the literature; proposed is not the same as demonstrated.</li></ul>
+
+<p>If a page tells you what this compound "does" for a person, it is describing something the published record does not contain.</p>
+
+<h2>What this means for sourcing material</h2>
+
+<p>For in-vitro work the practical questions are ordinary ones: purity by a method you can read, identity confirmed by mass spectrometry, a lot number that matches the vial, and net peptide content if your concentrations need to be accurate. The <a href="/how-to-read-a-peptide-certificate-of-analysis/">certificate guide</a> covers how to check each of those.</p>
+
+<p>Because the published work spans multiple groups and methods, lot-to-lot consistency matters more than usual when comparing your results against it. Reserving a single lot across a study removes one variable that is otherwise invisible in your data.</p>
+
+<h2>Finding the primary literature</h2>
+
+<p>Search PubMed and Europe PMC for <code>BPC-157</code> and <code>BPC 157</code>, and check the reference lists of recent reviews — that is faster than working forward from individual papers. When you cite, cite the primary study rather than a review's summary of it, and note the model organism and the route in your own notes, because those are the two details most often lost when findings get repeated.</p>
+
+<p>We deliberately do not publish a citation list here. A curated list from a vendor selecting which papers to show you is a marketing document, not a literature review, and you should read it as one wherever you find it — including here.</p>
+
+<p>BPC-157 is supplied by us as a reference material for laboratory research use only. It is not a drug, supplement or food, it is not approved for human or veterinary use, and nothing on this page describes or recommends any such use.</p>]]></content:encoded>
+		<excerpt:encoded><![CDATA[What the published work on BPC-157 actually covers, what it does not, and how to read the gap between the two before you cite anything.]]></excerpt:encoded>
+		<wp:post_id>1008</wp:post_id>
+		<wp:post_date><![CDATA[2026-09-07 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-09-07 22:40:16]]></wp:post_date_gmt>
+		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
+		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
+		<wp:post_name><![CDATA[bpc-157-research-literature]]></wp:post_name>
+		<wp:status><![CDATA[draft]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[post]]></wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="compounds"><![CDATA[Compounds]]></category>
+		<category domain="post_tag" nicename="bpc-157"><![CDATA[bpc-157]]></category>
+		<category domain="post_tag" nicename="literature"><![CDATA[literature]]></category>
+		<category domain="post_tag" nicename="research-areas"><![CDATA[research-areas]]></category>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_helix_meta_description]]></wp:meta_key>
+			<wp:meta_value><![CDATA[BPC-157 research overview: the models it has been studied in, the limits of that work, what no published study establishes, and how to source citations.]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_helix_target_query]]></wp:meta_key>
+			<wp:meta_value><![CDATA[bpc 157 research studies]]></wp:meta_value>
+		</wp:postmeta>
+	</item>
+	<item>
+		<title><![CDATA[TB-500 and Thymosin β4: What the Names Actually Refer To]]></title>
+		<link>https://example.com/tb-500-thymosin-beta-4-literature/</link>
+		<pubDate>Mon, 14 Sep 2026 22:40:16 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=1009</guid>
+		<description></description>
+		<content:encoded><![CDATA[<p>This is the single most useful thing to understand about this material, and most listings get it wrong.</p>
+
+<p><strong>Thymosin β4 (Tβ4)</strong> is a 43-residue protein found naturally in many cell types, involved in actin sequestration. It has an extensive literature going back decades and has been through clinical trials for several indications.</p>
+
+<p><strong>TB-500</strong> is the name commonly used in the research-chemical market for a <strong>short synthetic fragment</strong> of that protein — usually the seven-residue actin-binding region, sometimes acetylated. It is not thymosin β4. It is a fragment of it.</p>
+
+<p>Those are different molecules with different molecular weights, different synthesis routes and — critically — different literatures. A vendor page that lists "TB-500" and then cites thymosin β4 clinical work is attaching one molecule's evidence to another molecule's product. Check the sequence on the certificate, not the name on the label.</p>
+
+<h2>What each literature covers</h2>
+
+<p><strong>Thymosin β4 (the full protein):</strong></p>
+
+<ul><li>Actin sequestration and cytoskeletal dynamics, which is the established biochemistry.</li><li>Corneal and dermal wound models.</li><li>Cardiac injury models.</li><li>Human clinical trials, including for dry eye and epidermolysis bullosa — these exist and are findable, and they concern the full protein.</li></ul>
+
+<p><strong>The short fragment sold as TB-500:</strong></p>
+
+<ul><li>A much thinner literature, largely in-vitro, focused on cell migration endpoints.</li><li>Frequently studied alongside, rather than instead of, the full protein.</li></ul>
+
+<p>The asymmetry is the point. If a claim rests on clinical data, it almost certainly rests on Tβ4 data, and the fragment in the vial is not the molecule that was tested.</p>
+
+<h2>What neither literature establishes</h2>
+
+<ul><li>No approval by any major regulator for the fragment, for any indication.</li><li>No published human efficacy data for the short fragment.</li><li>Fragment-to-protein extrapolation is an assumption, not a finding. A sequence that binds actin in isolation does not necessarily reproduce the behaviour of the protein it came from.</li></ul>
+
+<h2>Checking what you actually received</h2>
+
+<p>The certificate should state the <strong>sequence</strong> and a <strong>theoretical mass</strong> consistent with it. A seven-residue acetylated fragment and a 43-residue protein differ by thousands of daltons — this is the easiest identity check in the entire catalog, and it takes thirty seconds with any peptide mass calculator. The <a href="/mass-spectrometry-identity-confirmation/">mass spectrometry guide</a> walks through it.</p>
+
+<p>If the certificate names only "TB-500" with no sequence, you cannot tell which molecule you are holding. Ask before ordering.</p>
+
+<p>Supplied as a reference material for laboratory research use only. Not for human or veterinary use.</p>]]></content:encoded>
+		<excerpt:encoded><![CDATA[TB-500 and thymosin β4 are not the same molecule, and the literature attached to one is routinely used to sell the other. Here is the distinction.]]></excerpt:encoded>
+		<wp:post_id>1009</wp:post_id>
+		<wp:post_date><![CDATA[2026-09-14 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-09-14 22:40:16]]></wp:post_date_gmt>
+		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
+		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
+		<wp:post_name><![CDATA[tb-500-thymosin-beta-4-literature]]></wp:post_name>
+		<wp:status><![CDATA[draft]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[post]]></wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="compounds"><![CDATA[Compounds]]></category>
+		<category domain="post_tag" nicename="tb-500"><![CDATA[tb-500]]></category>
+		<category domain="post_tag" nicename="thymosin-beta-4"><![CDATA[thymosin-beta-4]]></category>
+		<category domain="post_tag" nicename="literature"><![CDATA[literature]]></category>
+		<category domain="post_tag" nicename="research-areas"><![CDATA[research-areas]]></category>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_helix_meta_description]]></wp:meta_key>
+			<wp:meta_value><![CDATA[TB-500 vs thymosin beta 4: what each name refers to, which research belongs to which molecule, and what the published work covers.]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_helix_target_query]]></wp:meta_key>
+			<wp:meta_value><![CDATA[tb-500 vs thymosin beta 4]]></wp:meta_value>
+		</wp:postmeta>
+	</item>
+	<item>
+		<title><![CDATA[Incretin Analogs in Research: Semaglutide, Tirzepatide, Retatrutide]]></title>
+		<link>https://example.com/incretin-analog-research-overview/</link>
+		<pubDate>Mon, 21 Sep 2026 22:40:16 +0000</pubDate>
+		<dc:creator><![CDATA[admin]]></dc:creator>
+		<guid isPermaLink="false">https://example.com/?p=1010</guid>
+		<description></description>
+		<content:encoded><![CDATA[<p>These three are frequently listed side by side and are not equivalent — pharmacologically, or in regulatory status. If you are sourcing any of them as a reference material, the differences below are the ones that matter.</p>
+
+<h2>Receptor targets</h2>
+
+<p><strong>Semaglutide</strong> is a GLP-1 receptor agonist — a single incretin receptor.</p>
+
+<p><strong>Tirzepatide</strong> is a dual agonist at the GIP and GLP-1 receptors.</p>
+
+<p><strong>Retatrutide</strong> is a triple agonist, adding glucagon receptor activity to GIP and GLP-1.</p>
+
+<p>That progression — single, dual, triple — is the whole reason the three exist as distinct molecules, and it is the correct factual framing for a listing. Each is a long-acting peptide with structural modifications that extend half-life relative to the native hormones.</p>
+
+<h2>Development and regulatory status</h2>
+
+<p>This is where they diverge sharply, and where anyone selling them should be paying attention:</p>
+
+<table><thead><tr><th></th><th>Status</th></tr></thead><tbody><tr><td>Semaglutide</td><td>Approved by major regulators for specific indications, marketed under brand names, under patent</td></tr><tr><td>Tirzepatide</td><td>Approved by major regulators, marketed under brand names, under patent</td></tr><tr><td>Retatrutide</td><td><strong>Investigational.</strong> In clinical trials. Not approved by any major regulator for any indication</td></tr></tbody></table>
+
+<p>Two of the three are approved drugs under active patent. The third is an unapproved investigational compound. None of them is an ordinary research chemical in the sense that BPC-157 or GHK-Cu is, and listing them as interchangeable catalog items misunderstands the position badly.</p>
+
+<h2>What this means commercially</h2>
+
+<p>Plainly, because it is not obvious from most vendor pages:</p>
+
+<ul><li><strong>Patent holders enforce.</strong> The companies developing these molecules have taken action against sellers. That exposure attaches to the seller, not to the buyer's research use.</li><li><strong>Payment processing is materially harder</strong> for these than for other peptides. Several processors that accept research chemicals exclude incretin analogs by name.</li><li><strong>Advertising channels are closed.</strong> Merchant Center and every major ad platform prohibit them, and enforcement is account-level.</li><li><strong>An unapproved investigational compound is not the safer option</strong> because it is unapproved. Retatrutide is in active trials, which means it has a sponsor with an interest in its exclusivity and regulators watching the space closely.</li></ul>
+
+<h2>What the literature establishes</h2>
+
+<p>For semaglutide and tirzepatide the clinical literature is large, peer-reviewed and findable — these went through full trial programmes. For retatrutide, published phase trial results exist but the programme is ongoing, which means the evidence base is genuinely incomplete rather than merely young.</p>
+
+<p>In all three cases the clinical literature concerns pharmaceutical-grade product administered under supervision in a trial setting. It does not describe material bought as a reference standard, and it is not transferable to it. Anyone citing trial data next to a research-chemical listing is making a comparison the data does not support.</p>
+
+<h2>Sourcing as reference materials</h2>
+
+<p>Where these are used legitimately — analytical method development, reference standards for chromatography, in-vitro receptor work — the requirements are the ordinary ones: sequence and mass confirmed, purity by a stated method, lot traceability, net peptide content where concentration accuracy matters. Because these are long, modified peptides, synthesis-related impurities are a real consideration and the gradient used in the purity method matters more than it does for a short sequence. The <a href="/hplc-purity-what-it-means/">HPLC purity guide</a> covers why.</p>
+
+<p>Supplied as reference materials for laboratory research use only. Not drugs, not supplements, not approved for human or veterinary use, and nothing here recommends any such use.</p>]]></content:encoded>
+		<excerpt:encoded><![CDATA[What separates these three molecules pharmacologically, which are approved drugs, which is still in trials, and what that means for anyone sourcing them as reference materials.]]></excerpt:encoded>
+		<wp:post_id>1010</wp:post_id>
+		<wp:post_date><![CDATA[2026-09-21 22:40:16]]></wp:post_date>
+		<wp:post_date_gmt><![CDATA[2026-09-21 22:40:16]]></wp:post_date_gmt>
+		<wp:comment_status><![CDATA[closed]]></wp:comment_status>
+		<wp:ping_status><![CDATA[closed]]></wp:ping_status>
+		<wp:post_name><![CDATA[incretin-analog-research-overview]]></wp:post_name>
+		<wp:status><![CDATA[draft]]></wp:status>
+		<wp:post_parent>0</wp:post_parent>
+		<wp:menu_order>0</wp:menu_order>
+		<wp:post_type><![CDATA[post]]></wp:post_type>
+		<wp:post_password></wp:post_password>
+		<wp:is_sticky>0</wp:is_sticky>
+		<category domain="category" nicename="compounds"><![CDATA[Compounds]]></category>
+		<category domain="post_tag" nicename="semaglutide"><![CDATA[semaglutide]]></category>
+		<category domain="post_tag" nicename="tirzepatide"><![CDATA[tirzepatide]]></category>
+		<category domain="post_tag" nicename="retatrutide"><![CDATA[retatrutide]]></category>
+		<category domain="post_tag" nicename="incretin"><![CDATA[incretin]]></category>
+		<category domain="post_tag" nicename="literature"><![CDATA[literature]]></category>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_helix_meta_description]]></wp:meta_key>
+			<wp:meta_value><![CDATA[Semaglutide, tirzepatide and retatrutide compared: receptor targets, development status, and the patent and regulatory position behind each.]]></wp:meta_value>
+		</wp:postmeta>
+		<wp:postmeta>
+			<wp:meta_key><![CDATA[_helix_target_query]]></wp:meta_key>
+			<wp:meta_value><![CDATA[retatrutide vs tirzepatide vs semaglutide]]></wp:meta_value>
 		</wp:postmeta>
 	</item>
 </channel>
