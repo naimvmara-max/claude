@@ -161,9 +161,9 @@ function helix_nav_fallback() {
 			esc_html__( 'Catalog', 'helix-research' )
 		);
 	}
-	printf( '<li><a href="%s">%s</a></li>', esc_url( home_url( '/coa-lookup/' ) ), esc_html__( 'COA Lookup', 'helix-research' ) );
-	printf( '<li><a href="%s">%s</a></li>', esc_url( home_url( '/bulk-orders/' ) ), esc_html__( 'Bulk &amp; Institutional', 'helix-research' ) );
-	printf( '<li><a href="%s">%s</a></li>', esc_url( home_url( '/shipping-and-storage/' ) ), esc_html__( 'Shipping &amp; Storage', 'helix-research' ) );
-	printf( '<li><a href="%s">%s</a></li>', esc_url( home_url( '/faq/' ) ), esc_html__( 'FAQ', 'helix-research' ) );
+	printf( '<li><a href="%s">%s</a></li>', esc_url( helix_page_url( 'coa-lookup' ) ), esc_html__( 'COA Lookup', 'helix-research' ) );
+	printf( '<li><a href="%s">%s</a></li>', esc_url( helix_page_url( 'bulk-orders' ) ), esc_html__( 'Bulk &amp; Institutional', 'helix-research' ) );
+	printf( '<li><a href="%s">%s</a></li>', esc_url( helix_page_url( 'shipping-and-storage' ) ), esc_html__( 'Shipping &amp; Storage', 'helix-research' ) );
+	printf( '<li><a href="%s">%s</a></li>', esc_url( helix_page_url( 'faq' ) ), esc_html__( 'FAQ', 'helix-research' ) );
 	echo '</ul>';
 }

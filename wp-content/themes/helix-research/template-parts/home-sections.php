@@ -193,7 +193,7 @@ $hx_terms = $hx_has_wc ? get_terms( array(
 			?>
 			<p class="hx-faq-contact">
 				<?php esc_html_e( 'Need something the catalog does not list?', 'helix-research' ); ?><br>
-				<a href="<?php echo esc_url( home_url( '/bulk-orders/' ) ); ?>"><?php esc_html_e( 'Request a custom quote →', 'helix-research' ); ?></a>
+				<a href="<?php echo esc_url( helix_page_url( 'bulk-orders' ) ); ?>"><?php esc_html_e( 'Request a custom quote →', 'helix-research' ); ?></a>
 			</p>
 		</div>
 		<div class="hx-faq">
@@ -241,7 +241,7 @@ $hx_terms = $hx_has_wc ? get_terms( array(
 			<h2><?php esc_html_e( 'Bulk quantities and institutional accounts', 'helix-research' ); ?></h2>
 			<p><?php esc_html_e( 'Gram-scale quantities, repeat-lot reservations, custom vialing and purchase-order billing for universities, CROs and core facilities.', 'helix-research' ); ?></p>
 		</div>
-		<a class="hx-btn hx-btn--lg hx-btn--light" href="<?php echo esc_url( home_url( '/bulk-orders/' ) ); ?>">
+		<a class="hx-btn hx-btn--lg hx-btn--light" href="<?php echo esc_url( helix_page_url( 'bulk-orders' ) ); ?>">
 			<?php esc_html_e( 'Request a quote', 'helix-research' ); ?>
 		</a>
 	</div>

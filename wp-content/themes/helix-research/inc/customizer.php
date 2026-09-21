@@ -9,6 +9,48 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * The catalog URL.
+ *
+ * Resolves the WooCommerce shop page rather than assuming a /shop/ slug, so
+ * the hero and header buttons point somewhere real on any install.
+ *
+ * @return string
+ */
+function helix_shop_url() {
+	if ( function_exists( 'wc_get_page_id' ) ) {
+		$shop_id = wc_get_page_id( 'shop' );
+		if ( $shop_id > 0 ) {
+			$url = get_permalink( $shop_id );
+			if ( $url ) {
+				return $url;
+			}
+		}
+	}
+
+	return home_url( '/shop/' );
+}
+
+/**
+ * A page URL by slug, falling back to the slug under the site root when no
+ * such page exists yet.
+ *
+ * @param string $slug Page slug.
+ * @return string
+ */
+function helix_page_url( $slug ) {
+	$page = get_page_by_path( $slug );
+
+	if ( $page ) {
+		$url = get_permalink( $page );
+		if ( $url ) {
+			return $url;
+		}
+	}
+
+	return home_url( '/' . trim( $slug, '/' ) . '/' );
+}
+
+/**
  * Default copy. Written for a laboratory research audience: specifications,
  * documentation and logistics only — no consumption, dosing or outcome language.
  *
@@ -21,15 +63,15 @@ function helix_defaults() {
 		'announcement_link'    => '',
 		'header_support'       => __( 'Technical support: support@example.com', 'helix-research' ),
 		'header_cta_text'      => __( 'Browse Catalog', 'helix-research' ),
-		'header_cta_url'       => '/shop/',
+		'header_cta_url'       => helix_shop_url(),
 
 		'hero_eyebrow'         => __( 'Reference materials for in-vitro and laboratory research', 'helix-research' ),
 		'hero_heading'         => __( 'Analytically verified research peptides, documented lot by lot.', 'helix-research' ),
 		'hero_subheading'      => __( 'Every catalog item is assayed by HPLC and mass spectrometry before release. The certificate of analysis for your exact lot is downloadable before you order — not after.', 'helix-research' ),
 		'hero_cta_text'        => __( 'Browse the catalog', 'helix-research' ),
-		'hero_cta_url'         => '/shop/',
+		'hero_cta_url'         => helix_shop_url(),
 		'hero_cta2_text'       => __( 'Look up a lot COA', 'helix-research' ),
-		'hero_cta2_url'        => '/coa-lookup/',
+		'hero_cta2_url'        => helix_page_url( 'coa-lookup' ),
 		'hero_note'            => __( 'Sold for laboratory research use only. Not for human or veterinary use.', 'helix-research' ),
 		'hero_image'           => '',
 

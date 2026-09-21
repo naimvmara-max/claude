@@ -207,12 +207,14 @@ table { border-collapse: collapse; width: 100%; }
 .hx-stats span { font-size: .82rem; color: var(--hx-muted); max-width: 18ch; display: block; }
 
 .hx-hero__visual { position: relative; }
-.hx-hero__img { border-radius: var(--hx-radius-lg); box-shadow: var(--hx-shadow-lg); width: 100%; object-fit: cover; }
+.hx-hero__img { border-radius: var(--hx-radius-lg); box-shadow: var(--hx-shadow-lg); width: 100%; object-fit: cover; display: block; }
 .hx-spec-card {
 	background: #fff; border: 1px solid var(--hx-line); border-radius: var(--hx-radius-lg);
 	box-shadow: var(--hx-shadow-lg); padding: 1.5rem; max-width: 380px; margin-inline: auto;
 }
-.hx-hero__img + .hx-spec-card { position: absolute; right: -1rem; bottom: -2rem; margin: 0; }
+/* With a hero photograph present the card tucks under it rather than
+   covering it — landscape product shots leave no room to overlap. */
+.hx-hero__img + .hx-spec-card { position: relative; margin: -3.5rem 0 0 auto; max-width: 340px; }
 .hx-spec-card__label { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--hx-muted); margin-bottom: .75rem; }
 .hx-spec-card__table th, .hx-spec-card__table td { padding: .5rem 0; font-size: .88rem; text-align: left; border-bottom: 1px solid var(--hx-line); }
 .hx-spec-card__table th { color: var(--hx-muted); font-weight: 500; }
@@ -503,7 +505,7 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 /* 8. Responsive -------------------------------------------------------- */
 @media (max-width: 1024px) {
 	.hx-hero__grid, .hx-coa-band, .hx-faq-layout { grid-template-columns: 1fr; }
-	.hx-hero__img + .hx-spec-card { position: static; margin-top: 1.5rem; }
+	.hx-hero__img + .hx-spec-card { position: static; margin: 1.5rem auto 0; }
 	.hx-trust__grid, .hx-steps { grid-template-columns: repeat(2, 1fr); }
 	.hx-footer__grid { grid-template-columns: 1fr 1fr; }
 	.hx-shop { grid-template-columns: 1fr; }
