@@ -42,8 +42,14 @@ response time.
 | "research shows it helps…" | An effect claim with a citation attached is still an effect claim |
 
 The plugin scans product titles, descriptions and excerpts on save and warns you when any
-of these appear. The warning never blocks saving — it is a prompt to rewrite, and the list
-is filterable via `rc_flagged_terms`.
+of these appear. The warning never blocks saving — it is a prompt to rewrite.
+
+Matching is anchored to the start of a word and allows ordinary inflections, so "dosing",
+"supplements" and "treated" are caught while "procurement" is not mistaken for "cure". A
+short allowlist exempts phrases that legitimately contain a flagged term: the required
+disclaimers ("not a drug, supplement or food", "not for human or veterinary use") and
+chromatography vocabulary ("injection volume", "injected onto", "autosampler"). Both lists
+are filterable — `rc_flagged_terms` and `rc_allowed_phrases`.
 
 ## Rewrites
 

@@ -173,6 +173,70 @@ class RC_Compliance {
 	}
 
 	/**
+	 * Phrases that contain a flagged term but are legitimate — the required
+	 * disclaimers, and chromatography vocabulary such as injection volume.
+	 * They are removed from the text before the scan runs.
+	 *
+	 * @return string[]
+	 */
+	public static function allowed_phrases() {
+		$phrases = array(
+			// Required disclaimer wording.
+			'not a drug, supplement',
+			'not drugs, supplements',
+			'drugs, supplements',
+			'drug, supplement',
+			'dietary supplement',
+			'not for human or veterinary use',
+			'human or veterinary use',
+			'not approved for human',
+			'not supplied for human',
+			// Laboratory vocabulary.
+			'injection volume',
+			'injection port',
+			'injected onto',
+			'autosampler',
+		);
+
+		/**
+		 * Filter the phrases exempted from the copy scan.
+		 *
+		 * @param string[] $phrases Allowed phrases.
+		 */
+		return apply_filters( 'rc_allowed_phrases', $phrases );
+	}
+
+	/**
+	 * Find flagged terms in a block of copy.
+	 *
+	 * Matching is anchored to the start of a word — so "procurement" does not
+	 * register as "cure" — while still catching ordinary inflections such as
+	 * "supplements", "dosing" or "treated".
+	 *
+	 * @param string $text Copy to scan.
+	 * @return string[] Flagged terms found.
+	 */
+	public static function scan_text( $text ) {
+		$haystack = strtolower( wp_strip_all_tags( (string) $text ) );
+
+		foreach ( self::allowed_phrases() as $phrase ) {
+			$haystack = str_replace( strtolower( $phrase ), ' ', $haystack );
+		}
+
+		$hits = array();
+
+		foreach ( self::flagged_terms() as $term ) {
+			$pattern = '/(?<![\p{L}\p{N}])' . preg_quote( strtolower( $term ), '/' ) . '(s|es|ed|ing)?(?![\p{L}\p{N}])/u';
+
+			if ( preg_match( $pattern, $haystack ) ) {
+				$hits[] = $term;
+			}
+		}
+
+		return $hits;
+	}
+
+	/**
 	 * Terms that do not belong in research-material copy. Used to warn the
 	 * editor — it never blocks saving.
 	 *
@@ -208,14 +272,7 @@ class RC_Compliance {
 			return;
 		}
 
-		$haystack = strtolower( $post->post_title . ' ' . $post->post_content . ' ' . $post->post_excerpt );
-		$hits     = array();
-
-		foreach ( self::flagged_terms() as $term ) {
-			if ( false !== strpos( $haystack, strtolower( $term ) ) ) {
-				$hits[] = $term;
-			}
-		}
+		$hits = self::scan_text( $post->post_title . ' ' . $post->post_content . ' ' . $post->post_excerpt );
 
 		if ( $hits ) {
 			update_post_meta( $post_id, '_rc_copy_flags', $hits );

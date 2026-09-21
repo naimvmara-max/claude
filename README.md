@@ -75,8 +75,25 @@ wp-content/
   themes/helix-research/      Theme (PHP templates, CSS, JS)
   plugins/research-commerce/  Plugin (PHP classes, CSS, JS)
 data/sample-products.csv      WooCommerce importer file with research-only copy
-docs/setup + guidelines       Install, copy rules, launch checklist
+content/articles/*.md         Eight long-form SEO articles (source)
+content/import/*.wxr          The same articles as a WordPress import file
+tools/build-wxr.py            Rebuilds the import file from the markdown
+docs/                         Setup, copy rules, content plan, launch checklist
 ```
+
+## Content
+
+Organic search is the only acquisition channel open to this category, so eight long-form
+articles ship with the build — all on analytical documentation, all passing the copy scanner
+with zero flagged terms. Import them with **Tools → Import → WordPress** from
+`content/import/helix-articles.wxr`, or rebuild first:
+
+```bash
+python3 tools/build-wxr.py --site https://yourdomain.com --author yourlogin
+```
+
+They import as drafts by design; `docs/content-plan.md` has the publishing order, the internal
+linking map and a twelve-article backlog. `content/README.md` covers writing more.
 
 ## Requirements
 
