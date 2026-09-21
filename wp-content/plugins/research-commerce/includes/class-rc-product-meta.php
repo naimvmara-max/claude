@@ -69,6 +69,13 @@ class RC_Product_Meta {
 			'rows'        => 5,
 		) );
 
+		woocommerce_wp_checkbox( array(
+			'id'          => '_rc_feed_exclude',
+			'label'       => __( 'Keep out of the product feed', 'research-commerce' ),
+			'description' => __( 'Excludes this item from the Google Merchant Center feed. Use it for anything a channel will not accept — a rejected item can suspend the whole account, so hold it back rather than submit and find out.', 'research-commerce' ),
+			'value'       => get_post_meta( $post->ID, '_rc_feed_exclude', true ),
+		) );
+
 		echo '<p class="form-field"><em>';
 		esc_html_e( 'Reminder: product copy must describe the material, its analysis and its handling. Do not describe effects, dosing, administration or outcomes of any kind.', 'research-commerce' );
 		echo '</em></p>';
@@ -101,6 +108,9 @@ class RC_Product_Meta {
 				update_post_meta( $post_id, $key, $value );
 			}
 		}
+
+		$exclude = ! empty( $_POST['_rc_feed_exclude'] ) ? 'yes' : 'no'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		update_post_meta( $post_id, '_rc_feed_exclude', $exclude );
 
 		if ( isset( $_POST['_rc_handling'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$handling = sanitize_textarea_field( wp_unslash( $_POST['_rc_handling'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing

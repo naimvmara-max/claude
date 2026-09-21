@@ -30,6 +30,8 @@ require_once RC_DIR . 'includes/class-rc-compliance.php';
 require_once RC_DIR . 'includes/class-rc-pricing.php';
 require_once RC_DIR . 'includes/class-rc-quote-form.php';
 require_once RC_DIR . 'includes/class-rc-calculator.php';
+require_once RC_DIR . 'includes/class-rc-seo.php';
+require_once RC_DIR . 'includes/class-rc-feed.php';
 require_once RC_DIR . 'includes/class-rc-settings.php';
 require_once RC_DIR . 'includes/class-rc-installer.php';
 
@@ -48,6 +50,8 @@ function rc_bootstrap() {
 	RC_Pricing::init();
 	RC_Quote_Form::init();
 	RC_Calculator::init();
+	RC_SEO::init();
+	RC_Feed::init();
 	RC_Settings::init();
 	RC_Installer::init();
 }
@@ -95,6 +99,7 @@ add_action( 'before_woocommerce_init', function () {
  */
 function rc_activate() {
 	RC_COA::register_post_type();
+	RC_Feed::add_rewrite();
 	flush_rewrite_rules();
 	add_option( 'rc_activation_redirect', 1 );
 }

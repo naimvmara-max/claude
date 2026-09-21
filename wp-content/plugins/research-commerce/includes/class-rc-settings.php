@@ -100,6 +100,19 @@ class RC_Settings {
 				'section' => 'commerce',
 				'hint'    => __( 'Used for the cart progress meter. Set the matching free-shipping rule in WooCommerce → Settings → Shipping. 0 hides the meter.', 'research-commerce' ),
 			),
+			'rc_brand_name'                => array(
+				'label'   => __( 'Brand name for structured data and the product feed', 'research-commerce' ),
+				'type'    => 'text',
+				'default' => get_bloginfo( 'name' ),
+				'section' => 'seo',
+			),
+			'rc_google_category'           => array(
+				'label'   => __( 'Google product category', 'research-commerce' ),
+				'type'    => 'text',
+				'default' => 'Business & Industrial > Science & Laboratory > Laboratory Chemicals',
+				'section' => 'seo',
+				'hint'    => __( 'Used in the Merchant Center feed. Keep it accurate — miscategorising to avoid a policy check is how accounts get suspended.', 'research-commerce' ),
+			),
 			'rc_quote_email'               => array(
 				'label'   => __( 'Quote requests go to', 'research-commerce' ),
 				'type'    => 'text',
@@ -143,6 +156,7 @@ class RC_Settings {
 		$sections = array(
 			'compliance' => __( 'Compliance', 'research-commerce' ),
 			'commerce'   => __( 'Commerce', 'research-commerce' ),
+			'seo'        => __( 'Search &amp; feeds', 'research-commerce' ),
 		);
 		?>
 		<div class="wrap">
@@ -187,6 +201,17 @@ class RC_Settings {
 
 				<?php submit_button(); ?>
 			</form>
+
+			<hr>
+			<h2><?php esc_html_e( 'Product feed', 'research-commerce' ); ?></h2>
+			<p>
+				<?php esc_html_e( 'Merchant Center and most comparison channels read this URL:', 'research-commerce' ); ?>
+				<code><a href="<?php echo esc_url( home_url( '/?rc_feed=google' ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( home_url( '/?rc_feed=google' ) ); ?></a></code>
+				<?php esc_html_e( '(also at /feed/google-shopping/ once permalinks are flushed).', 'research-commerce' ); ?>
+			</p>
+			<p class="description">
+				<?php esc_html_e( 'Read the Merchant Center policy on unapproved pharmaceuticals before submitting it. Products under patent or regulatory restriction can get the whole account suspended, not just the item rejected.', 'research-commerce' ); ?>
+			</p>
 
 			<hr>
 			<h2><?php esc_html_e( 'Store setup', 'research-commerce' ); ?></h2>
