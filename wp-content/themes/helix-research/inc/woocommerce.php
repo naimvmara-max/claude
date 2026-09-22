@@ -203,6 +203,9 @@ function helix_single_title() {
 			// Also match "30mg" where the meta reads "30 mg".
 			$compact = preg_replace( '/\s+/', '', $quantity );
 			$title   = preg_replace( '/\s*' . preg_quote( $compact, '/' ) . '$/i', '', $title );
+
+			// Stripping the size can leave the separator that introduced it.
+			$title = rtrim( $title, " \t—–-·," );
 		}
 	}
 
@@ -583,3 +586,93 @@ function helix_empty_cart_cta() {
 	);
 }
 add_action( 'woocommerce_cart_is_empty', 'helix_empty_cart_cta', 20 );
+
+/**
+ * A grid of catalog cards for an arbitrary list of product IDs.
+ *
+ * Used by the search results template. With WooCommerce active the real loop
+ * template renders, so the cards are identical to the catalog; without it the
+ * fallback below fires the same loop hooks, which is what the purity flag,
+ * spec line and certificate link hang off.
+ *
+ * @param int[] $ids     Product IDs.
+ * @param int   $columns Grid columns.
+ */
+function helix_render_product_cards( $ids, $columns = 4 ) {
+	if ( ! $ids ) {
+		return;
+	}
+
+	$query = new WP_Query( array(
+		'post_type'           => 'product',
+		'post__in'            => $ids,
+		'orderby'             => 'post__in',
+		'posts_per_page'      => count( $ids ),
+		'ignore_sticky_posts' => true,
+	) );
+
+	if ( ! $query->have_posts() ) {
+		return;
+	}
+
+	echo '<ul class="products columns-' . esc_attr( (int) $columns ) . '">';
+
+	while ( $query->have_posts() ) {
+		$query->the_post();
+
+		if ( function_exists( 'woocommerce_template_loop_add_to_cart' ) && function_exists( 'wc_get_template_part' ) ) {
+			wc_get_template_part( 'content', 'product' );
+		} else {
+			helix_fallback_product_card();
+		}
+	}
+
+	echo '</ul>';
+
+	wp_reset_postdata();
+}
+
+/**
+ * One catalog card, for contexts where the WooCommerce loop template is not
+ * available.
+ */
+function helix_fallback_product_card() {
+	global $product;
+
+	$product = function_exists( 'wc_get_product' ) ? wc_get_product( get_the_ID() ) : null;
+
+	echo '<li class="product">';
+	do_action( 'woocommerce_before_shop_loop_item' );
+	echo '<a href="' . esc_url( get_permalink() ) . '" class="woocommerce-LoopProduct-link">';
+	do_action( 'woocommerce_before_shop_loop_item_title' );
+
+	if ( has_post_thumbnail() ) {
+		the_post_thumbnail( 'woocommerce_thumbnail' );
+	}
+
+	echo '<h2 class="woocommerce-loop-product__title">' . esc_html( get_the_title() ) . '</h2>';
+	do_action( 'woocommerce_after_shop_loop_item_title' );
+
+	if ( $product ) {
+		echo '<span class="price">' . wp_kses_post( $product->get_price_html() ) . '</span>';
+	}
+
+	echo '</a>';
+	do_action( 'woocommerce_after_shop_loop_item' );
+
+	if ( $product && ! function_exists( 'woocommerce_template_loop_add_to_cart' ) ) {
+		if ( $product->is_in_stock() && ! $product->is_purchasable() ) {
+			$label = __( 'Awaiting certificate', 'helix-research' );
+		} elseif ( $product->is_in_stock() ) {
+			$label = __( 'Add to order', 'helix-research' );
+		} else {
+			$label = __( 'Notify me', 'helix-research' );
+		}
+
+		printf( '<a href="%s" class="button add_to_cart_button">%s</a>', esc_url( get_permalink() ), esc_html( $label ) );
+	}
+
+	echo '</li>';
+
+	$product = null;
+}

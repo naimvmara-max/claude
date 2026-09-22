@@ -30,8 +30,15 @@ function helix_assets() {
 
 	wp_enqueue_script( 'helix-main', HELIX_URI . '/assets/js/main.js', array(), HELIX_VERSION, true );
 	wp_localize_script( 'helix-main', 'helixData', array(
-		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-		'isCart'  => function_exists( 'is_cart' ) ? is_cart() : false,
+		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+		'isCart'      => function_exists( 'is_cart' ) ? is_cart() : false,
+		'searchIndex' => helix_search_index_url(),
+		'searchUrl'   => home_url( '/' ),
+		'i18n'        => array(
+			'noResults' => __( 'No match in the catalog', 'helix-research' ),
+			'seeAll'    => __( 'See all results for “%s”', 'helix-research' ),
+			'journal'   => __( 'Search the journal for “%s”', 'helix-research' ),
+		),
 	) );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -75,3 +82,22 @@ function helix_resource_hints( $urls, $relation_type ) {
 	return $urls;
 }
 add_filter( 'wp_resource_hints', 'helix_resource_hints', 10, 2 );
+
+/**
+ * Where the header search reads its catalog index from.
+ *
+ * The plugin serves it; the static preview export writes it next to the pages,
+ * so a filter can point the theme at a flat file instead.
+ *
+ * @return string
+ */
+function helix_search_index_url() {
+	$url = add_query_arg( 'rc_index', 'products', home_url( '/' ) );
+
+	/**
+	 * Filter the catalog index URL.
+	 *
+	 * @param string $url Index URL.
+	 */
+	return apply_filters( 'helix_search_index_url', $url );
+}

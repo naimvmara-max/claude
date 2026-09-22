@@ -55,17 +55,29 @@ defined( 'ABSPATH' ) || exit;
 			) );
 			?>
 			<div class="hx-nav__mobile-extras">
+				<form role="search" method="get" class="hx-search hx-search--mobile" action="<?php echo esc_url( home_url( '/' ) ); ?>" data-hx-search>
+					<label class="screen-reader-text" for="hx-search-field-mobile"><?php esc_html_e( 'Search the catalog', 'helix-research' ); ?></label>
+					<?php echo helix_icon( 'search', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<input type="search" id="hx-search-field-mobile" name="s" value="<?php echo esc_attr( get_search_query() ); ?>"
+						placeholder="<?php esc_attr_e( 'Search by compound, code or CAS…', 'helix-research' ); ?>"
+						autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="hx-search-results-mobile">
+					<button type="submit" class="screen-reader-text"><?php esc_html_e( 'Search', 'helix-research' ); ?></button>
+					<div class="hx-search__panel" id="hx-search-results-mobile" role="listbox" hidden></div>
+				</form>
 				<p><?php echo esc_html( helix_opt( 'header_support' ) ); ?></p>
 			</div>
 		</nav>
 
 		<div class="hx-header__actions">
 			<?php if ( class_exists( 'WooCommerce' ) ) : ?>
-				<form role="search" method="get" class="hx-search" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+				<form role="search" method="get" class="hx-search" action="<?php echo esc_url( home_url( '/' ) ); ?>" data-hx-search>
 					<label class="screen-reader-text" for="hx-search-field"><?php esc_html_e( 'Search the catalog', 'helix-research' ); ?></label>
 					<?php echo helix_icon( 'search', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<input type="search" id="hx-search-field" name="s" value="<?php echo esc_attr( get_search_query() ); ?>" placeholder="<?php esc_attr_e( 'Search by compound or CAS…', 'helix-research' ); ?>">
-					<input type="hidden" name="post_type" value="product">
+					<input type="search" id="hx-search-field" name="s" value="<?php echo esc_attr( get_search_query() ); ?>"
+						placeholder="<?php esc_attr_e( 'Search by compound, code or CAS…', 'helix-research' ); ?>"
+						autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="hx-search-results">
+					<button type="submit" class="screen-reader-text"><?php esc_html_e( 'Search', 'helix-research' ); ?></button>
+					<div class="hx-search__panel" id="hx-search-results" role="listbox" hidden></div>
 				</form>
 
 				<a class="hx-cart-link" href="<?php echo esc_url( wc_get_cart_url() ); ?>" aria-label="<?php esc_attr_e( 'View cart', 'helix-research' ); ?>">
