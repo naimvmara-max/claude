@@ -761,9 +761,13 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 .rc-builder__item.is-unavailable .rc-builder__row { cursor: not-allowed; opacity: .45; }
 
 .rc-builder__index { font: 400 .72rem/1 var(--hx-mono, monospace); color: var(--hx-muted); }
-.rc-builder__thumb { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; overflow: visible; }
+.rc-builder__thumb {
+	width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+	border: 1px solid var(--hx-line); border-radius: 6px; overflow: hidden;
+	background: var(--hx-bg-tint, var(--hx-bg-soft));
+}
 /* The vial sits in a padded square, so it reads small at this size. */
-.rc-builder__thumb img { width: 44px; height: 44px; object-fit: contain; transform: scale(1.35); }
+.rc-builder__thumb img { width: 42px; height: 42px; object-fit: contain; transform: scale(1.35); }
 .rc-builder__label { display: flex; flex-direction: column; min-width: 0; }
 .rc-builder__code { font-weight: 600; font-size: .95rem; letter-spacing: .01em; }
 .rc-builder__sub {
@@ -778,7 +782,29 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 	font-weight: 400; font-size: .66rem; line-height: 1.25;
 	text-transform: uppercase; letter-spacing: .05em; white-space: normal;
 }
-.rc-builder__row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--hx-accent); }
+/* The native control is drawn in the browser's own light palette, which puts
+   a bright filled square on every unselected row. This one is ours. */
+.rc-builder__row input[type="checkbox"] {
+	appearance: none; -webkit-appearance: none;
+	width: 20px; height: 20px; margin: 0;
+	border: 1px solid var(--hx-line); border-radius: 5px;
+	background: transparent; cursor: pointer;
+	display: grid; place-content: center;
+	transition: border-color .15s ease, background .15s ease;
+}
+.rc-builder__row input[type="checkbox"]::after {
+	content: ""; width: 10px; height: 6px;
+	border-left: 2px solid var(--hx-bg); border-bottom: 2px solid var(--hx-bg);
+	transform: rotate(-45deg) translate(1px, -1px);
+	opacity: 0;
+}
+.rc-builder__row input[type="checkbox"]:hover { border-color: var(--hx-accent); }
+.rc-builder__row input[type="checkbox"]:checked {
+	background: var(--hx-accent); border-color: var(--hx-accent);
+}
+.rc-builder__row input[type="checkbox"]:checked::after { opacity: 1; }
+.rc-builder__row input[type="checkbox"]:focus-visible { outline: 2px solid var(--hx-accent); outline-offset: 2px; }
+.rc-builder__row input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .5; }
 
 .rc-builder__summary { position: sticky; top: 1.5rem; }
 .rc-builder__summary-inner {

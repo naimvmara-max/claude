@@ -264,3 +264,36 @@ function rc_format_percent( $percent ) {
 
 	return number_format_i18n( $percent, $decimals ) . '%';
 }
+
+/**
+ * The catalog code on its own, with the fill size stripped off the title.
+ *
+ * "GLP-RT 30 mg" is the post title, but wherever the size is already shown
+ * beside it the title should read "GLP-RT" rather than saying 30 mg twice.
+ *
+ * @param int $product_id Product ID.
+ * @return string
+ */
+function rc_catalog_code( $product_id ) {
+	$title    = get_the_title( $product_id );
+	$quantity = trim( (string) get_post_meta( $product_id, '_rc_quantity', true ) );
+
+	if ( $quantity ) {
+		$title = preg_replace( '/\s*' . preg_quote( $quantity, '/' ) . '$/i', '', $title );
+
+		// Also match "30mg" where the meta reads "30 mg".
+		$compact = preg_replace( '/\s+/', '', $quantity );
+		$title   = preg_replace( '/\s*' . preg_quote( $compact, '/' ) . '$/i', '', $title );
+
+		// Stripping the size can leave the separator that introduced it.
+		$title = preg_replace( '/[\s\x{2014}\x{2013}\-\x{00b7},]+$/u', '', $title );
+	}
+
+	/**
+	 * Filter the catalog code shown in place of the full title.
+	 *
+	 * @param string $title      Code.
+	 * @param int    $product_id Product ID.
+	 */
+	return apply_filters( 'rc_catalog_code', $title, $product_id );
+}

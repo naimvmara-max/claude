@@ -196,24 +196,10 @@ add_filter( 'woocommerce_product_single_add_to_cart_text', 'helix_add_to_cart_te
 function helix_single_title() {
 	global $product;
 
-	$title = get_the_title();
-
-	if ( $product ) {
-		$quantity = trim( (string) get_post_meta( $product->get_id(), '_rc_quantity', true ) );
-
-		// Strip a trailing fill size when the eyebrow already shows it.
-		if ( $quantity ) {
-			$pattern = '/\s*' . preg_quote( $quantity, '/' ) . '$/i';
-			$title   = preg_replace( $pattern, '', $title );
-
-			// Also match "30mg" where the meta reads "30 mg".
-			$compact = preg_replace( '/\s+/', '', $quantity );
-			$title   = preg_replace( '/\s*' . preg_quote( $compact, '/' ) . '$/i', '', $title );
-
-			// Stripping the size can leave the separator that introduced it.
-			$title = rtrim( $title, " \t—–-·," );
-		}
-	}
+	// The eyebrow above already shows the fill size.
+	$title = ( $product && function_exists( 'rc_catalog_code' ) )
+		? rc_catalog_code( $product->get_id() )
+		: get_the_title();
 
 	printf( '<h1 class="product_title entry-title">%s</h1>', esc_html( $title ) );
 }

@@ -169,7 +169,9 @@ class RC_Builder {
 
 			$rows[] = array(
 				'id'       => $id,
-				'name'     => get_the_title( $id ),
+				// The sub-line under it carries the compound and the size, so
+				// the code alone here keeps a row from saying both twice.
+				'name'     => rc_catalog_code( $id ),
 				'compound' => (string) get_post_meta( $id, '_rc_compound', true ),
 				'size'     => (string) get_post_meta( $id, '_rc_quantity', true ),
 				'price'    => (float) $product->get_price(),
@@ -295,7 +297,15 @@ class RC_Builder {
 					<?php foreach ( $rows as $index => $row ) : ?>
 						<?php
 						$disabled = '' !== $row['reason'];
-						$sub      = array_filter( array( $row['compound'], $row['size'] ) );
+
+						// On a listing whose code is the compound — BPC-157,
+						// TB-500 — naming it again under the title reads as a
+						// stutter, so the sub-line is then just the fill size.
+						$sub = array( $row['compound'], $row['size'] );
+						if ( 0 === strcasecmp( $row['compound'], $row['name'] ) ) {
+							$sub = array( $row['size'] );
+						}
+						$sub = array_filter( $sub );
 						?>
 						<li class="rc-builder__item<?php echo $disabled ? ' is-unavailable' : ''; ?>">
 							<label class="rc-builder__row">

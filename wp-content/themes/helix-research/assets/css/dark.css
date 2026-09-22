@@ -5,6 +5,7 @@
    ====================================================================== */
 
 body.hx-dark {
+	color-scheme: dark;
 	--hx-bg: #0a0a0a;
 	--hx-bg-soft: #111111;
 	--hx-bg-tint: #151515;
@@ -263,4 +264,7 @@ body.hx-dark .rc-builder__code,
 body.hx-dark .rc-builder__price,
 body.hx-dark .rc-builder__line-name { color: var(--hx-ink); }
 body.hx-dark .rc-builder__saving dd { color: #7fd6a8; }
-body.hx-dark .rc-builder__row input[type="checkbox"] { accent-color: #ffffff; }
+body.hx-dark .rc-builder__thumb { background: var(--hx-bg-tint); border-color: var(--hx-line); }
+body.hx-dark .rc-builder__row input[type="checkbox"] { border-color: #3a3a3a; }
+body.hx-dark .rc-builder__row input[type="checkbox"]:checked { background: #ffffff; border-color: #ffffff; }
+body.hx-dark .rc-builder__row input[type="checkbox"]::after { border-color: #0a0a0a; }
