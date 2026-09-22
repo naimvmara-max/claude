@@ -161,6 +161,12 @@ class RC_Builder {
 				$thumb = $src ? $src[0] : '';
 			}
 
+			// An empty square in the middle of the list reads as a broken
+			// image, so a listing without a photograph gets the placeholder.
+			if ( ! $thumb && function_exists( 'wc_placeholder_img_src' ) ) {
+				$thumb = wc_placeholder_img_src( 'thumbnail' );
+			}
+
 			$rows[] = array(
 				'id'       => $id,
 				'name'     => get_the_title( $id ),
@@ -179,6 +185,23 @@ class RC_Builder {
 		 * @param array $rows Rows.
 		 */
 		return apply_filters( 'rc_builder_compounds', $rows );
+	}
+
+	/**
+	 * Escape an image source.
+	 *
+	 * The placeholder is an inline SVG, and esc_url() drops the data scheme,
+	 * which leaves a broken image where a photograph is simply missing.
+	 *
+	 * @param string $src Source.
+	 * @return string
+	 */
+	protected static function image_src( $src ) {
+		if ( 0 === strpos( $src, 'data:image/' ) ) {
+			return $src;
+		}
+
+		return esc_url( $src );
 	}
 
 	/**
@@ -280,7 +303,7 @@ class RC_Builder {
 
 								<span class="rc-builder__thumb">
 									<?php if ( $row['thumb'] ) : ?>
-										<img src="<?php echo esc_url( $row['thumb'] ); ?>" alt="" width="44" height="44" loading="lazy">
+										<img src="<?php echo esc_attr( self::image_src( $row['thumb'] ) ); ?>" alt="" width="44" height="44" loading="lazy">
 									<?php endif; ?>
 								</span>
 
