@@ -150,52 +150,75 @@ function rc_get_specs( $product_id ) {
  * @return array[] Each: qty, percent.
  */
 function rc_get_tiers() {
-	$stored = get_option( 'rc_tiers', '' );
-	$tiers  = array();
-
-	if ( $stored ) {
-		// Stored as "3:5, 5:10, 10:15" — quantity:percent pairs.
-		$by_qty = array();
-
-		foreach ( explode( ',', $stored ) as $pair ) {
-			$parts = array_map( 'trim', explode( ':', $pair ) );
-
-			if ( count( $parts ) !== 2 ) {
-				continue;
-			}
-
-			$qty     = (int) $parts[0];
-			$percent = (float) $parts[1];
-
-			// A tier needs at least 2 units, and a discount that is neither
-			// zero nor a typo like "5:100" that would give the stock away.
-			if ( $qty < 2 || $percent <= 0 || $percent >= 100 ) {
-				continue;
-			}
-
-			// A repeated quantity keeps the larger discount rather than
-			// whichever happened to be typed last.
-			if ( ! isset( $by_qty[ $qty ] ) || $percent > $by_qty[ $qty ] ) {
-				$by_qty[ $qty ] = $percent;
-			}
-		}
-
-		ksort( $by_qty );
-
-		foreach ( $by_qty as $qty => $percent ) {
-			$tiers[] = array(
-				'qty'     => $qty,
-				'percent' => $percent,
-			);
-		}
-	}
-
 	/**
 	 * Filter the quantity discount tiers.
 	 *
 	 * @param array $tiers Tier definitions.
 	 */
-	return apply_filters( 'rc_tiers', $tiers );
+	return apply_filters( 'rc_tiers', rc_parse_tiers( get_option( 'rc_tiers', '' ) ) );
+}
+
+/**
+ * Discount tiers for a stack built out of different compounds.
+ *
+ * Separate from the quantity breaks: those reward buying more of one vial,
+ * these reward buying a set.
+ *
+ * @return array[] Each entry has count and percent, ascending by count.
+ */
+function rc_get_stack_tiers() {
+	/**
+	 * Filter the stack discount tiers.
+	 *
+	 * @param array $tiers Tier definitions.
+	 */
+	return apply_filters( 'rc_stack_tiers', rc_parse_tiers( get_option( 'rc_stack_tiers', '2:6, 3:12' ) ) );
+}
+
+/**
+ * Parse a "3:5, 5:10" tier string.
+ *
+ * @param string $stored Stored value.
+ * @return array[] Each entry has qty, count (an alias) and percent.
+ */
+function rc_parse_tiers( $stored ) {
+	$by_qty = array();
+
+	foreach ( explode( ',', (string) $stored ) as $pair ) {
+		$parts = array_map( 'trim', explode( ':', $pair ) );
+
+		if ( count( $parts ) !== 2 ) {
+			continue;
+		}
+
+		$qty     = (int) $parts[0];
+		$percent = (float) $parts[1];
+
+		// A tier needs at least 2 units, and a discount that is neither zero
+		// nor a typo like "5:100" that would give the stock away.
+		if ( $qty < 2 || $percent <= 0 || $percent >= 100 ) {
+			continue;
+		}
+
+		// A repeated quantity keeps the larger discount rather than whichever
+		// happened to be typed last.
+		if ( ! isset( $by_qty[ $qty ] ) || $percent > $by_qty[ $qty ] ) {
+			$by_qty[ $qty ] = $percent;
+		}
+	}
+
+	ksort( $by_qty );
+
+	$tiers = array();
+	foreach ( $by_qty as $qty => $percent ) {
+		$tiers[] = array(
+			'qty'     => $qty,
+			'count'   => $qty,
+			'percent' => $percent,
+		);
+	}
+
+	return $tiers;
 }
 
 /**
@@ -227,4 +250,17 @@ function rc_coa_link_type( $product_id ) {
 	$path = wp_parse_url( $url, PHP_URL_PATH );
 
 	return ( $path && preg_match( '/\.(pdf|jpe?g|png)$/i', $path ) ) ? 'file' : 'report';
+}
+
+/**
+ * A discount percentage, without a trailing ".0".
+ *
+ * @param float $percent Percentage.
+ * @return string
+ */
+function rc_format_percent( $percent ) {
+	$percent = (float) $percent;
+	$decimals = ( floor( $percent ) === $percent ) ? 0 : 1;
+
+	return number_format_i18n( $percent, $decimals ) . '%';
 }

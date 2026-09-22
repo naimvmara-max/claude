@@ -101,6 +101,20 @@ class RC_Settings {
 				'section' => 'commerce',
 				'hint'    => __( 'Format: quantity:percent, comma separated. "3:5, 5:10" means 5% off from 3 units and 10% off from 5. Quantities below 2 and percentages outside 1–99 are ignored. Leave blank to disable.', 'research-commerce' ),
 			),
+			'rc_stack_tiers'               => array(
+				'label'   => __( 'Stack discount tiers', 'research-commerce' ),
+				'type'    => 'text',
+				'default' => '2:6, 3:12',
+				'section' => 'commerce',
+				'hint'    => __( 'Format: compounds:percent, comma separated. Applies once an order holds that many different compounds — the panel builder previews it, and the cart applies it however the compounds were added. Accessories and preset panels do not count. Leave blank to disable.', 'research-commerce' ),
+			),
+			'rc_stack_presets'             => array(
+				'label'   => __( 'Panel builder presets', 'research-commerce' ),
+				'type'    => 'textarea',
+				'default' => '',
+				'section' => 'commerce',
+				'hint'    => __( 'One per line, as "Label: SKU, SKU". Each becomes a button that ticks those compounds. A preset whose SKUs are not all in the catalog is skipped.', 'research-commerce' ),
+			),
 			'rc_free_shipping_threshold'   => array(
 				'label'   => __( 'Free shipping progress threshold', 'research-commerce' ),
 				'type'    => 'number',

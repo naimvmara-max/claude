@@ -707,3 +707,115 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 @media (max-width: 380px) {
 	.woocommerce ul.products, .woocommerce ul.products[class*="columns-"] { grid-template-columns: 1fr; }
 }
+
+/* Panel builder -------------------------------------------------------- */
+/* The prose measure is a reading width; the builder is a two-column tool, so
+   it breaks out of it wherever the shortcode is dropped. */
+.hx-prose > .rc-builder {
+	width: min(var(--hx-wrap), calc(100vw - 2.5rem));
+	max-width: none;
+	margin-inline: calc((100% - min(var(--hx-wrap), 100vw - 2.5rem)) / 2);
+}
+
+.rc-builder {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 340px;
+	gap: 2.5rem;
+	align-items: start;
+	margin: 2rem 0 4rem;
+}
+.rc-builder__title {
+	font-size: .82rem; letter-spacing: .12em; text-transform: uppercase;
+	margin: 0 0 .35rem;
+}
+.rc-builder__tiers { font-size: .78rem; color: var(--hx-muted); margin: 0 0 .75rem; letter-spacing: .04em; }
+.rc-builder__standfirst { font-size: .84rem; color: var(--hx-body); margin: 0 0 1.5rem; max-width: 62ch; }
+
+.rc-builder__presets { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1.25rem; align-items: center; }
+.rc-builder__presets-label { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--hx-muted); margin-right: .25rem; }
+.rc-builder__preset {
+	font: 500 .78rem/1 var(--hx-sans);
+	padding: .45rem .7rem; border-radius: 999px; cursor: pointer;
+	background: transparent; color: var(--hx-ink);
+	border: 1px solid var(--hx-line);
+}
+.rc-builder__preset:hover { border-color: var(--hx-accent); }
+.rc-builder__preset--clear { color: var(--hx-muted); }
+
+.rc-builder__items { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.rc-builder__row {
+	display: grid;
+	grid-template-columns: 2rem 44px minmax(0, 1fr) auto 22px;
+	align-items: center; gap: .9rem;
+	padding: .7rem .9rem; cursor: pointer;
+	border: 1px solid var(--hx-line); border-radius: var(--hx-radius);
+	background: var(--hx-bg-soft);
+	transition: border-color .15s ease, background .15s ease;
+}
+.rc-builder__row:hover { border-color: #cdd9d4; }
+.rc-builder__item.is-picked .rc-builder__row { border-color: var(--hx-accent); background: var(--hx-bg-tint, var(--hx-bg-soft)); }
+.rc-builder__item.is-unavailable .rc-builder__row { cursor: not-allowed; opacity: .45; }
+
+.rc-builder__index { font: 400 .72rem/1 var(--hx-mono, monospace); color: var(--hx-muted); }
+.rc-builder__thumb { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; overflow: visible; }
+/* The vial sits in a padded square, so it reads small at this size. */
+.rc-builder__thumb img { width: 44px; height: 44px; object-fit: contain; transform: scale(1.35); }
+.rc-builder__label { display: flex; flex-direction: column; min-width: 0; }
+.rc-builder__code { font-weight: 600; font-size: .95rem; letter-spacing: .01em; }
+.rc-builder__sub {
+	font-size: .74rem; color: var(--hx-muted); letter-spacing: .06em; text-transform: uppercase;
+	white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rc-builder__price { font-weight: 600; font-size: .92rem; white-space: nowrap; }
+.rc-builder__item.is-unavailable .rc-builder__price { font-weight: 400; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+.rc-builder__row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--hx-accent); }
+
+.rc-builder__summary { position: sticky; top: 1.5rem; }
+.rc-builder__summary-inner {
+	border: 1px solid var(--hx-line); border-radius: var(--hx-radius-lg);
+	padding: 1.25rem; background: var(--hx-bg-soft);
+}
+.rc-builder__count { font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--hx-muted); margin: 0 0 1rem; }
+.rc-builder__lines { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: .55rem; }
+.rc-builder__lines li {
+	display: grid; grid-template-columns: minmax(0, 1fr) auto 1.1rem;
+	align-items: baseline; gap: .6rem; font-size: .88rem;
+}
+.rc-builder__line-name { font-weight: 600; min-width: 0; }
+.rc-builder__line-size { font-weight: 400; font-size: .72rem; color: var(--hx-muted); margin-left: .4rem; letter-spacing: .05em; text-transform: uppercase; }
+.rc-builder__line-price { font-variant-numeric: tabular-nums; }
+.rc-builder__line-drop {
+	background: none; border: 0; padding: 0; cursor: pointer; line-height: 1;
+	font-size: 1rem; color: var(--hx-muted);
+}
+.rc-builder__line-drop:hover { color: var(--hx-ink); }
+.rc-builder__hint { font-size: .76rem; color: var(--hx-muted); margin: 0 0 1rem; }
+.rc-builder__hint:empty { display: none; }
+
+.rc-builder__totals { margin: 0 0 1rem; padding-top: 1rem; border-top: 1px solid var(--hx-line); }
+.rc-builder__totals > div { display: flex; justify-content: space-between; gap: 1rem; font-size: .84rem; margin-bottom: .4rem; }
+.rc-builder__totals dt, .rc-builder__totals dd { margin: 0; }
+.rc-builder__totals dt { color: var(--hx-muted); letter-spacing: .06em; text-transform: uppercase; font-size: .72rem; }
+.rc-builder__totals dd { font-variant-numeric: tabular-nums; }
+.rc-builder__total { padding-top: .6rem; border-top: 1px solid var(--hx-line); align-items: baseline; }
+.rc-builder__total dd { font-size: 1.5rem; font-weight: 700; }
+.rc-builder__saving dd { color: var(--hx-accent); }
+
+.rc-builder__submit { width: 100%; justify-content: center; }
+.rc-builder__submit[disabled] { opacity: .4; cursor: not-allowed; }
+.rc-builder__note { font-size: .7rem; color: var(--hx-muted); margin: .9rem 0 0; }
+
+@media (max-width: 900px) {
+	.rc-builder { grid-template-columns: 1fr; gap: 1.5rem; }
+	.rc-builder__summary { position: static; }
+}
+@media (max-width: 560px) {
+	.rc-builder__row { grid-template-columns: 40px minmax(0, 1fr) auto 20px; gap: .6rem; padding: .6rem; }
+	.rc-builder__index { display: none; }
+	.rc-builder__thumb, .rc-builder__thumb img { width: 40px; height: 40px; }
+	.rc-builder__code { font-size: .88rem; }
+	.rc-builder__price { font-size: .82rem; }
+	.rc-builder__item.is-unavailable .rc-builder__price {
+		font-size: .6rem; line-height: 1.2; max-width: 6rem; white-space: normal; text-align: right;
+	}
+}

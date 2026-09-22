@@ -298,3 +298,168 @@
 		});
 	}
 }());
+
+/* Panel builder ---------------------------------------------------------- */
+(function () {
+	'use strict';
+
+	document.querySelectorAll('[data-rc-builder]').forEach(function (root) {
+		var boxes = Array.prototype.slice.call(root.querySelectorAll('input[name="rc_stack[]"]'));
+		var lines = root.querySelector('[data-rc-lines]');
+		var count = root.querySelector('[data-rc-count]');
+		var hint = root.querySelector('[data-rc-hint]');
+		var submit = root.querySelector('[data-rc-submit]');
+		var subtotalOut = root.querySelector('[data-rc-subtotal]');
+		var savingRow = root.querySelector('[data-rc-saving-row]');
+		var savingLabel = root.querySelector('[data-rc-saving-label]');
+		var savingOut = root.querySelector('[data-rc-saving]');
+		var totalOut = root.querySelector('[data-rc-total]');
+
+		if (!boxes.length || !lines) { return; }
+
+		var tiers = [];
+		try { tiers = JSON.parse(root.getAttribute('data-tiers') || '[]'); } catch (e) { tiers = []; }
+
+		var decimals = parseInt(root.getAttribute('data-decimals'), 10);
+		if (isNaN(decimals)) { decimals = 2; }
+		var decimalSep = root.getAttribute('data-decimal-sep') || '.';
+		var thousandSep = root.getAttribute('data-thousand-sep') || '';
+		var symbol = root.getAttribute('data-currency') || '';
+		var position = root.getAttribute('data-currency-position') || 'left';
+
+		function money(amount) {
+			var fixed = Math.abs(amount).toFixed(decimals);
+			var parts = fixed.split('.');
+			parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandSep);
+
+			var text = parts.join(parts.length > 1 ? decimalSep : '');
+			var sign = amount < 0 ? '−' : '';
+
+			if (position === 'right') { return sign + text + symbol; }
+			if (position === 'right_space') { return sign + text + ' ' + symbol; }
+			if (position === 'left_space') { return sign + symbol + ' ' + text; }
+			return sign + symbol + text;
+		}
+
+		function percentFor(n) {
+			var percent = 0;
+			tiers.forEach(function (tier) {
+				if (n >= tier.count) { percent = tier.percent; }
+			});
+			return percent;
+		}
+
+		function percentText(value) {
+			return (Math.round(value * 10) / 10) + '%';
+		}
+
+		function nextHint(n) {
+			for (var i = 0; i < tiers.length; i++) {
+				if (n < tiers[i].count) {
+					var missing = tiers[i].count - n;
+					return 'Add ' + missing + (missing === 1 ? ' more compound' : ' more compounds') +
+						' for ' + percentText(tiers[i].percent) + ' off.';
+				}
+			}
+			return '';
+		}
+
+		function update() {
+			var picked = boxes.filter(function (box) { return box.checked; });
+			var subtotal = 0;
+
+			lines.innerHTML = '';
+
+			picked.forEach(function (box) {
+				var price = parseFloat(box.getAttribute('data-price')) || 0;
+				subtotal += price;
+
+				var row = document.createElement('li');
+
+				var name = document.createElement('span');
+				name.className = 'rc-builder__line-name';
+				name.textContent = box.getAttribute('data-name');
+
+				var size = box.getAttribute('data-size');
+				if (size) {
+					var sub = document.createElement('span');
+					sub.className = 'rc-builder__line-size';
+					sub.textContent = '· ' + size;
+					name.appendChild(sub);
+				}
+
+				var value = document.createElement('span');
+				value.className = 'rc-builder__line-price';
+				value.textContent = money(price);
+
+				// Unticking from the summary is the obvious gesture once a
+				// stack gets long.
+				var drop = document.createElement('button');
+				drop.type = 'button';
+				drop.className = 'rc-builder__line-drop';
+				drop.setAttribute('aria-label', 'Remove ' + box.getAttribute('data-name'));
+				drop.textContent = '×';
+				drop.addEventListener('click', function () {
+					box.checked = false;
+					update();
+				});
+
+				row.appendChild(name);
+				row.appendChild(value);
+				row.appendChild(drop);
+				lines.appendChild(row);
+			});
+
+			var n = picked.length;
+			var percent = percentFor(n);
+			var saving = subtotal * percent / 100;
+
+			if (count) {
+				count.textContent = n === 0
+					? 'Nothing selected yet'
+					: n + (n === 1 ? ' compound' : ' compounds');
+			}
+
+			if (subtotalOut) { subtotalOut.textContent = money(subtotal); }
+
+			if (savingRow) {
+				savingRow.hidden = saving <= 0;
+				if (savingLabel) { savingLabel.textContent = 'Stack discount · ' + percentText(percent); }
+				if (savingOut) { savingOut.textContent = money(-saving); }
+			}
+
+			if (totalOut) { totalOut.textContent = money(subtotal - saving); }
+			if (hint) { hint.textContent = nextHint(n); }
+			if (submit) { submit.disabled = n === 0; }
+
+			root.querySelectorAll('.rc-builder__item').forEach(function (item) {
+				var box = item.querySelector('input[name="rc_stack[]"]');
+				item.classList.toggle('is-picked', !!(box && box.checked));
+			});
+		}
+
+		boxes.forEach(function (box) { box.addEventListener('change', update); });
+
+		root.querySelectorAll('[data-rc-preset]').forEach(function (button) {
+			button.addEventListener('click', function () {
+				var ids = [];
+				try { ids = JSON.parse(button.getAttribute('data-rc-preset') || '[]'); } catch (e) { return; }
+
+				boxes.forEach(function (box) {
+					box.checked = !box.disabled && ids.indexOf(parseInt(box.value, 10)) > -1;
+				});
+				update();
+			});
+		});
+
+		var clear = root.querySelector('[data-rc-clear]');
+		if (clear) {
+			clear.addEventListener('click', function () {
+				boxes.forEach(function (box) { box.checked = false; });
+				update();
+			});
+		}
+
+		update();
+	});
+}());

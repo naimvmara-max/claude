@@ -32,6 +32,7 @@ require_once RC_DIR . 'includes/class-rc-quote-form.php';
 require_once RC_DIR . 'includes/class-rc-calculator.php';
 require_once RC_DIR . 'includes/class-rc-bundles.php';
 require_once RC_DIR . 'includes/class-rc-panels.php';
+require_once RC_DIR . 'includes/class-rc-builder.php';
 require_once RC_DIR . 'includes/class-rc-search.php';
 require_once RC_DIR . 'includes/class-rc-seo.php';
 require_once RC_DIR . 'includes/class-rc-feed.php';
@@ -55,6 +56,7 @@ function rc_bootstrap() {
 	RC_Calculator::init();
 	RC_Bundles::init();
 	RC_Panels::init();
+	RC_Builder::init();
 	RC_Search::init();
 	RC_SEO::init();
 	RC_Feed::init();

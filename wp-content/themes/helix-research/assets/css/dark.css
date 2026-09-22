@@ -251,3 +251,16 @@ body.hx-dark .hx-search__all {
 	color: var(--hx-accent);
 }
 body.hx-dark .hx-search-results__heading { color: var(--hx-muted); }
+
+/* Panel builder -------------------------------------------------------- */
+body.hx-dark .rc-builder__row { background: var(--hx-bg-soft); border-color: var(--hx-line); }
+body.hx-dark .rc-builder__row:hover { border-color: #4a4a4a; }
+body.hx-dark .rc-builder__item.is-picked .rc-builder__row { border-color: var(--hx-ink); background: var(--hx-bg-tint); }
+body.hx-dark .rc-builder__summary-inner { background: var(--hx-bg-soft); border-color: var(--hx-line); }
+body.hx-dark .rc-builder__preset { border-color: var(--hx-line); color: var(--hx-body); }
+body.hx-dark .rc-builder__preset:hover { border-color: var(--hx-ink); color: var(--hx-ink); }
+body.hx-dark .rc-builder__code,
+body.hx-dark .rc-builder__price,
+body.hx-dark .rc-builder__line-name { color: var(--hx-ink); }
+body.hx-dark .rc-builder__saving dd { color: #7fd6a8; }
+body.hx-dark .rc-builder__row input[type="checkbox"] { accent-color: #ffffff; }

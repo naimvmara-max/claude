@@ -50,8 +50,16 @@ Still on **Products → Research settings**:
 | Decline destination | Any neutral external site |
 | Short / full / checkout notices | Leave blank to use the built-in wording, or paste your lawyer's |
 | Quantity price breaks | `3:5, 5:10, 10:15` |
+| Stack discount tiers | `2:6, 3:12` — the panel builder's set discount |
+| Panel builder presets | One per line, `Label: SKU, SKU` |
 | Free shipping threshold | Match the amount in your WooCommerce free-shipping rule (0 hides the meter) |
 | Quote requests go to | Your sales inbox |
+
+The two tier fields answer different questions. Quantity price breaks reward buying more of one
+vial and discount that line. The stack tiers reward buying a set: once an order holds that many
+**different** compounds, the discount comes off as a cart-level line. Both can apply to the same
+order, which is deliberate. Put `[rc_panel_builder]` on a page to merchandise the stack tiers;
+the rule itself works whether or not a buyer ever sees that page.
 
 The threshold field only draws the progress meter. Create the actual rule in
 **WooCommerce → Settings → Shipping → your zone → Free shipping → minimum order amount.**

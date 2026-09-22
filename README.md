@@ -37,6 +37,9 @@ and the banned list.
 **Shortcodes**
 - `[rc_coa_lookup]` — lot verification tool (works without JavaScript).
 - `[rc_quote_form]` — institutional quote / contact form with honeypot and required attestation.
+- `[rc_panel_builder]` — pick-your-own panel: tick compounds, watch the set discount apply, add
+  the lot in one action. The discount is a cart rule, so a buyer who adds the same compounds one
+  at a time pays the same; accessories and anything without a published certificate are left out.
 
 ## Install
 
