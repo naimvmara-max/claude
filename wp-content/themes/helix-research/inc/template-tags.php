@@ -143,6 +143,15 @@ function helix_trust_strip() {
  * @param string $intro Optional intro.
  */
 function helix_page_hero( $title, $intro = '' ) {
+	static $printed = false;
+
+	// A catalog built as an ordinary page fires both the page template's hero
+	// and the shop wrapper's; one page gets one hero.
+	if ( $printed ) {
+		return;
+	}
+	$printed = true;
+
 	echo '<header class="hx-page-hero"><div class="hx-wrap">';
 	printf( '<h1>%s</h1>', esc_html( $title ) );
 	if ( $intro ) {

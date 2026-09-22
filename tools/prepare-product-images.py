@@ -71,8 +71,10 @@ def main():
     parser.add_argument("--pad", type=float, default=0.12, help="padding as a fraction of the subject (default 0.12)")
     parser.add_argument("--threshold", type=int, default=245, help="background cutoff, 0-255 (default 245)")
     parser.add_argument("--quality", type=int, default=88)
-    parser.add_argument("--background", default="white",
-                        help='"white" (default), "transparent", or any CSS colour such as "#0a0a0a"')
+    # The storefront is dark, so a cut-out has to stay a cut-out: a white
+    # matte here prints a white box behind every vial on a black card.
+    parser.add_argument("--background", default="transparent",
+                        help='"transparent" (default), "white", or any CSS colour such as "#0a0a0a"')
     args = parser.parse_args()
 
     files = sorted(p for p in SRC.glob("*.webp") if p.parent == SRC)

@@ -77,11 +77,15 @@ The mapping lives in `data/phantom-catalog.csv` under `Meta: _rc_compound`, and
 the field is editable per product under **Research data**.
 
 **Label mismatch to resolve:** the printed vials read SEMAGLUTIDE and
-TIRZAPETIDE in full, while the site will list GLP-SEM and GLP-TZ. A buyer
-ordering "GLP-SEM" and receiving a vial marked "SEMAGLUTIDE" has a discrepancy
-between their paperwork and their label — the same discrepancy the COA lookup
-exists to prevent. Pick one naming system and make the labels, the listings and
-the certificates agree.
+TIRZEPATIDE in full, while the site lists GLP-SEM and GLP-TZ. A buyer ordering
+"GLP-SEM" and receiving a vial marked "SEMAGLUTIDE" has a discrepancy between
+their paperwork and their label — the same discrepancy the COA lookup exists to
+prevent. Pick one naming system and make the labels, the listings and the
+certificates agree.
+
+The two misspellings that were printed on the photographs — TIRZAPETIDE, and
+5 mg written as SMG — are corrected by `tools/fix-label-typos.py`, which edits
+the photographs. The physical labels still need correcting at the printer.
 
 ## Page → keyword map
 

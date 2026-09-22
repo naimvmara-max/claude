@@ -55,7 +55,7 @@ add_filter( 'woocommerce_show_page_title', '__return_false' );
  * @return int
  */
 function helix_loop_columns() {
-	return 3;
+	return 4;
 }
 add_filter( 'loop_shop_columns', 'helix_loop_columns', 20 );
 
@@ -94,6 +94,12 @@ function helix_loop_purity_flag() {
 	if ( ! $product ) {
 		return;
 	}
+	// A panel already carries its own badge in that corner, and its purity is
+	// per component — the contents block on the listing gives each figure.
+	if ( class_exists( 'RC_Panels' ) && RC_Panels::is_panel( $product->get_id() ) ) {
+		return;
+	}
+
 	// Out of stock is the more useful flag, and two badges collide on a
 	// narrow card — so the purity flag yields to it.
 	if ( ! $product->is_in_stock() ) {
@@ -676,3 +682,29 @@ function helix_fallback_product_card() {
 
 	$product = null;
 }
+
+/**
+ * Placeholder for a listing with no photograph yet.
+ *
+ * WooCommerce ships a light grey square, which prints a bright block on a dark
+ * catalog card. This draws a vial on a transparent ground instead, so the card
+ * colour shows through whichever palette is running.
+ *
+ * @return string Data URI.
+ */
+function helix_placeholder_src() {
+	$line = helix_is_dark() ? '#3a3a3a' : '#c9d6d1';
+	$fill = helix_is_dark() ? '#1a1a1a' : '#eef4f1';
+	$cap  = helix_is_dark() ? '#2a2a2a' : '#c9d6d1';
+
+	$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" role="img" aria-label="Photograph pending">'
+		. '<rect x="226" y="82" width="148" height="60" rx="13" fill="' . $cap . '"/>'
+		. '<rect x="239" y="134" width="122" height="341" rx="16" fill="' . $fill . '" stroke="' . $line . '" stroke-width="4"/>'
+		. '<rect x="251" y="217" width="99" height="156" rx="7" fill="' . $cap . '"/>'
+		. '<rect x="269" y="251" width="62" height="6" rx="3" fill="' . $line . '"/>'
+		. '<rect x="269" y="271" width="44" height="6" rx="3" fill="' . $line . '"/>'
+		. '</svg>';
+
+	return 'data:image/svg+xml;base64,' . base64_encode( $svg ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+}
+add_filter( 'woocommerce_placeholder_img_src', 'helix_placeholder_src' );

@@ -305,6 +305,10 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 	display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
 	list-style: none; margin: 0; padding: 0;
 }
+/* WooCommerce puts the column count on the list; honour it. */
+.woocommerce ul.products.columns-2 { grid-template-columns: repeat(2, 1fr); }
+.woocommerce ul.products.columns-4 { grid-template-columns: repeat(4, 1fr); }
+.woocommerce ul.products.columns-5 { grid-template-columns: repeat(5, 1fr); }
 .woocommerce ul.products::before, .woocommerce ul.products::after { content: none; }
 .woocommerce ul.products li.product {
 	position: relative; width: auto !important; margin: 0 !important; float: none !important;
@@ -333,6 +337,8 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 	border-radius: 999px; padding: .25rem .6rem; font-size: .7rem; font-weight: 600;
 }
 .hx-card__coa { display: inline-flex; align-self: flex-start; align-items: center; gap: .35rem; font-size: .78rem; font-weight: 600; margin-bottom: .75rem; text-decoration: none; }
+/* Cards in a row end level, whether or not they carry a certificate link. */
+.woocommerce ul.products li.product .button { margin-top: auto; }
 .woocommerce ul.products li.product .button {
 	/* Set explicitly so the card does not depend on WooCommerce's own
 	   stylesheet being enqueued. */
@@ -513,6 +519,8 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 	.hx-shop__aside { grid-row: auto; }
 	.woocommerce div.product { grid-template-columns: 1fr; gap: 2rem; }
 	.hx-search input[type="search"] { width: 170px; }
+	.woocommerce ul.products.columns-4,
+	.woocommerce ul.products.columns-5 { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 860px) {
@@ -529,14 +537,19 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 	.hx-nav__list a { display: block; padding: .6rem 0; }
 	.hx-nav__list .sub-menu { position: static; display: block; border: 0; box-shadow: none; padding-left: 1rem; }
 	.hx-nav__mobile-extras { display: block; font-size: .82rem; color: var(--hx-muted); padding-top: .75rem; }
-	.woocommerce ul.products, .hx-cats, .hx-post-grid { grid-template-columns: repeat(2, 1fr); }
+	.woocommerce ul.products, .woocommerce ul.products[class*="columns-"],
+	.hx-cats, .hx-post-grid { grid-template-columns: repeat(2, 1fr); }
 	.hx-sticky-bar { display: flex; }
 	body.single-product { padding-bottom: 72px; }
 }
 
 @media (max-width: 560px) {
 	.hx-trust__grid, .hx-steps, .hx-footer__grid, .hx-cats, .hx-post-grid { grid-template-columns: 1fr; }
-	.woocommerce ul.products { grid-template-columns: 1fr; }
+	/* A one-up catalog on a phone is one product per screen; keep two. */
+	.woocommerce ul.products, .woocommerce ul.products[class*="columns-"] { gap: .75rem; }
+	.woocommerce ul.products li.product { padding: .85rem; }
+	.woocommerce ul.products li.product .woocommerce-loop-product__title { font-size: .88rem !important; }
+	.woocommerce ul.products li.product .button { padding-inline: .5rem; font-size: .72rem; }
 	.hx-stats { gap: 1.25rem; }
 	.hx-stats li { flex: 1 1 40%; }
 	.hx-hero__actions .hx-btn { flex: 1 1 100%; }
@@ -689,4 +702,8 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 @media (max-width: 860px) {
 	.hx-search--mobile { display: flex; width: 100%; margin-bottom: 1rem; }
 	.hx-search--mobile input[type="search"] { width: 100%; }
+}
+
+@media (max-width: 380px) {
+	.woocommerce ul.products, .woocommerce ul.products[class*="columns-"] { grid-template-columns: 1fr; }
 }
