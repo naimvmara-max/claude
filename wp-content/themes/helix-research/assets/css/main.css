@@ -28,6 +28,9 @@
 	--hx-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	--hx-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 	--hx-wrap: 1200px;
+	/* The sticky header's own height, so anything else that sticks can clear
+	   it instead of sliding underneath. */
+	--hx-header-h: 73px;
 }
 
 /* 2. Base -------------------------------------------------------------- */
@@ -806,7 +809,13 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 .rc-builder__row input[type="checkbox"]:focus-visible { outline: 2px solid var(--hx-accent); outline-offset: 2px; }
 .rc-builder__row input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .5; }
 
-.rc-builder__summary { position: sticky; top: 1.5rem; }
+.rc-builder__summary {
+	position: sticky;
+	top: calc(var(--hx-header-h) + 1.25rem);
+	/* A long selection must not run off the bottom of the viewport. */
+	max-height: calc(100vh - var(--hx-header-h) - 2.5rem);
+	overflow-y: auto;
+}
 .rc-builder__summary-inner {
 	border: 1px solid var(--hx-line); border-radius: var(--hx-radius-lg);
 	padding: 1.25rem; background: var(--hx-bg-soft);
@@ -843,7 +852,7 @@ body.no-shop-sidebar .hx-shop__main { grid-column: 1; }
 
 @media (max-width: 900px) {
 	.rc-builder { grid-template-columns: 1fr; gap: 1.5rem; }
-	.rc-builder__summary { position: static; }
+	.rc-builder__summary { position: static; max-height: none; overflow: visible; }
 }
 @media (max-width: 560px) {
 	.rc-builder__row { grid-template-columns: 40px minmax(0, 1fr) 5.5rem 20px; gap: .6rem; padding: .6rem; }
