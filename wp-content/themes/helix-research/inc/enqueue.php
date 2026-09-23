@@ -101,3 +101,38 @@ function helix_search_index_url() {
 	 */
 	return apply_filters( 'helix_search_index_url', $url );
 }
+
+/**
+ * Load the block stylesheet per block rather than whole.
+ *
+ * The theme renders its own markup, so the 110 KB core block library was
+ * downloading on every page for the handful of blocks a page actually uses.
+ */
+add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+
+/**
+ * Tell the browser how wide a catalog image really is.
+ *
+ * WordPress writes sizes="(max-width: 768px) 100vw, 768px" from the file's
+ * own dimensions, so a card 270px wide was downloading the 768px file — about
+ * 57 KB where 10 KB would do, eight times over on the homepage.
+ *
+ * @param array        $attr       Image attributes.
+ * @param WP_Post      $attachment Attachment.
+ * @param string|array $size       Requested size.
+ * @return array
+ */
+function helix_loop_image_sizes( $attr, $attachment, $size ) {
+	if ( is_singular( 'product' ) && ! in_the_loop() ) {
+		return $attr;
+	}
+
+	$grid = array( 'woocommerce_thumbnail', 'medium', 'medium_large', 'large' );
+
+	if ( is_string( $size ) && in_array( $size, $grid, true ) ) {
+		$attr['sizes'] = '(max-width: 560px) 100vw, (max-width: 860px) 50vw, (max-width: 1280px) 33vw, 290px';
+	}
+
+	return $attr;
+}
+add_filter( 'wp_get_attachment_image_attributes', 'helix_loop_image_sizes', 10, 3 );

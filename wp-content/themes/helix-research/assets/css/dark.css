@@ -268,3 +268,8 @@ body.hx-dark .rc-builder__thumb { background: var(--hx-bg-tint); border-color: v
 body.hx-dark .rc-builder__row input[type="checkbox"] { border-color: #3a3a3a; }
 body.hx-dark .rc-builder__row input[type="checkbox"]:checked { background: #ffffff; border-color: #ffffff; }
 body.hx-dark .rc-builder__row input[type="checkbox"]::after { border-color: #0a0a0a; }
+
+/* Catalog toolbar ------------------------------------------------------ */
+body.hx-dark .hx-shop-bar__ship { color: var(--hx-ink); }
+body.hx-dark .hx-shop-bar__ship .hx-icon { color: var(--hx-ink); }
+body.hx-dark .hx-shop-bar__sort select { border-color: var(--hx-line); color: var(--hx-ink); background: var(--hx-bg-soft); }

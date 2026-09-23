@@ -22,7 +22,7 @@ function helix_wc_wrapper_start() {
 	if ( is_shop() || is_product_taxonomy() ) {
 		$title = woocommerce_page_title( false );
 		$intro = is_shop()
-			? __( 'Analytically characterized reference materials for laboratory research use. Purity, lot and certificate shown on every listing.', 'helix-research' )
+			? __( 'Analytically characterized reference materials for laboratory research use. Purity, lot and the third-party report shown on the listing.', 'helix-research' )
 			: '';
 		helix_page_hero( wp_strip_all_tags( $title ), $intro );
 	}
@@ -48,6 +48,74 @@ add_action( 'woocommerce_after_main_content', 'helix_wc_wrapper_end', 10 );
  * Hide the duplicate archive title (the hero prints it).
  */
 add_filter( 'woocommerce_show_page_title', '__return_false' );
+
+/**
+ * A free-shipping line above the catalog grid, and a way to sort it.
+ *
+ * The threshold only appeared in the basket, so a buyer had no way to know
+ * what one more vial would save them, and seventeen listings in one fixed
+ * order is a lot to read without a price sort.
+ */
+function helix_shop_toolbar() {
+	if ( ! is_shop() && ! is_product_taxonomy() ) {
+		return;
+	}
+
+	$threshold = (float) get_option( 'rc_free_shipping_threshold', 0 );
+
+	echo '<div class="hx-shop-bar">';
+
+	if ( $threshold > 0 ) {
+		printf(
+			'<p class="hx-shop-bar__ship">%s %s</p>',
+			helix_icon( 'truck', 16 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
+			esc_html( sprintf(
+				/* translators: %s: formatted order value. */
+				__( 'Free shipping on orders over %s', 'helix-research' ),
+				wp_strip_all_tags( wc_price( $threshold ) )
+			) )
+		);
+	}
+
+	echo '<form class="hx-shop-bar__sort" method="get">';
+	printf( '<label for="hx-orderby">%s</label>', esc_html__( 'Sort', 'helix-research' ) );
+	echo '<select name="orderby" id="hx-orderby" onchange="this.form.submit()">';
+
+	$current = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'menu_order'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+	foreach ( array(
+		'menu_order' => __( 'Featured', 'helix-research' ),
+		'price'      => __( 'Price: low to high', 'helix-research' ),
+		'price-desc' => __( 'Price: high to low', 'helix-research' ),
+		'title'      => __( 'Name: A to Z', 'helix-research' ),
+	) as $value => $label ) {
+		printf(
+			'<option value="%s"%s>%s</option>',
+			esc_attr( $value ),
+			selected( $current, $value, false ),
+			esc_html( $label )
+		);
+	}
+
+	echo '</select>';
+
+	// Keep any other query the buyer arrived with.
+	foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( 'orderby' === $key || ! is_scalar( $value ) ) {
+			continue;
+		}
+		printf(
+			'<input type="hidden" name="%s" value="%s">',
+			esc_attr( sanitize_key( $key ) ),
+			esc_attr( sanitize_text_field( wp_unslash( $value ) ) )
+		);
+	}
+
+	echo '</form></div>';
+}
+add_action( 'woocommerce_before_shop_loop', 'helix_shop_toolbar', 25 );
+// The toolbar carries the sort, so WooCommerce's own select would be a second one.
+remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
 
 /**
  * Grid density.
@@ -396,12 +464,26 @@ function helix_single_assurances() {
 		);
 	}
 
-	$items = array(
+	$items = array();
+
+	$threshold = (float) get_option( 'rc_free_shipping_threshold', 0 );
+	if ( $threshold > 0 ) {
+		$items[] = array(
+			'truck',
+			sprintf(
+				/* translators: %s: formatted order value. */
+				__( 'Free shipping on orders over %s', 'helix-research' ),
+				wp_strip_all_tags( wc_price( $threshold ) )
+			),
+		);
+	}
+
+	$items = array_merge( $items, array(
 		array( 'truck', __( 'Ships same business day on orders placed before 2:00 PM CT', 'helix-research' ) ),
 		array( 'snow', __( 'Insulated, desiccated packaging with tracking on every parcel', 'helix-research' ) ),
 		array( 'lock', __( 'Encrypted checkout; card details never touch our servers', 'helix-research' ) ),
 		array( 'shield', __( 'Lot mismatch or transit damage replaced or refunded within 30 days', 'helix-research' ) ),
-	);
+	) );
 
 	echo '<ul class="hx-assure__list">';
 	foreach ( $items as $item ) {
@@ -489,7 +571,10 @@ function helix_sticky_bar() {
 		return;
 	}
 
-	global $product;
+	// The related-products loop runs before wp_footer and leaves its own last
+	// product in the global, so read the one this page is actually about.
+	$product = wc_get_product( get_queried_object_id() );
+
 	if ( ! $product instanceof WC_Product ) {
 		return;
 	}

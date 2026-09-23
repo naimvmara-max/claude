@@ -107,9 +107,30 @@ class RC_SEO {
 			$parts['title'] = __( 'Research Peptide Catalog | Lot-Tested with Certificates', 'research-commerce' );
 		}
 
+		if ( function_exists( 'is_product_taxonomy' ) && is_product_taxonomy() ) {
+			$term = get_queried_object();
+
+			if ( $term && ! empty( $term->name ) ) {
+				$parts['title'] = sprintf(
+					/* translators: %s: product category name. */
+					__( '%s | Reference Materials with Lot Certificates', 'research-commerce' ),
+					$term->name
+				);
+			}
+		}
+
+		$page_id = 0;
+
 		if ( is_page() ) {
+			$page_id = get_the_ID();
+		} elseif ( is_home() && ! is_front_page() ) {
+			// The posts page is not is_page(), but it is still one of ours.
+			$page_id = (int) get_option( 'page_for_posts' );
+		}
+
+		if ( $page_id ) {
 			$titles = self::page_titles();
-			$slug   = get_post_field( 'post_name', get_the_ID() );
+			$slug   = get_post_field( 'post_name', $page_id );
 
 			if ( isset( $titles[ $slug ] ) ) {
 				$parts['title'] = wp_specialchars_decode( $titles[ $slug ] );
@@ -156,6 +177,10 @@ class RC_SEO {
 			'bulk-orders'          => __( 'Bulk &amp; Institutional Orders | Purchase Orders and Quotes', 'research-commerce' ),
 			'shipping-and-storage' => __( 'Shipping &amp; Storage | Cold-Chain Handling and Dispatch', 'research-commerce' ),
 			'research-use-policy'  => __( 'Research Use Policy | Laboratory Use Only', 'research-commerce' ),
+			'panels'               => __( 'Build a Research Panel | Multi-Compound Sets with a Set Discount', 'research-commerce' ),
+			'contact'              => __( 'Contact | Analytical, Documentation and Ordering Questions', 'research-commerce' ),
+			'terms-of-sale'        => __( 'Terms of Sale | Ordering, Delivery, Returns and Liability', 'research-commerce' ),
+			'journal'              => __( 'Research Journal | Peptide Literature, Certificates and Methods', 'research-commerce' ),
 		) );
 	}
 
@@ -210,6 +235,22 @@ class RC_SEO {
 			$excerpt = get_the_excerpt();
 			if ( $excerpt ) {
 				return wp_strip_all_tags( $excerpt );
+			}
+		}
+
+		if ( function_exists( 'is_product_taxonomy' ) && is_product_taxonomy() ) {
+			$term = get_queried_object();
+
+			if ( $term && ! empty( $term->description ) ) {
+				return wp_strip_all_tags( $term->description );
+			}
+
+			if ( $term && ! empty( $term->name ) ) {
+				return sprintf(
+					/* translators: %s: product category name. */
+					__( '%s supplied as analytically characterized reference materials. Purity by RP-HPLC, identity by mass spectrometry, lot certificates on the listing. Laboratory research use only.', 'research-commerce' ),
+					$term->name
+				);
 			}
 		}
 
