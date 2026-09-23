@@ -161,9 +161,18 @@ function helix_loop_coa_link() {
 		return;
 	}
 	$coa = get_post_meta( $product->get_id(), '_rc_coa_url', true );
+
+	// Saying nothing where a report is not published reads as though one was
+	// simply forgotten. Say what a buyer can actually do instead.
 	if ( ! $coa ) {
+		printf(
+			'<span class="hx-card__coa hx-card__coa--request">%s %s</span>',
+			helix_icon( 'document', 15 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
+			esc_html__( 'COA on request', 'helix-research' )
+		);
 		return;
 	}
+
 	printf(
 		'<a class="hx-card__coa" href="%s" target="_blank" rel="noopener">%s %s</a>',
 		esc_url( $coa ),
@@ -374,6 +383,16 @@ function helix_single_assurances() {
 			esc_url( $coa ),
 			helix_icon( 'document', 18 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
 			esc_html( $label )
+		);
+	} else {
+		// No report published against this lot yet. Say so plainly and point
+		// at the one thing a buyer can do about it.
+		printf(
+			'<p class="hx-assure__request">%s %s <a href="%s">%s</a></p>',
+			helix_icon( 'document', 17 ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG markup.
+			esc_html__( 'No third-party report is published against the lot in stock.', 'helix-research' ),
+			esc_url( helix_page_url( 'contact' ) ),
+			esc_html__( 'Request the certificate', 'helix-research' )
 		);
 	}
 

@@ -62,7 +62,7 @@ $hx_hero_image = helix_opt( 'hero_image' );
 				</table>
 				<p class="hx-spec-card__foot">
 					<?php echo helix_icon( 'shield', 15 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<?php esc_html_e( 'Every listing links to the certificate for the lot in stock.', 'helix-research' ); ?>
+					<?php esc_html_e( 'Listings link to the report for the lot in stock where one is published.', 'helix-research' ); ?>
 				</p>
 			</div>
 		</div>

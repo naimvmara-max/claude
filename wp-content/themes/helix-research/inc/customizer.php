@@ -79,7 +79,7 @@ function helix_defaults() {
 
 		'hero_eyebrow'         => __( 'Reference materials for in-vitro and laboratory research', 'helix-research' ),
 		'hero_heading'         => __( 'Analytically verified research peptides, documented lot by lot.', 'helix-research' ),
-		'hero_subheading'      => __( 'Every catalog item is assayed by HPLC and mass spectrometry before release. The certificate of analysis for your exact lot is downloadable before you order — not after.', 'helix-research' ),
+		'hero_subheading'      => __( 'Every catalog item is assayed by HPLC and mass spectrometry before release. Where the report for the lot in stock is published, it is linked on the listing — and it is available on request for any lot.', 'helix-research' ),
 		'hero_cta_text'        => __( 'Browse the catalog', 'helix-research' ),
 		'hero_cta_url'         => helix_shop_url(),
 		'hero_cta2_text'       => __( 'Look up a lot COA', 'helix-research' ),
@@ -89,8 +89,8 @@ function helix_defaults() {
 
 		'stat_1_value'         => __( '≥99%', 'helix-research' ),
 		'stat_1_label'         => __( 'HPLC purity specification', 'helix-research' ),
-		'stat_2_value'         => __( '100%', 'helix-research' ),
-		'stat_2_label'         => __( 'Lots with a published COA', 'helix-research' ),
+		'stat_2_value'         => __( '3rd party', 'helix-research' ),
+		'stat_2_label'         => __( 'Independent laboratory, lot by lot', 'helix-research' ),
 		'stat_3_value'         => __( 'Same day', 'helix-research' ),
 		'stat_3_label'         => __( 'Dispatch on orders before 2 PM CT', 'helix-research' ),
 

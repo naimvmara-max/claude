@@ -48,8 +48,8 @@ $hx_has_wc = class_exists( 'WooCommerce' );
 		<?php
 		helix_section_head(
 			__( 'How a lot reaches your bench', 'helix-research' ),
-			__( 'Documentation before dispatch, not after', 'helix-research' ),
-			__( 'Nothing is listed as in stock until its analytical package is complete and published.', 'helix-research' )
+			__( 'Assayed, released, then listed', 'helix-research' ),
+			__( 'Nothing is listed as in stock until it has been assayed and released against its specification.', 'helix-research' )
 		);
 		?>
 		<ol class="hx-steps">

@@ -13,6 +13,13 @@
 ## Product data
 
 - [ ] Every listing has a real lot number and a real certificate PDF
+
+  The catalog currently sells listings that have no report published against
+  them: **Only sell listings that have a certificate attached** is off under
+  Products → Research settings. Those listings say so on the page and offer
+  the report on request, and the storefront copy no longer claims every lot
+  has one published. Turn the setting back on once every listing carries a
+  report, and the promise becomes enforceable again.
 - [ ] Certificate records created under **Products → Certificates**, lot numbers matching labels exactly
 - [ ] No listing shows a red **COA missing** flag in the product list
 - [ ] Sample specification values from the CSV all replaced with your own

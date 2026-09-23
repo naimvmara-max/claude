@@ -1,7 +1,7 @@
 sku,catalog_code,compound,size,report_url,in_catalog
 PH-MOT-10,MOTS-c,MOTS-c,10 mg,https://janoshik.com/tests/213606-MOTSc_GJN5R2MH1UL5,yes
 PH-BPC-10,BPC-157,BPC-157,10 mg,https://janoshik.com/tests/121721-BPC10_YKY24M4G34EV,yes
-PH-TES-10,TESA,Tesamorelin,10 mg,https://janoshik.com/tests/209329-Tesa_10_PQHWPBTTEAPN,yes
+PH-TES-10,TESA,Tesamorelin,10 mg,https://janoshik.com/tests/86206-tesamorelin_10mg_1XU358TT319R,yes
 PH-RET-10,GLP-RT,Retatrutide,10 mg,https://janoshik.com/tests/209331-Reta10_7U4RU1USK3PL,yes
 PH-TIR-30,GLP-TZ,Tirzepatide,30 mg,https://janoshik.com/tests/121723-T30_51MI844IEBVS,yes
 PH-RET-20,GLP-RT,Retatrutide,20 mg,https://janoshik.com/tests/213600-RT20_3J6JY78AMDRM,yes
@@ -10,3 +10,4 @@ PH-RET-30B,GLP-RT,Retatrutide,30 mg (earlier lot),https://janoshik.com/tests/209
 PH-RET-60,GLP-RT,Retatrutide,60 mg,https://janoshik.com/tests/121724-R60_SBFYXIB795VG,yes
 PH-TIR-60,GLP-TZ,Tirzepatide,60 mg,https://janoshik.com/tests/213104-Triz60_7ANATUX733JN,yes
 PH-TB5-10,TB-500,TB-500,10 mg,https://janoshik.com/tests/121722-TB_EWVPZP36ZR98,yes
+PH-SS31-10,SS-31,Elamipretide,10 mg,https://verify.janoshik.com/tests/89180-SS31_TYDXIUSB51G7,yes

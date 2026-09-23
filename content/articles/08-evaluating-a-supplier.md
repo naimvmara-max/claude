@@ -66,6 +66,6 @@ For material underpinning significant work, commission an independent purity and
 
 ## What we hold ourselves to
 
-The standard described above is the standard this catalog is built on: certificates published before purchase, lot-specific, facility named, method disclosed, records kept after a lot sells out, and institutional purchasing supported. If any listing here fails one of these twelve points, that is a defect worth telling us about.
+The standard described above is the one this catalog is measured against: lot-specific certificates, facility named, method disclosed, records kept after a lot sells out, and institutional purchasing supported. Where a listing has no report published against it yet, that is stated on the listing rather than papered over, and the report is available on request. If any listing here falls short of one of these twelve points, that is worth telling us about.
 
 All products are reference materials supplied for laboratory research use only. They are not drugs, supplements or foods, and they are not supplied for human or veterinary use.

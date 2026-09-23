@@ -214,7 +214,7 @@ class RC_SEO {
 		}
 
 		if ( is_post_type_archive( 'product' ) || ( function_exists( 'is_shop' ) && is_shop() ) ) {
-			return __( 'Analytically characterized research peptides and reference materials. Purity by RP-HPLC, identity by mass spectrometry, and the certificate for the lot in stock published before purchase. Research use only.', 'research-commerce' );
+			return __( 'Analytically characterized research peptides and reference materials. Purity by RP-HPLC, identity by mass spectrometry, and third-party lot reports published on the listing. Research use only.', 'research-commerce' );
 		}
 
 		if ( is_front_page() || is_home() ) {
@@ -227,7 +227,7 @@ class RC_SEO {
 			 */
 			return apply_filters(
 				'rc_home_description',
-				trim( $tagline . ( $tagline ? '. ' : '' ) . __( 'Research peptides and reference materials assayed by RP-HPLC and confirmed by mass spectrometry, with the certificate for the lot in stock published before you order. Research use only.', 'research-commerce' ) )
+				trim( $tagline . ( $tagline ? '. ' : '' ) . __( 'Research peptides and reference materials assayed by RP-HPLC and confirmed by mass spectrometry, with third-party lot reports published on the listing. Research use only.', 'research-commerce' ) )
 			);
 		}
 

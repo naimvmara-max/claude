@@ -49,6 +49,7 @@ Still on **Products → Research settings**:
 | Remember acknowledgement for | 30 days |
 | Decline destination | Any neutral external site |
 | Short / full / checkout notices | Leave blank to use the built-in wording, or paste your lawyer's |
+| Only sell listings that have a certificate attached | Off while part of the catalog has no published report — see `docs/launch-checklist.md` |
 | Quantity price breaks | `3:5, 5:10, 10:15` |
 | Stack discount tiers | `2:6, 3:12` — the panel builder's set discount |
 | Panel builder presets | One per line, `Label: SKU, SKU` |
