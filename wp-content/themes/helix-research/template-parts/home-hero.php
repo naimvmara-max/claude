@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 $hx_hero_image = helix_opt( 'hero_image' );
 ?>
 <section class="hx-hero">
+	<div class="hx-hero__glow" aria-hidden="true"></div>
 	<div class="hx-wrap hx-hero__grid">
 		<div class="hx-hero__copy">
 			<p class="hx-eyebrow"><?php echo esc_html( helix_opt( 'hero_eyebrow' ) ); ?></p>
@@ -49,21 +50,7 @@ $hx_hero_image = helix_opt( 'hero_image' );
 				<img src="<?php echo esc_url( $hx_hero_image ); ?>" alt="" class="hx-hero__img" width="720" height="720" loading="eager">
 			<?php endif; ?>
 
-			<div class="hx-spec-card" role="note">
-				<p class="hx-spec-card__label"><?php esc_html_e( 'Example lot record', 'helix-research' ); ?></p>
-				<table class="hx-spec-card__table">
-					<tbody>
-						<tr><th scope="row"><?php esc_html_e( 'Lot', 'helix-research' ); ?></th><td>HX-24-0918</td></tr>
-						<tr><th scope="row"><?php esc_html_e( 'Purity (HPLC)', 'helix-research' ); ?></th><td>99.4%</td></tr>
-						<tr><th scope="row"><?php esc_html_e( 'Identity (MS)', 'helix-research' ); ?></th><td><?php esc_html_e( 'Conforms', 'helix-research' ); ?></td></tr>
-						<tr><th scope="row"><?php esc_html_e( 'Appearance', 'helix-research' ); ?></th><td><?php esc_html_e( 'White lyophilized powder', 'helix-research' ); ?></td></tr>
-						<tr><th scope="row"><?php esc_html_e( 'Storage', 'helix-research' ); ?></th><td>-20 °C, desiccated</td></tr>
-					</tbody>
-				</table>
-				<p class="hx-spec-card__foot">
-					<?php echo helix_icon( 'shield', 15 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<?php esc_html_e( 'Listings link to the report for the lot in stock where one is published.', 'helix-research' ); ?>
-				</p>
+			<?php helix_hero_listing_card(); ?>
 			</div>
 		</div>
 	</div>

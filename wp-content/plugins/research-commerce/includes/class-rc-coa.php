@@ -322,7 +322,7 @@ class RC_COA {
 
 			<form class="rc-lookup__form" method="get" action="">
 				<label class="screen-reader-text" for="rc-lot-input"><?php esc_html_e( 'Lot number', 'research-commerce' ); ?></label>
-				<input type="text" id="rc-lot-input" name="rc_lot" value="<?php echo esc_attr( $submitted ); ?>" placeholder="<?php esc_attr_e( 'e.g. HX-24-0918', 'research-commerce' ); ?>" autocomplete="off">
+				<input type="text" id="rc-lot-input" name="rc_lot" value="<?php echo esc_attr( $submitted ); ?>" placeholder="<?php esc_attr_e( 'e.g. PH-25-0101', 'research-commerce' ); ?>" autocomplete="off">
 				<button type="submit" class="hx-btn rc-btn"><?php esc_html_e( 'Look up', 'research-commerce' ); ?></button>
 			</form>
 

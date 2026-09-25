@@ -463,3 +463,102 @@
 		update();
 	});
 }());
+
+/* "Complete the set" on product pages ------------------------------------ */
+(function () {
+	'use strict';
+
+	document.querySelectorAll('[data-rc-bundle]').forEach(function (root) {
+		var boxes = Array.prototype.slice.call(root.querySelectorAll('input[name="rc_stack[]"]'));
+		var totalOut = root.querySelector('[data-rc-bundle-total]');
+		var wasOut = root.querySelector('[data-rc-bundle-was]');
+		var submit = root.querySelector('[data-rc-bundle-submit]');
+
+		if (!boxes.length || !totalOut) { return; }
+
+		var tiers = [];
+		try { tiers = JSON.parse(root.getAttribute('data-tiers') || '[]'); } catch (e) { tiers = []; }
+
+		var decimals = parseInt(root.getAttribute('data-decimals'), 10);
+		if (isNaN(decimals)) { decimals = 2; }
+		var decimalSep = root.getAttribute('data-decimal-sep') || '.';
+		var thousandSep = root.getAttribute('data-thousand-sep') || '';
+		var symbol = root.getAttribute('data-currency') || '';
+		var position = root.getAttribute('data-currency-position') || 'left';
+
+		function money(amount) {
+			var parts = Math.abs(amount).toFixed(decimals).split('.');
+			parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandSep);
+			var text = parts.join(parts.length > 1 ? decimalSep : '');
+			if (position === 'right') { return text + symbol; }
+			if (position === 'right_space') { return text + ' ' + symbol; }
+			if (position === 'left_space') { return symbol + ' ' + text; }
+			return symbol + text;
+		}
+
+		function update() {
+			var picked = boxes.filter(function (box) { return box.checked; });
+			var subtotal = 0;
+			var eligibleTotal = 0;
+			var eligibleCount = 0;
+
+			picked.forEach(function (box) {
+				var price = parseFloat(box.getAttribute('data-price')) || 0;
+				subtotal += price;
+				if (box.getAttribute('data-eligible') === '1') {
+					eligibleTotal += price;
+					eligibleCount++;
+				}
+			});
+
+			// The same rule the cart applies: the tier is set by how many
+			// different compounds are in the order, and the discount comes
+			// off those compounds only, never the solvent.
+			var percent = 0;
+			tiers.forEach(function (tier) {
+				if (eligibleCount >= tier.count) { percent = tier.percent; }
+			});
+
+			var saving = eligibleTotal * percent / 100;
+			totalOut.textContent = money(subtotal - saving);
+
+			if (wasOut) {
+				wasOut.hidden = saving <= 0;
+				wasOut.textContent = money(subtotal);
+			}
+
+			if (submit) {
+				submit.disabled = picked.length === 0;
+				submit.textContent = picked.length > 1
+					? 'Add ' + picked.length + ' items to order'
+					: 'Add to order';
+			}
+
+			root.querySelectorAll('.rc-bundle-box__item').forEach(function (item) {
+				var box = item.querySelector('input');
+				item.classList.toggle('is-off', !!(box && !box.checked));
+			});
+		}
+
+		boxes.forEach(function (box) { box.addEventListener('change', update); });
+		update();
+	});
+}());
+
+/* A link can open the panel builder with a preset already ticked ---------- */
+(function () {
+	'use strict';
+
+	var builder = document.querySelector('[data-rc-builder]');
+	if (!builder || !window.URLSearchParams) { return; }
+
+	var wanted = new URLSearchParams(window.location.search).get('preset');
+	if (!wanted) { return; }
+
+	wanted = wanted.toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+	builder.querySelectorAll('[data-rc-preset]').forEach(function (button) {
+		var label = button.textContent.toLowerCase().replace(/[^a-z0-9]+/g, '');
+		if (label === wanted) { button.click(); }
+	});
+}());

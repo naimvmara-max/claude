@@ -78,7 +78,7 @@ function helix_defaults() {
 		'header_cta_url'       => helix_shop_url(),
 
 		'hero_eyebrow'         => __( 'Reference materials for in-vitro and laboratory research', 'helix-research' ),
-		'hero_heading'         => __( 'Analytically verified research peptides, documented lot by lot.', 'helix-research' ),
+		'hero_heading'         => __( 'Every lot assayed. Every report on file.', 'helix-research' ),
 		'hero_subheading'      => __( 'Every catalog item is assayed by HPLC and mass spectrometry before release. Where the report for the lot in stock is published, it is linked on the listing — and it is available on request for any lot.', 'helix-research' ),
 		'hero_cta_text'        => __( 'Browse the catalog', 'helix-research' ),
 		'hero_cta_url'         => helix_shop_url(),
@@ -86,6 +86,7 @@ function helix_defaults() {
 		'hero_cta2_url'        => helix_page_url( 'coa-lookup' ),
 		'hero_note'            => __( 'Sold for laboratory research use only. Not for human or veterinary use.', 'helix-research' ),
 		'hero_image'           => '',
+		'hero_product_sku'     => 'PH-BPC-10',
 
 		'stat_1_value'         => __( '≥99%', 'helix-research' ),
 		'stat_1_label'         => __( 'HPLC purity specification', 'helix-research' ),
@@ -95,7 +96,7 @@ function helix_defaults() {
 		'stat_3_label'         => __( 'Dispatch on orders before 2 PM CT', 'helix-research' ),
 
 		'trust_1_title'        => __( 'Third-party assayed', 'helix-research' ),
-		'trust_1_text'         => __( 'HPLC and MS run by an independent ISO/IEC 17025 laboratory.', 'helix-research' ),
+		'trust_1_text'         => __( 'HPLC and MS run by an independent analytical laboratory, named on the report.', 'helix-research' ),
 		'trust_2_title'        => __( 'Lot-level documentation', 'helix-research' ),
 		'trust_2_text'         => __( 'Purity, identity, mass and test date tied to the lot you receive.', 'helix-research' ),
 		'trust_3_title'        => __( 'Cold-chain handling', 'helix-research' ),
@@ -167,6 +168,7 @@ function helix_customize_register( $wp_customize ) {
 
 		'hero_eyebrow'        => array( 'helix_hero', 'text' ),
 		'hero_heading'        => array( 'helix_hero', 'textarea' ),
+		'hero_product_sku'    => array( 'helix_hero', 'text' ),
 		'hero_subheading'     => array( 'helix_hero', 'textarea' ),
 		'hero_cta_text'       => array( 'helix_hero', 'text' ),
 		'hero_cta_url'        => array( 'helix_hero', 'url' ),

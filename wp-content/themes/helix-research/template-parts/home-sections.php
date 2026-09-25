@@ -43,6 +43,11 @@ $hx_has_wc = class_exists( 'WooCommerce' );
 	</section>
 <?php endif; ?>
 
+<?php
+helix_home_panels();
+helix_home_reviews();
+?>
+
 <section class="hx-section hx-section--process">
 	<div class="hx-wrap">
 		<?php
@@ -61,12 +66,12 @@ $hx_has_wc = class_exists( 'WooCommerce' );
 			<li>
 				<span class="hx-steps__num">02</span>
 				<h3><?php esc_html_e( 'Independent assay', 'helix-research' ); ?></h3>
-				<p><?php esc_html_e( 'An external ISO/IEC 17025 laboratory runs RP-HPLC for purity and mass spectrometry for identity, plus appearance and water content checks.', 'helix-research' ); ?></p>
+				<p><?php esc_html_e( 'An independent analytical laboratory runs RP-HPLC for purity and mass spectrometry for identity, and issues the report under its own name.', 'helix-research' ); ?></p>
 			</li>
 			<li>
 				<span class="hx-steps__num">03</span>
-				<h3><?php esc_html_e( 'Certificate published', 'helix-research' ); ?></h3>
-				<p><?php esc_html_e( 'The signed COA is attached to the product page and to the lot lookup tool, so you can review it before purchase.', 'helix-research' ); ?></p>
+				<h3><?php esc_html_e( 'Report on file', 'helix-research' ); ?></h3>
+				<p><?php esc_html_e( 'The laboratory report is kept against the lot. Where it is published it is linked on the product page; for any other lot it is sent on request.', 'helix-research' ); ?></p>
 			</li>
 			<li>
 				<span class="hx-steps__num">04</span>
@@ -94,42 +99,6 @@ $hx_has_wc = class_exists( 'WooCommerce' );
 	</div>
 </section>
 
-<?php
-$hx_terms = $hx_has_wc ? get_terms( array(
-	'taxonomy'   => 'product_cat',
-	'hide_empty' => true,
-	'number'     => 6,
-	'exclude'    => array( get_option( 'default_product_cat' ) ),
-) ) : array();
-?>
-<?php if ( ! empty( $hx_terms ) && ! is_wp_error( $hx_terms ) ) : ?>
-	<section class="hx-section hx-section--cats">
-		<div class="hx-wrap">
-			<?php
-			helix_section_head(
-				__( 'Browse by research area', 'helix-research' ),
-				__( 'Catalog categories', 'helix-research' ),
-				''
-			);
-			?>
-			<div class="hx-cats">
-				<?php foreach ( $hx_terms as $hx_term ) : ?>
-					<a class="hx-cat" href="<?php echo esc_url( get_term_link( $hx_term ) ); ?>">
-						<span class="hx-cat__name"><?php echo esc_html( $hx_term->name ); ?></span>
-						<span class="hx-cat__count">
-							<?php
-							/* translators: %d: number of catalog items. */
-							printf( esc_html( _n( '%d item', '%d items', $hx_term->count, 'helix-research' ) ), absint( $hx_term->count ) );
-							?>
-						</span>
-						<?php echo helix_icon( 'chevron', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</a>
-				<?php endforeach; ?>
-			</div>
-		</div>
-	</section>
-<?php endif; ?>
-
 <section class="hx-section hx-section--compare hx-section--dark">
 	<div class="hx-wrap">
 		<?php
@@ -152,7 +121,7 @@ $hx_terms = $hx_has_wc ? get_terms( array(
 				<tbody>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'COA tied to the lot shipped', 'helix-research' ); ?></th>
-						<td class="is-yes"><?php echo helix_icon( 'check', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php esc_html_e( 'Published per lot', 'helix-research' ); ?></td>
+						<td class="is-yes"><?php echo helix_icon( 'check', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><?php esc_html_e( 'Third-party report per lot', 'helix-research' ); ?></td>
 						<td><?php esc_html_e( 'Generic or undated PDF', 'helix-research' ); ?></td>
 					</tr>
 					<tr>

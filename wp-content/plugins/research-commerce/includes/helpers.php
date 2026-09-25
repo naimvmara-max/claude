@@ -74,7 +74,7 @@ function rc_spec_fields() {
 		),
 		'_rc_lot'        => array(
 			'label'       => __( 'Lot in stock', 'research-commerce' ),
-			'placeholder' => 'HX-24-0918',
+			'placeholder' => 'PH-25-0101',
 		),
 		'_rc_quantity'   => array(
 			'label'       => __( 'Quantity per vial', 'research-commerce' ),

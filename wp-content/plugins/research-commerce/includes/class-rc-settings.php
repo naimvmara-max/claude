@@ -115,6 +115,13 @@ class RC_Settings {
 				'section' => 'commerce',
 				'hint'    => __( 'One per line, as "Label: SKU, SKU". Each becomes a button that ticks those compounds. A preset whose SKUs are not all in the catalog is skipped.', 'research-commerce' ),
 			),
+			'rc_upsell_solvent_sku'        => array(
+				'label'   => __( 'Solvent offered alongside compounds', 'research-commerce' ),
+				'type'    => 'text',
+				'default' => 'PH-BAC-30',
+				'section' => 'commerce',
+				'hint'    => __( 'SKU of the solvent listing. It is offered in the "Complete the set" box on product pages and in the basket when a compound is ordered without it. Leave blank to stop offering it.', 'research-commerce' ),
+			),
 			'rc_free_shipping_threshold'   => array(
 				'label'   => __( 'Free shipping progress threshold', 'research-commerce' ),
 				'type'    => 'number',

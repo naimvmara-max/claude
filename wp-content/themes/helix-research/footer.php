@@ -16,10 +16,21 @@ defined( 'ABSPATH' ) || exit;
 <footer class="hx-footer">
 	<div class="hx-wrap hx-footer__grid">
 		<div class="hx-footer__brand">
-			<span class="hx-logo hx-logo--footer">
-				<span class="hx-logo__mark"><?php echo helix_icon( 'flask', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
-				<span class="hx-logo__text"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
-			</span>
+			<?php if ( has_custom_logo() ) : ?>
+				<?php
+				// The brand's own mark, not a stand-in icon.
+				$hx_logo = wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' );
+				?>
+				<a class="hx-logo hx-logo--footer" href="<?php echo esc_url( home_url( '/' ) ); ?>">
+					<img src="<?php echo esc_url( $hx_logo ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" class="hx-footer__logo" width="44" height="44" loading="lazy">
+					<span class="hx-logo__text"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+				</a>
+			<?php else : ?>
+				<span class="hx-logo hx-logo--footer">
+					<span class="hx-logo__mark"><?php echo helix_icon( 'flask', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+					<span class="hx-logo__text"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+				</span>
+			<?php endif; ?>
 			<p><?php echo wp_kses_post( helix_opt( 'footer_about' ) ); ?></p>
 			<ul class="hx-footer__contact">
 				<li><?php echo esc_html( helix_opt( 'footer_address' ) ); ?></li>

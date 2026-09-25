@@ -481,7 +481,14 @@ class RC_Builder {
 		$refused = array();
 
 		foreach ( array_map( 'absint', (array) wp_unslash( $_POST['rc_stack'] ) ) as $id ) {
-			if ( ! $id || ! self::is_eligible( $id ) ) {
+			// A compound, or an accessory sold alongside one — the bundle box
+			// on a product page offers the solvent too. Eligibility only
+			// decides what counts towards the discount, not what can be added.
+			if ( ! $id || 'product' !== get_post_type( $id ) || 'publish' !== get_post_status( $id ) ) {
+				continue;
+			}
+
+			if ( class_exists( 'RC_Panels' ) && RC_Panels::is_panel( $id ) ) {
 				continue;
 			}
 

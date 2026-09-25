@@ -798,3 +798,222 @@ function helix_placeholder_src() {
 	return 'data:image/svg+xml;base64,' . base64_encode( $svg ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 }
 add_filter( 'woocommerce_placeholder_img_src', 'helix_placeholder_src' );
+
+/* -------------------------------------------------------------------------
+ * Homepage
+ * ---------------------------------------------------------------------- */
+
+/**
+ * A real listing beside the hero, in place of an illustrative record.
+ *
+ * The card used to show an "example lot record" with an invented lot number
+ * and purity. This one is a listing from the catalog — its own purity, the
+ * laboratory that tested it, a link to that report — and a way to buy it.
+ */
+function helix_hero_listing_card() {
+	if ( ! function_exists( 'wc_get_product' ) ) {
+		return;
+	}
+
+	$sku = helix_opt( 'hero_product_sku', 'PH-BPC-10' );
+	$id  = ( $sku && function_exists( 'wc_get_product_id_by_sku' ) ) ? wc_get_product_id_by_sku( $sku ) : 0;
+
+	// Fall back to any listing with a published report, so the card is never
+	// empty and never shows a listing it cannot back.
+	if ( ! $id || 'publish' !== get_post_status( $id ) ) {
+		$found = get_posts( array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_query'     => array( array( 'key' => '_rc_coa_url', 'compare' => '!=', 'value' => '' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		) );
+		$id = $found ? $found[0] : 0;
+	}
+
+	$product = $id ? wc_get_product( $id ) : null;
+	if ( ! $product ) {
+		return;
+	}
+
+	$code     = function_exists( 'rc_catalog_code' ) ? rc_catalog_code( $id ) : get_the_title( $id );
+	$compound = (string) get_post_meta( $id, '_rc_compound', true );
+	$size     = (string) get_post_meta( $id, '_rc_quantity', true );
+	$purity   = (string) get_post_meta( $id, '_rc_purity', true );
+	$lot      = (string) get_post_meta( $id, '_rc_lot', true );
+	$coa      = (string) get_post_meta( $id, '_rc_coa_url', true );
+	$lab      = get_option( 'rc_lab_name', '' );
+
+	$sub = array_filter( array( 0 === strcasecmp( $compound, $code ) ? '' : $compound, $size ) );
+	?>
+	<div class="hx-spec-card hx-spec-card--listing">
+		<p class="hx-spec-card__label">
+			<span class="hx-spec-card__dot" aria-hidden="true"></span>
+			<?php echo $product->is_in_stock() ? esc_html__( 'In stock now', 'helix-research' ) : esc_html__( 'Featured listing', 'helix-research' ); ?>
+		</p>
+
+		<p class="hx-spec-card__name"><?php echo esc_html( $code ); ?></p>
+		<?php if ( $sub ) : ?>
+			<p class="hx-spec-card__sub"><?php echo esc_html( implode( ' · ', $sub ) ); ?></p>
+		<?php endif; ?>
+
+		<table class="hx-spec-card__table">
+			<tbody>
+				<?php if ( $purity ) : ?>
+					<tr><th scope="row"><?php esc_html_e( 'Purity (HPLC)', 'helix-research' ); ?></th><td><?php echo esc_html( $purity ); ?></td></tr>
+				<?php endif; ?>
+				<?php if ( $lab ) : ?>
+					<tr><th scope="row"><?php esc_html_e( 'Tested by', 'helix-research' ); ?></th><td><?php echo esc_html( $lab ); ?></td></tr>
+				<?php endif; ?>
+				<?php if ( $lot ) : ?>
+					<tr><th scope="row"><?php esc_html_e( 'Lot', 'helix-research' ); ?></th><td><?php echo esc_html( $lot ); ?></td></tr>
+				<?php endif; ?>
+				<tr><th scope="row"><?php esc_html_e( 'Price', 'helix-research' ); ?></th><td><?php echo wp_kses_post( $product->get_price_html() ); ?></td></tr>
+			</tbody>
+		</table>
+
+		<div class="hx-spec-card__actions">
+			<a class="hx-btn hx-btn--sm" href="<?php echo esc_url( get_permalink( $id ) ); ?>"><?php esc_html_e( 'View listing', 'helix-research' ); ?></a>
+			<?php if ( $coa ) : ?>
+				<a class="hx-spec-card__report" href="<?php echo esc_url( $coa ); ?>" target="_blank" rel="noopener">
+					<?php echo helix_icon( 'document', 15 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<?php esc_html_e( 'Lab report', 'helix-research' ); ?>
+				</a>
+			<?php endif; ?>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * The panel builder, sold on the homepage.
+ *
+ * Replaces a category grid that held a single tile. Each preset shows its
+ * vials, the set price with the discount the cart will actually apply, and
+ * opens the builder with that set already ticked.
+ */
+function helix_home_panels() {
+	if ( ! class_exists( 'RC_Builder' ) || ! function_exists( 'rc_get_stack_tiers' ) ) {
+		return;
+	}
+
+	$presets = RC_Builder::presets();
+	$builder = get_page_by_path( 'panels' );
+
+	if ( ! $presets || ! $builder ) {
+		return;
+	}
+
+	$tiers = rc_get_stack_tiers();
+	$top   = $tiers ? end( $tiers ) : null;
+	?>
+	<section class="hx-section hx-section--panels">
+		<div class="hx-wrap">
+			<div class="hx-panels-head">
+				<?php
+				helix_section_head(
+					__( 'Build a panel', 'helix-research' ),
+					$top
+						/* translators: %s: highest set discount. */
+						? sprintf( __( 'Run them together. Save up to %s.', 'helix-research' ), rc_format_percent( $top['percent'] ) )
+						: __( 'Run them together.', 'helix-research' ),
+					__( 'Pick any combination of compounds and the set discount applies automatically. Start from a pairing below, or build your own.', 'helix-research' )
+				);
+				?>
+				<a class="hx-btn hx-btn--ghost" href="<?php echo esc_url( get_permalink( $builder ) ); ?>"><?php esc_html_e( 'Open the builder', 'helix-research' ); ?></a>
+			</div>
+
+			<div class="hx-panels">
+				<?php foreach ( array_slice( $presets, 0, 3 ) as $preset ) : ?>
+					<?php
+					$ids   = array_map( 'intval', $preset['ids'] );
+					$total = 0.0;
+					foreach ( $ids as $pid ) {
+						$p      = wc_get_product( $pid );
+						$total += $p ? (float) $p->get_price() : 0;
+					}
+					$percent = RC_Builder::percent_for( count( $ids ) );
+					$saving  = $total * $percent / 100;
+					$url     = add_query_arg( 'preset', rawurlencode( $preset['label'] ), get_permalink( $builder ) );
+					?>
+					<a class="hx-panel" href="<?php echo esc_url( $url ); ?>">
+						<span class="hx-panel__vials">
+							<?php foreach ( $ids as $pid ) : ?>
+								<?php
+								$src = has_post_thumbnail( $pid ) ? wp_get_attachment_image_url( get_post_thumbnail_id( $pid ), 'medium' ) : '';
+								if ( ! $src && function_exists( 'wc_placeholder_img_src' ) ) {
+									$src = wc_placeholder_img_src();
+								}
+								?>
+								<img src="<?php echo 0 === strpos( $src, 'data:image/' ) ? esc_attr( $src ) : esc_url( $src ); ?>" alt="" width="160" height="160" loading="lazy">
+							<?php endforeach; ?>
+						</span>
+						<span class="hx-panel__name"><?php echo esc_html( $preset['label'] ); ?></span>
+						<span class="hx-panel__items">
+							<?php echo esc_html( implode( ' + ', array_map( 'rc_catalog_code', $ids ) ) ); ?>
+						</span>
+						<span class="hx-panel__price">
+							<?php if ( $saving > 0 ) : ?>
+								<del><?php echo wp_kses_post( wc_price( $total ) ); ?></del>
+							<?php endif; ?>
+							<strong><?php echo wp_kses_post( wc_price( $total - $saving ) ); ?></strong>
+							<?php if ( $saving > 0 ) : ?>
+								<em>
+									<?php
+									/* translators: %s: amount saved. */
+									printf( esc_html__( 'Save %s', 'helix-research' ), wp_kses_post( wc_price( $saving ) ) );
+									?>
+								</em>
+							<?php endif; ?>
+						</span>
+						<span class="hx-panel__cta"><?php esc_html_e( 'Start with this set', 'helix-research' ); ?> <?php echo helix_icon( 'chevron', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * Buyer feedback on the homepage — real reviews only.
+ *
+ * Renders nothing until approved product reviews exist, so the section
+ * appears by itself once the first ones are in and is never padded out.
+ */
+function helix_home_reviews() {
+	$reviews = get_comments( array(
+		'post_type' => 'product',
+		'status'    => 'approve',
+		'type'      => 'review',
+		'number'    => 3,
+	) );
+
+	if ( ! $reviews ) {
+		return;
+	}
+	?>
+	<section class="hx-section hx-section--reviews">
+		<div class="hx-wrap">
+			<?php helix_section_head( __( 'From buyers', 'helix-research' ), __( 'What arrives, as described', 'helix-research' ), '' ); ?>
+			<div class="hx-reviews">
+				<?php foreach ( $reviews as $review ) : ?>
+					<?php $rating = (int) get_comment_meta( $review->comment_ID, 'rating', true ); ?>
+					<figure class="hx-review">
+						<?php if ( $rating ) : ?>
+							<p class="hx-review__stars" aria-label="<?php echo esc_attr( sprintf( /* translators: %d: rating out of 5. */ __( 'Rated %d out of 5', 'helix-research' ), $rating ) ); ?>">
+								<?php echo esc_html( str_repeat( '★', $rating ) . str_repeat( '☆', max( 0, 5 - $rating ) ) ); ?>
+							</p>
+						<?php endif; ?>
+						<blockquote><?php echo esc_html( wp_trim_words( $review->comment_content, 40 ) ); ?></blockquote>
+						<figcaption>
+							<strong><?php echo esc_html( $review->comment_author ); ?></strong>
+							<span><?php echo esc_html( get_the_title( $review->comment_post_ID ) ); ?></span>
+						</figcaption>
+					</figure>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</section>
+	<?php
+}

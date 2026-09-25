@@ -63,3 +63,30 @@
 - [ ] Abandoned-cart email written in research language
 - [ ] Outreach list of university and CRO purchasing contacts started
 - [ ] Reorder window measured (days between first and second order) — that number, not traffic, is the health metric for this business
+
+## Photos and reviews
+
+Both slot into places that already exist; nothing needs building when they arrive.
+
+- **Product photos** — set as the product's featured image. The catalog card, the
+  search dropdown, the panel builder row, the "Complete the set" box, the basket
+  suggestions and the homepage panel tiles all read that one image, so a single
+  upload updates every one of them. Run `tools/prepare-product-images.py` first so
+  the vial is trimmed and centred on a transparent square like the rest.
+  Still missing: SS-31, TB-500, Ipamorelin, MT-I, MT-II, bacteriostatic water.
+- **Reviews** — WooCommerce → Settings → Products → *Enable product reviews*, then
+  they arrive per product under the "Customer feedback" tab. The homepage section
+  **From buyers** renders by itself once the first approved review exists and
+  shows the latest three; until then it is not on the page at all. Do not seed it
+  with anything that is not a real buyer's words.
+
+## Upsells
+
+- **Complete the set** (product pages): the viewed vial, its partner compound from
+  the panel presets, and the solvent. Partners come from *Panel builder presets* in
+  Products → Research settings — edit those to change what is suggested.
+- **Basket**: the gap to free shipping with items that close it (partners first,
+  nothing priced far above the gap), the solvent when a compound is ordered without
+  it, and how far the order is from the next set-discount tier.
+- Every total shown is the one the cart charges: the set discount is a single cart
+  rule, and the solvent never counts towards it.
