@@ -1,0 +1,56 @@
+{
+  "_readme": "Example numbers so the HUD has something to draw. Replace them: run /pull-metrics, POST /api/vitals, or edit this file. 'example' flips to false on the first real update.",
+  "example": true,
+  "updated": "2026-10-11T08:00:00.000Z",
+  "metrics": {
+    "tiktok": {
+      "label": "TikTok followers",
+      "short": "TikTok",
+      "value": 1240,
+      "unit": "/wk",
+      "history": [
+        { "t": "2026-09-13", "v": 610 }, { "t": "2026-09-20", "v": 702 }, { "t": "2026-09-27", "v": 880 },
+        { "t": "2026-10-04", "v": 1015 }, { "t": "2026-10-11", "v": 1240 }
+      ]
+    },
+    "instagram": {
+      "label": "Instagram followers",
+      "short": "Instagram",
+      "value": 860,
+      "unit": "/wk",
+      "history": [
+        { "t": "2026-09-13", "v": 702 }, { "t": "2026-09-20", "v": 731 }, { "t": "2026-09-27", "v": 770 },
+        { "t": "2026-10-04", "v": 812 }, { "t": "2026-10-11", "v": 860 }
+      ]
+    },
+    "revenue": {
+      "label": "Store revenue (30 days)",
+      "short": "Revenue 30d",
+      "value": 0,
+      "prefix": "€",
+      "unit": "/30d",
+      "history": [
+        { "t": "2026-09-13", "v": 0 }, { "t": "2026-09-20", "v": 0 }, { "t": "2026-09-27", "v": 0 },
+        { "t": "2026-10-04", "v": 0 }, { "t": "2026-10-11", "v": 0 }
+      ]
+    },
+    "latest": {
+      "label": "Latest video views",
+      "short": "Latest video",
+      "value": 4300,
+      "unit": "/day",
+      "history": [
+        { "t": "2026-10-07", "v": 0 }, { "t": "2026-10-08", "v": 1900 }, { "t": "2026-10-09", "v": 3100 },
+        { "t": "2026-10-10", "v": 3800 }, { "t": "2026-10-11", "v": 4300 }
+      ]
+    }
+  },
+  "latest_post": {
+    "platform": "TikTok",
+    "title": "Designing a hoodie with AI in 60 seconds",
+    "views": 4300,
+    "likes": 312,
+    "comments": 27,
+    "posted": "2026-10-08"
+  }
+}

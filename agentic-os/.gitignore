@@ -1,0 +1,10 @@
+node_modules/
+# Runtime state the Bridge writes. Your notes are not ignored.
+vault/system/log/
+vault/system/usage.json
+vault/system/automation-state.json
+vault/outputs/runs/
+vault/.obsidian/workspace*.json
+vault/.obsidian/cache
+.env
+dist/

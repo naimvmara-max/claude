@@ -1,0 +1,178 @@
+{
+  "_readme": "The skill backbone. Domain -> task -> skill -> automation. The Bridge reads this file for the Backbone view, the router's triggers and the scheduler. Edit freely. Schedules: 'daily HH:MM', 'weekly mon|tue|wed|thu|fri|sat|sun HH:MM', 'monthly D HH:MM', 'event <name>', or 'manual'. Anything that sends, spends or publishes stays 'manual'.",
+  "rules": [
+    { "title": "Done it by hand twice", "then": "make it a skill" },
+    { "title": "Skill works 5 times in a row", "then": "automate it" },
+    { "title": "It sends, spends or publishes", "then": "keep it manual" }
+  ],
+  "domains": [
+    { "id": "memory", "label": "Memory" },
+    { "id": "productivity", "label": "Productivity" },
+    { "id": "research", "label": "Research" },
+    { "id": "content", "label": "Content" },
+    { "id": "brand", "label": "Brand" },
+    { "id": "ecom", "label": "E-com" },
+    { "id": "clients", "label": "Clients" },
+    { "id": "finance", "label": "Finance" }
+  ],
+  "skills": [
+    {
+      "name": "vault-cleanup",
+      "domain": "memory",
+      "task": "Tidy my notes",
+      "does": "archives old notes",
+      "connectors": ["Vault"],
+      "schedule": "weekly sun 18:00",
+      "quick": false,
+      "triggers": ["clean up my notes", "tidy my notes", "tidy the vault", "clean the vault", "archive old notes", "vault cleanup"]
+    },
+    {
+      "name": "plan-today",
+      "domain": "productivity",
+      "task": "Plan my day",
+      "does": "calendar + plan",
+      "connectors": ["Calendar", "Vault"],
+      "schedule": "daily 07:00",
+      "quick": true,
+      "label": "Plan Today",
+      "triggers": ["plan my day", "plan today", "plan the day", "make my plan", "build my day", "morning plan", "daily plan"]
+    },
+    {
+      "name": "inbox-brief",
+      "domain": "productivity",
+      "task": "Clear my inbox",
+      "does": "triage + drafts",
+      "connectors": ["Gmail"],
+      "schedule": "daily 08:00",
+      "quick": true,
+      "label": "Inbox Brief",
+      "triggers": ["inbox", "emails", "email brief", "check my mail", "triage", "unread"]
+    },
+    {
+      "name": "close-day",
+      "domain": "productivity",
+      "task": "Close the day",
+      "does": "log + tomorrow",
+      "connectors": ["Vault"],
+      "schedule": "daily 21:30",
+      "quick": false,
+      "triggers": ["close the day", "close day", "end of day", "wrap up today", "shutdown", "daily review"]
+    },
+    {
+      "name": "weekly-review",
+      "domain": "productivity",
+      "task": "Review my week",
+      "does": "wins, misses, next",
+      "connectors": ["Vault", "Calendar"],
+      "schedule": "weekly sun 19:00",
+      "quick": false,
+      "triggers": ["weekly review", "review my week", "week review", "how did my week go"]
+    },
+    {
+      "name": "morning-intel",
+      "domain": "research",
+      "task": "Catch up on news",
+      "does": "AI + e-com + streetwear brief",
+      "connectors": ["Web"],
+      "schedule": "daily 06:30",
+      "quick": false,
+      "label": "Intel Brief",
+      "triggers": ["news", "morning intel", "intel brief", "catch me up", "what happened", "trends today", "ai news"]
+    },
+    {
+      "name": "deep-research",
+      "domain": "research",
+      "task": "Research a topic",
+      "does": "sourced report",
+      "connectors": ["Web"],
+      "schedule": "manual",
+      "quick": true,
+      "label": "Deep Research",
+      "triggers": ["research", "deep dive", "look into", "investigate", "find out everything", "report on"]
+    },
+    {
+      "name": "content-cascade",
+      "domain": "content",
+      "task": "Repurpose my videos",
+      "does": "1 video -> 6 posts",
+      "connectors": ["Vault", "Higgsfield"],
+      "schedule": "event video-live",
+      "quick": true,
+      "label": "Content Cascade",
+      "triggers": ["repurpose", "content cascade", "turn this video", "video into", "into posts", "posts from", "cut this into", "carousel from", "captions for my video", "video went live"]
+    },
+    {
+      "name": "hook-lab",
+      "domain": "content",
+      "task": "Write hooks + scripts",
+      "does": "10 hooks, 3 scripts",
+      "connectors": ["Vault"],
+      "schedule": "manual",
+      "quick": false,
+      "label": "Hook Lab",
+      "triggers": ["hooks", "hook", "script", "scripts", "post", "caption", "captions", "tiktok idea", "reel idea", "video ideas", "content ideas", "brainstorm angles"]
+    },
+    {
+      "name": "pull-metrics",
+      "domain": "content",
+      "task": "Update my numbers",
+      "does": "vitals.json refresh",
+      "connectors": ["Shopify", "Vault"],
+      "schedule": "daily 09:00",
+      "quick": false,
+      "label": "Pull Metrics",
+      "triggers": ["pull metrics", "update my numbers", "refresh stats", "update vitals", "refresh metrics", "update followers"]
+    },
+    {
+      "name": "drop-plan",
+      "domain": "brand",
+      "task": "Plan a clothing drop",
+      "does": "concept, mockups, launch",
+      "connectors": ["Higgsfield", "Shopify"],
+      "schedule": "manual",
+      "quick": false,
+      "label": "Drop Plan",
+      "triggers": ["drop", "clothing drop", "collection", "new design", "design a hoodie", "design a tee", "mockup", "mockups", "launch plan", "capsule"]
+    },
+    {
+      "name": "product-research",
+      "domain": "ecom",
+      "task": "Validate a product",
+      "does": "demand, margin, verdict",
+      "connectors": ["Web", "Shopify"],
+      "schedule": "manual",
+      "quick": false,
+      "triggers": ["product research", "validate", "winning product", "dropship", "dropshipping", "supplier", "margin on", "is this product"]
+    },
+    {
+      "name": "lead-research",
+      "domain": "clients",
+      "task": "Find paying clients",
+      "does": "lead + briefing",
+      "connectors": ["Web", "Gmail"],
+      "schedule": "event lead-added",
+      "quick": false,
+      "triggers": ["leads", "lead research", "find clients", "prospects", "who to pitch", "research this business"]
+    },
+    {
+      "name": "proposal",
+      "domain": "clients",
+      "task": "Write proposals",
+      "does": "call notes -> proposal",
+      "connectors": ["Gmail", "Drive"],
+      "schedule": "manual",
+      "quick": false,
+      "triggers": ["proposal", "pitch", "offer", "quote for", "write an offer"]
+    },
+    {
+      "name": "money-check",
+      "domain": "finance",
+      "task": "Track money in and out",
+      "does": "receipts -> ledger",
+      "connectors": ["Gmail", "Shopify"],
+      "schedule": "monthly 1 09:00",
+      "quick": false,
+      "triggers": ["receipts", "ledger", "expenses", "money check", "runway", "budget", "income", "spent this month"]
+    }
+  ]
+}

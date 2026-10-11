@@ -1,0 +1,9 @@
+{
+  "id": "agentic-os-hud",
+  "name": "Agentic OS HUD",
+  "version": "2.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Opens the Agentic OS HUD (orb, dashboard, terminals) in a side panel. Needs the Bridge running on 127.0.0.1:3217.",
+  "author": "Naim",
+  "isDesktopOnly": true
+}

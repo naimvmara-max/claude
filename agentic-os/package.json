@@ -1,0 +1,19 @@
+{
+  "name": "agentic-os",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Jarvis-style agentic OS: a HUD, a tiered router and a skill backbone on top of an Obsidian vault, driving Claude Code or Codex.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "demo": "node tools/build-demo.mjs",
+    "check": "node tools/selftest.mjs"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.128.0"
+  }
+}

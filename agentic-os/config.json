@@ -1,0 +1,45 @@
+{
+  "name": "JARVIS",
+  "owner": "Naim",
+  "tagline": "Your command center, reimagined",
+  "host": "127.0.0.1",
+  "port": 3217,
+  "vault": "./vault",
+
+  "engines": {
+    "claude": {
+      "label": "Claude Code",
+      "core": "CLAUDE",
+      "bin": "claude",
+      "args": [
+        "-p", "{prompt}",
+        "--output-format", "stream-json",
+        "--verbose",
+        "--permission-mode", "acceptEdits"
+      ]
+    },
+    "codex": {
+      "label": "Codex",
+      "core": "CODEX",
+      "bin": "codex",
+      "args": ["exec", "--skip-git-repo-check", "{prompt}"]
+    }
+  },
+
+  "router": {
+    "classifier": "local",
+    "minConfidence": 0.45,
+    "quickModel": "claude-haiku-5-5",
+    "quickCliModel": "haiku"
+  },
+
+  "usage": {
+    "weeklyBudgetUsd": 40,
+    "note": "Claude Code reports a cost estimate per headless run. The meter shows this week's total against the budget you set here. It is not your plan's real limit."
+  },
+
+  "scheduler": {
+    "enabled": true,
+    "tickSeconds": 30
+  }
+}
