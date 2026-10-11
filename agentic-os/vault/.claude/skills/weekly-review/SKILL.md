@@ -1,22 +1,25 @@
 ---
 name: weekly-review
-description: Sunday review of the week's wins, misses, numbers and next week's three directives. Use for "weekly review", "review my week", or Sundays 19:00 on schedule.
+description: Sunday review of the outreach week - emails sent, reply rate, calls, proposals, clients, MRR - plus wins, misses and next week's three directives. Use for "weekly review", "review my week", or Sundays 19:00 on schedule.
 ---
 
 # Weekly review
 
 ## Read
+- `ops/pipeline.md` and `system/business.json`
 - The last 7 daily notes, `ops/directives.md`, `ops/tasks.md`
-- `system/vitals.json` (compare with the value 7 days ago in each `history`)
-- `projects/income-now.md` pipeline table, `content/posting-log.md`
 - `outputs/runs/` from this week (which skills ran, which failed)
 
 ## Do
-1. Wins and misses: 3 each, with evidence from the notes.
-2. Numbers: followers, views, revenue, posts published, outreach sent, calls booked. Show the change. Mark example data as example.
-3. Skills: which skill ran 5 times in a row without edits (candidate to automate), which failed (fix or retire).
-4. Write next week's three directives into `ops/directives.md` under `## This week`. Keep the old ones under `## Archive` with their outcome.
-5. One honest sentence on whether the current plan is working, and what to change if not.
+1. **Numbers from the pipeline**, this week vs last week: first emails sent (by `contacted` date),
+   replies (by `replied`), reply rate, calls booked, proposals sent, clients won, MRR (sum of `value`
+   for `won`) and progress to `goal_mrr`. Count, never estimate.
+2. **Funnel**: where leads get stuck (many contacted but few replies = message or list problem;
+   replies but no calls = reply handling; calls but no wins = offer or price).
+3. Wins and misses: 3 each, with evidence from the notes.
+4. Skills: which ran 5 times in a row without edits (automate it), which failed (fix or retire).
+5. Write next week's three directives into `ops/directives.md` under `## This week`; move the old ones under `## Archive` with their outcome.
+6. One honest sentence on whether the plan is working, and the single change for next week.
 
 ## Output
-`outputs/weekly-review/YYYY-MM-DD.md` plus the updated `ops/directives.md`. Reply with next week's directives.
+`outputs/weekly-review/YYYY-MM-DD.md` plus the updated `ops/directives.md`. Reply with the numbers line and next week's directives.

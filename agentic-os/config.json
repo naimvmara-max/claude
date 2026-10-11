@@ -1,43 +1,50 @@
 {
   "name": "JARVIS",
   "owner": "Naim",
-  "tagline": "Your command center, reimagined",
+  "tagline": "Your outreach command center",
   "host": "127.0.0.1",
   "port": 3217,
   "vault": "./vault",
-
   "engines": {
     "claude": {
       "label": "Claude Code",
       "core": "CLAUDE",
       "bin": "claude",
       "args": [
-        "-p", "{prompt}",
-        "--output-format", "stream-json",
+        "-p",
+        "--output-format",
+        "stream-json",
         "--verbose",
-        "--permission-mode", "acceptEdits"
-      ]
+        "--permission-mode",
+        "acceptEdits"
+      ],
+      "promptVia": "stdin",
+      "model": "sonnet",
+      "billing": "subscription",
+      "_notes": "model: any name `claude --model` accepts (sonnet, opus, haiku). billing 'subscription' removes ANTHROPIC_API_KEY from runs so Claude Code uses your Claude plan; set 'api' to bill an API key instead."
     },
     "codex": {
       "label": "Codex",
       "core": "CODEX",
       "bin": "codex",
-      "args": ["exec", "--skip-git-repo-check", "{prompt}"]
+      "args": [
+        "exec",
+        "--skip-git-repo-check",
+        "-"
+      ],
+      "promptVia": "stdin"
     }
   },
-
   "router": {
     "classifier": "local",
     "minConfidence": 0.45,
     "quickModel": "claude-haiku-5-5",
     "quickCliModel": "haiku"
   },
-
   "usage": {
     "weeklyBudgetUsd": 40,
     "note": "Claude Code reports a cost estimate per headless run. The meter shows this week's total against the budget you set here. It is not your plan's real limit."
   },
-
   "scheduler": {
     "enabled": true,
     "tickSeconds": 30

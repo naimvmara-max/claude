@@ -3,9 +3,9 @@
 Open loops that are not tied to a single day. Daily tasks live in the daily note.
 
 ## Open
-- [ ] Write a one-page offer for local businesses (short-form video + ads management)
-- [ ] Build a list of 50 local brands with weak Instagram (name, link, one observation each)
-- [ ] Set up the Shopify store skeleton (no products live yet)
-- [ ] Generate 3 test mockups in Higgsfield for the first tee concept
-- [ ] Turn on 2-step verification on TikTok, Instagram, Gmail and Shopify
+- [ ] Buy a separate sending domain and set SPF, DKIM and DMARC
+- [ ] Create 2 sending inboxes on it and start warm-up
+- [ ] Write the one-page offer in projects/outreach-business.md
+- [ ] Connect Gmail and Google Calendar to Claude Code (see wiki/connectors.md)
+- [ ] Turn on 2-step verification on Gmail and the domain registrar
 - [x] Install Claude Code and run the Agentic OS once

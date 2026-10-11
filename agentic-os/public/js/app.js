@@ -5,6 +5,7 @@ import { Core } from './core.js';
 import { classify } from './classify.js';
 import { fmtNum } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped } from './demo.js';
+import { computeStats, applyStatus, nextId, COLUMNS, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -114,8 +115,9 @@ function renderAll() {
   }
   renderStatus(true);
   renderVitals();
-  renderUsage();
+  renderGoal();
   renderChecks('#directives', s.directives, 'No directives yet. Add three under "## Directives" in today\'s note.');
+  renderFollowups('#followups', 4);
   renderDocs();
   renderQuickSkills();
   renderCommand();
@@ -127,13 +129,13 @@ function renderAll() {
   syncCore();
 }
 
-const TRY = ['what are my priorities?', 'plan my day', 'write 10 hooks for a hoodie drop', 'explain CPM in one line'];
+const TRY = ['how am I doing?', 'who should I follow up with?', 'find 10 leads: accounting firms in Malmö', 'write a subject line for a cold email'];
 
 function renderWelcome() {
   $('#answer').innerHTML = `<div class="answer">
     <span class="label">Try asking</span>
     <div class="route-alt">${TRY.map((t) => `<button data-try="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-    <span class="label" style="text-transform:none;letter-spacing:0;font-size:11px">Each message is routed to Tier 1 (saved data), Tier 2 (quick model) or Tier 3 (a skill in Claude Code or Codex). You see the odds.</span>
+    <span class="label" style="text-transform:none;letter-spacing:0;font-size:11px">Each message is routed to Tier 1 (your pipeline and notes), Tier 2 (quick model) or Tier 3 (a skill in Claude Code or Codex). You see the odds.</span>
   </div>`;
   $$('#answer [data-try]').forEach((b) => b.addEventListener('click', () => ask(b.dataset.try)));
 }
@@ -153,15 +155,18 @@ function renderStatus(connected = true) {
   $('#foot-text').textContent = `V2 · ${app.demo ? 'Demo, no vault connected' : 'Connected vault'} · Shared agent terminals`;
 }
 
-function delta(m) {
-  const h = m.history || [];
-  if (h.length < 2) return { text: '', up: false };
-  const d = h[h.length - 1].v - h[h.length - 2].v;
-  return { text: `${d > 0 ? '▲' : d < 0 ? '▼' : '·'} ${m.prefix || ''}${fmtNum(Math.abs(d))} ${m.unit || ''}`.trim(), up: d > 0 };
+function money(v) {
+  const st = app.state.stats;
+  const cur = st?.currency === 'EUR' || !st ? '€' : `${st.currency} `;
+  return `${cur}${fmtNum(Math.round(v || 0))}`;
 }
 
-function sparkline(m, color) {
-  const h = (m.history || []).map((p) => p.v);
+function pct(v) {
+  return v == null ? '—' : `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
+}
+
+function sparkline(history, color) {
+  const h = (history || []).map((p) => p.v);
   if (h.length < 2) return '';
   const min = Math.min(...h);
   const max = Math.max(...h);
@@ -178,22 +183,39 @@ function sparkline(m, color) {
   </div>`;
 }
 
-const VITAL_COLORS = { tiktok: '#f2876a', instagram: '#b58cff', revenue: '#f2c46a', latest: '#7fd0ff' };
+const METRIC_COLORS = { sent: '#7fd0ff', reply: '#b58cff', calls: '#f2c46a', value: '#f2876a' };
+
+/** The four numbers that tell the outreach story, all counted from ops/pipeline.md. */
+function metrics() {
+  const st = app.state.stats;
+  const h = (arr) => arr || [];
+  const wkDelta = (arr) => { const a = h(arr); return a.length > 1 ? a[a.length - 1].v - a[a.length - 2].v : 0; };
+  const arrow = (d, unit = '') => (d > 0 ? `▲ ${fmtNum(d)}${unit}` : d < 0 ? `▼ ${fmtNum(-d)}${unit}` : `· 0${unit}`);
+  return [
+    { key: 'sent', icon: 'i-mail', label: 'Sent this week', short: 'Sent this week', value: fmtNum(st.sentWeek), delta: `${arrow(st.sentWeek - st.sentPrevWeek)} vs last wk`, up: st.sentWeek > st.sentPrevWeek, sub: st.dailyTarget ? `today ${st.sentToday} / ${st.dailyTarget}` : `today ${st.sentToday}`, history: st.sentHistory },
+    { key: 'reply', icon: 'i-reply', label: 'Reply rate 30d', short: 'Reply rate 30d', value: pct(st.replyRate), delta: st.contacted30 ? `${st.replied30} of ${st.contacted30}` : 'no sends yet', up: false, sub: 'replies ÷ first emails', history: st.replyHistory, unit: '%' },
+    { key: 'calls', icon: 'i-phone', label: 'Calls this month', short: 'Calls this month', value: fmtNum(st.callsMonth), delta: `${arrow(wkDelta(st.callsHistory))} this wk`, up: wkDelta(st.callsHistory) > 0, sub: `${st.proposalsOpen} proposals open`, history: st.callsHistory },
+    { key: 'value', icon: 'i-coin', label: 'Open pipeline value', short: 'Pipeline value', value: money(st.pipelineValue), delta: `${st.won} client${st.won === 1 ? '' : 's'} won`, up: false, sub: 'replied + call + proposal, per month', history: null },
+  ];
+}
 
 function renderVitals() {
-  const v = app.state.vitals || { metrics: {} };
-  const keys = ['tiktok', 'instagram', 'latest'].filter((k) => v.metrics[k]);
-  const html = keys.map((k) => {
-    const m = v.metrics[k];
-    const d = delta(m);
-    return `<div class="vital" data-key="${k}">
-      <div class="vital-top"><span class="label">${esc(m.label)}</span><span class="delta ${d.up ? 'up' : ''}">${esc(d.text)}</span></div>
-      <div class="num">${esc(m.prefix || '')}${fmtNum(m.value)}</div>
-      ${sparkline(m, VITAL_COLORS[k] || '#9aa')}
-    </div>`;
-  });
-  if (v.example) html.push('<span class="example-chip" title="Run /pull-metrics or edit system/vitals.json">Example numbers · run /pull-metrics</span>');
-  $('#vitals').innerHTML = html.join('') || '<p class="empty">No numbers yet. Run /pull-metrics.</p>';
+  const st = app.state.stats;
+  const html = metrics().slice(0, 3).map((m) => `<div class="vital" data-key="${m.key}">
+      <div class="vital-top"><span class="label">${esc(m.label)}</span><span class="delta ${m.up ? 'up' : ''}">${esc(m.delta)}</span></div>
+      <div class="num">${esc(m.value)}</div>
+      ${sparkline(m.history, METRIC_COLORS[m.key])}
+      <span class="label vital-sub">${esc(m.sub)}</span>
+    </div>`);
+  if (app.demo) html.push('<span class="example-chip">Example pipeline · demo</span>');
+  else if (!st.leads) html.push('<p class="empty">Your pipeline is empty, so everything is 0. <button data-run="lead-research">Find leads</button> or <button data-goto="pipeline">add one</button>.</p>');
+  $('#vitals').innerHTML = html.join('');
+  bindQuickLinks('#vitals');
+}
+
+function bindQuickLinks(sel) {
+  $$(`${sel} [data-run]`).forEach((b) => b.addEventListener('click', () => runSkill(b.dataset.run)));
+  $$(`${sel} [data-goto]`).forEach((b) => b.addEventListener('click', () => { setView('command'); setTab(b.dataset.goto); }));
 }
 
 function engineInfo() {
@@ -201,18 +223,30 @@ function engineInfo() {
   return { id: s.engine, ...s.engines[s.engine] };
 }
 
-function renderUsage() {
-  const e = engineInfo();
-  const pct = e.week?.pct ?? 0;
-  const on = Math.round((pct / 100) * 24);
-  $('#usage-card').innerHTML = `<div class="usage">
+function renderGoal() {
+  const st = app.state.stats;
+  const g = st.goal;
+  const on = Math.round((g.pct / 100) * 24);
+  $('#goal-card').innerHTML = `<div class="usage">
     <i class="b1"></i><i class="b2"></i>
-    <div class="label">${esc(e.core)} · weekly load</div>
-    <div class="big"><span class="num">${pct}</span><span class="label">% of budget</span></div>
+    <div class="label">Monthly goal · MRR</div>
+    <div class="big"><span class="num">${money(st.mrr)}</span><span class="label">of ${g.target ? money(g.target) : 'no goal set'}</span></div>
     <div class="ticks" aria-hidden="true">${Array.from({ length: 24 }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('')}</div>
-    <div class="scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
-    <div class="foot">$${(e.week?.costUsd || 0).toFixed(2)} of $${app.state.budgetUsd} · ${e.week?.runs || 0} runs this week${app.demo ? ' · example' : ''}</div>
+    <div class="scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>
+    <div class="foot">${g.pct}% · ${st.won} client${st.won === 1 ? '' : 's'} · ${money(st.pipelineValue)} in open deals${app.demo ? ' · example' : ''}</div>
   </div>`;
+}
+
+function renderFollowups(sel, limit) {
+  const f = app.state.stats.followups || [];
+  const el = $(sel);
+  if (!el) return;
+  el.innerHTML = f.length
+    ? `<ul class="fu-list">${f.slice(0, limit).map((x) => `<li><span class="fu-co">${esc(x.company)}</span><span class="fu-act">${esc(x.action)}</span><span class="chip ${x.overdue ? 'late' : ''}">${x.overdue ? `due ${esc(x.due.slice(5))}` : 'today'}</span></li>`).join('')}</ul>
+       ${f.length > limit ? `<span class="label">+ ${f.length - limit} more</span>` : ''}
+       <button class="ghost-btn" data-run="follow-ups">Draft follow-ups</button>`
+    : '<p class="empty">Nothing due today.</p>';
+  bindQuickLinks(sel);
 }
 
 function renderChecks(sel, items, emptyText) {
@@ -275,25 +309,10 @@ function renderSkillList() {
 
 // ------------------------------------------------------------------ command view
 
-const GLYPH = { tiktok: 'i-tiktok', instagram: 'i-ig', revenue: 'i-bag', latest: 'i-play' };
-
 function renderCommand() {
   const s = app.state;
-  const e = engineInfo();
-  const v = s.vitals || { metrics: {} };
-  const pct = e.week?.pct ?? 0;
-  const metrics = ['tiktok', 'instagram', 'revenue', 'latest'].filter((k) => v.metrics[k]).map((k) => {
-    const m = v.metrics[k];
-    const d = delta(m);
-    return `<div class="glass metric">
-      <span class="label">${esc(m.short || m.label)}</span>
-      <span class="num">${esc(m.prefix || '')}${fmtNum(m.value)}</span>
-      <span class="delta ${d.up ? 'up' : ''}">${esc(d.text || '—')}</span>
-      <svg class="glyph" aria-hidden="true" style="color:${VITAL_COLORS[k]}"><use href="#${GLYPH[k]}"/></svg>
-      <span class="live ${v.example ? 'example' : ''}" title="${v.example ? 'Example data' : 'From the vault'}"></span>
-    </div>`;
-  }).join('');
-  const lp = v.latest_post;
+  const st = s.stats;
+  const g = st.goal;
   const now = new Date();
   const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const sched = s.schedule || [];
@@ -306,40 +325,151 @@ function renderCommand() {
     : '<p class="empty">No brief yet. /morning-intel runs daily at 06:30. <button data-run="morning-intel">Run it now</button></p>';
   const ordered = [...s.skills.filter((x) => x.quick), ...s.skills.filter((x) => !x.quick)];
   const wf = ordered.slice(0, 10).map((sk) => `<button class="wf" data-skill="${esc(sk.name)}" title="/${esc(sk.name)}">${esc(sk.label)}</button>`).join('');
+  const cards = metrics().map((m) => `<div class="glass metric">
+      <span class="label">${esc(m.short)}</span>
+      <span class="num">${esc(m.value)}</span>
+      <span class="delta ${m.up ? 'up' : ''}">${esc(m.delta)}</span>
+      <svg class="glyph" aria-hidden="true" style="color:${METRIC_COLORS[m.key]}"><use href="#${m.icon}"/></svg>
+      <span class="live ${app.demo ? 'example' : ''}" title="${app.demo ? 'Example data' : 'Counted from ops/pipeline.md'}"></span>
+    </div>`).join('');
 
   $('#tab-overview').innerHTML = `
     <div class="glass wide-usage">
-      <div><div class="label">${esc(e.label)} · weekly load</div><div class="num">${pct}<small>%</small></div></div>
-      <div class="meter" role="img" aria-label="${pct} percent of weekly budget"><div class="fill" style="width:${pct}%"></div></div>
-      <div class="meter-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+      <div><div class="label">MRR · monthly goal</div><div class="num">${money(st.mrr)}<small> / ${g.target ? money(g.target) : '—'}</small></div></div>
+      <div class="meter" role="img" aria-label="${g.pct} percent of the monthly goal"><div class="fill" style="width:${g.pct}%"></div></div>
+      <div class="meter-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>
     </div>
-    <div class="metrics">${metrics}</div>
-    ${lp ? `<div class="glass latest"><span class="label">Latest upload · ${esc(lp.platform)}${v.example ? ' · example' : ''}</span><h3>${esc(lp.title)}</h3>
-      <div class="stats"><span><b>${fmtNum(lp.views)}</b>views</span><span><b>${fmtNum(lp.likes)}</b>likes</span><span><b>${fmtNum(lp.comments)}</b>comments</span><span>${esc(lp.posted)}</span></div></div>` : ''}
+    <div class="metrics">${cards}</div>
+    <div class="today-grid">
+      <div class="glass today"><span class="label">Follow-ups due · ${st.followups.length}</span><div id="cmd-followups"></div></div>
+      <div class="glass today"><span class="label">Funnel · all leads${app.demo ? ' · example' : ''}</span>${funnelHtml(st.funnel)}</div>
+    </div>
     <div class="workflows">${wf}${s.skills.length > 10 ? '<button class="wf" id="more-wf">More workflows…</button>' : ''}</div>
     <div class="today-grid">
       <div class="glass today"><span class="label">Today</span><div class="timeline">${timeline}</div></div>
       <div class="glass tasks-card"><span class="label">Tasks</span><ul class="checks" id="cmd-tasks"></ul></div>
     </div>
     <div class="glass brief"><span class="label">Morning brief${s.brief?.title === 'Example brief' ? ' · example' : ''}</span>${brief}</div>`;
+  renderFollowups('#cmd-followups', 5);
   renderChecks('#cmd-tasks', s.tasks, 'No open tasks.');
   $$('#tab-overview .wf[data-skill]').forEach((b) => b.addEventListener('click', () => runSkill(b.dataset.skill)));
   $('#more-wf')?.addEventListener('click', () => $('#skills-dlg').showModal());
-  $$('#tab-overview [data-run]').forEach((b) => b.addEventListener('click', () => runSkill(b.dataset.run)));
+  bindQuickLinks('#tab-overview');
 
-  // audience: one single-series chart per metric
-  $('#tab-audience').innerHTML = `<div class="chart-grid">${['tiktok', 'instagram', 'latest', 'revenue'].filter((k) => v.metrics[k]).map((k) => {
-    const m = v.metrics[k];
-    return `<div class="glass chart-card" data-key="${k}"><span class="label">${esc(m.label)}${v.example ? ' · example' : ''}</span>
-      <div class="num" style="font-size:28px">${esc(m.prefix || '')}${fmtNum(m.value)}</div>${areaChart(m, VITAL_COLORS[k])}</div>`;
-  }).join('')}</div>`;
-  $$('#tab-audience .chart-card').forEach((card) => wireChart(card, v.metrics[card.dataset.key]));
+  renderPipelineTab();
 
   const outs = s.outputs || [];
-  $('#tab-research').innerHTML = `<div class="glass research-list"><span class="label">Reports in outputs/</span>${outs.length
+  $('#tab-research').innerHTML = `<div class="glass research-list"><span class="label">Reports and drafts in outputs/</span>${outs.length
     ? outs.map((o) => `<button class="doc-link" data-path="${esc(o.path)}"><span>${esc(o.folder)} / ${esc(o.name)}</span><small>${ago(o.mtime)} ago</small></button>`).join('')
-    : '<p class="empty">Nothing yet. Run /deep-research or any skill and its report appears here.</p>'}</div>`;
+    : '<p class="empty">Nothing yet. Run /lead-research or any skill and its report appears here.</p>'}</div>`;
   $$('#tab-research .doc-link').forEach((b) => b.addEventListener('click', () => openFile(b.dataset.path)));
+}
+
+function funnelHtml(funnel) {
+  const top = Math.max(1, ...funnel.map((f) => f.count));
+  return `<div class="funnel">${funnel.map((f, i) => {
+    const prev = i ? funnel[i - 1].count : null;
+    const conv = prev ? `${Math.round((f.count / prev) * 100)}%` : '';
+    return `<div class="fn-row"><span class="fn-label">${esc(f.label)}</span>
+      <span class="fn-track"><span class="fn-fill" style="width:${Math.max(f.count ? 2 : 0, (f.count / top) * 100).toFixed(1)}%"></span></span>
+      <span class="fn-count">${f.count}</span><span class="fn-conv">${conv ? `${conv}` : ''}</span></div>`;
+  }).join('')}</div>`;
+}
+
+const STATUS_OPTIONS = ['researched', 'drafted', 'contacted', 'replied', 'call', 'proposal', 'won', 'lost'];
+const STATUS_NAMES = { researched: 'Researched', drafted: 'Drafted', contacted: 'Contacted', replied: 'Replied', call: 'Call booked', proposal: 'Proposal', won: 'Won', lost: 'Lost' };
+
+function renderPipelineTab() {
+  const s = app.state;
+  const st = s.stats;
+  const all = [...(s.leads || [])].sort((a, b) => (a.next_date || '9999').localeCompare(b.next_date || '9999') || a.id.localeCompare(b.id));
+  const groups = {
+    open: all.filter((r) => !['won', 'lost'].includes(r.status)),
+    won: all.filter((r) => r.status === 'won'),
+    lost: all.filter((r) => r.status === 'lost'),
+    all,
+  };
+  const filter = groups[app.leadFilter] ? app.leadFilter : 'open';
+  const limit = app.leadLimit || 50;
+  const leads = groups[filter].slice(0, limit);
+  const more = groups[filter].length - leads.length;
+  const rows = leads.map((r) => `<tr data-id="${esc(r.id)}" class="st-${esc(r.status)}">
+      <td><b>${esc(r.company)}</b>${r.website ? `<br><a href="${esc(/^https?:/.test(r.website) ? r.website : `https://${r.website}`)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}</td>
+      <td>${esc(r.contact)}<br><span class="muted">${esc(r.email)}</span></td>
+      <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${STATUS_OPTIONS.map((o) => `<option value="${o}"${o === r.status ? ' selected' : ''}>${STATUS_NAMES[o]}</option>`).join('')}</select></td>
+      <td class="num-cell">${r.value ? money(r.value) : ''}</td>
+      <td><label class="sr" for="nd-${esc(r.id)}">Next date</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span></td>
+      <td class="muted">${esc(r.contacted || '—')}</td>
+    </tr>`).join('');
+  $('#tab-pipeline').innerHTML = `
+    <form class="glass add-lead" id="add-lead" autocomplete="off">
+      <span class="label">Add a lead</span>
+      <div class="add-grid">
+        <label>Company<input id="al-company" name="company" required placeholder="Nordic Dental AB"></label>
+        <label>Contact<input id="al-contact" name="contact" placeholder="Anna Berg"></label>
+        <label>Email<input id="al-email" name="email" type="email" placeholder="anna@company.se"></label>
+        <label>Website<input id="al-website" name="website" placeholder="company.se"></label>
+        <label>Niche<input id="al-niche" name="niche" placeholder="dental clinics"></label>
+        <label>Value / month<input id="al-value" name="value" inputmode="numeric" placeholder="${esc(s.business?.avg_deal || 500)}"></label>
+        <button class="dock-btn" type="submit">Add lead</button>
+      </div>
+    </form>
+    <div class="glass table-card">
+      <div class="table-head">
+        <span class="label">${all.length} lead${all.length === 1 ? '' : 's'} · ops/pipeline.md${app.demo ? ' · example' : ''}</span>
+        <div class="tabs" role="tablist" aria-label="Filter leads">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${k} ${groups[k].length}</button>`).join('')}</div>
+      </div>
+      ${leads.length ? `<div class="table-wrap"><table class="leads">
+        <thead><tr><th>Company</th><th>Contact</th><th>Status</th><th>Value</th><th>Next</th><th>First email</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>${more > 0 ? `<button class="ghost-btn" id="more-leads">Show ${more} more</button>` : ''}`
+        : all.length ? `<p class="empty">No ${filter} leads.</p>` : '<p class="empty">No leads yet. Add one above, or <button data-run="lead-research">run /lead-research</button> to find 10.</p>'}
+    </div>
+    <div class="chart-grid">
+      <div class="glass chart-card" data-key="sent"><span class="label">First emails sent per week</span>${areaChart({ label: 'Emails sent per week', history: st.sentHistory, value: st.sentWeek }, METRIC_COLORS.sent)}</div>
+      <div class="glass chart-card" data-key="reply"><span class="label">Reply rate per week (by send week)</span>${areaChart({ label: 'Reply rate per week', history: st.replyHistory, value: st.replyHistory.at(-1)?.v ?? 0, unit: '%' }, METRIC_COLORS.reply)}</div>
+    </div>`;
+  $$('#tab-pipeline .chart-card').forEach((card) => wireChart(card, card.dataset.key === 'sent' ? { history: st.sentHistory } : { history: st.replyHistory, unit: '%' }));
+  bindQuickLinks('#tab-pipeline');
+  $$('#tab-pipeline [data-filter]').forEach((b) => b.addEventListener('click', () => { app.leadFilter = b.dataset.filter; app.leadLimit = 50; renderPipelineTab(); }));
+  $('#more-leads')?.addEventListener('click', () => { app.leadLimit = limit + 100; renderPipelineTab(); });
+  $('#add-lead').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fields = Object.fromEntries(new FormData(e.currentTarget).entries());
+    await saveLead(null, fields);
+  });
+  $$('#tab-pipeline tr[data-id] [data-f]').forEach((el) => el.addEventListener('change', () => {
+    saveLead(el.closest('tr').dataset.id, { [el.dataset.f]: el.value });
+  }));
+}
+
+async function saveLead(id, fields) {
+  if (app.demo) {
+    const today = isoLocal();
+    if (id) {
+      const row = app.state.leads.find((r) => r.id === id);
+      if (row) {
+        if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, today);
+        if (fields.next_date != null) row.next_date = fields.next_date;
+      }
+    } else {
+      if (!fields.company) { toast('A lead needs at least a company name.'); return; }
+      const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
+      Object.assign(row, fields, { id: nextId(app.state.leads), added: today });
+      applyStatus(row, 'researched', today);
+      app.state.leads.push(row);
+    }
+    const b = app.state.business;
+    app.state.stats = computeStats(app.state.leads, { goal: b.goal_mrr, dailyTarget: b.daily_sends, currency: b.currency });
+    renderAll();
+    if (fields.status === 'call') toast('In the live OS this also runs /call-prep for that lead.');
+    return;
+  }
+  try {
+    const res = await api(id ? `/api/leads/${id}` : '/api/leads', fields);
+    if (res.fired?.length) toast(`Call booked: /call-prep is preparing ${res.lead.company}.`);
+    else toast(id ? `${res.lead.company} updated` : `${res.lead.company} added to the pipeline`);
+    await refresh();
+  } catch (err) { toast(err.message); }
 }
 
 function areaChart(m, color) {
@@ -353,11 +483,12 @@ function areaChart(m, color) {
   const y = (v) => T + (1 - v / niceMax) * (H - T - B);
   const line = vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
   const ticks = [0, niceMax / 2, niceMax];
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.label)} over time, latest ${fmtNum(m.value)}">
+  const u = m.unit || '';
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.label)}, latest ${fmtNum(m.value)}${u}">
     <g class="grid">${ticks.map((t) => `<line x1="${L}" x2="${W - 4}" y1="${y(t)}" y2="${y(t)}"/>`).join('')}</g>
-    <g class="axis">${ticks.map((t) => `<text x="${L - 6}" y="${y(t) + 3}" text-anchor="end">${fmtNum(t)}</text>`).join('')}
+    <g class="axis">${ticks.map((t) => `<text x="${L - 6}" y="${y(t) + 3}" text-anchor="end">${fmtNum(t)}${u}</text>`).join('')}
       <text x="${x(0)}" y="${H - 4}" text-anchor="start">${esc(h[0].t.slice(5))}</text>
-      <text x="${x(h.length - 1)}" y="${H - 4}" text-anchor="end">${esc(h[h.length - 1].t.slice(5))}</text></g>
+      <text x="${x(h.length - 1)}" y="${H - 4}" text-anchor="end">wk of ${esc(h[h.length - 1].t.slice(5))}</text></g>
     <path class="area" d="${line}L${x(h.length - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="${color}"/>
     <path class="ln" d="${line}" stroke="${color}"/>
     <circle cx="${x(h.length - 1)}" cy="${y(vals[vals.length - 1])}" r="4" fill="${color}" stroke="var(--bg)" stroke-width="2"/>
@@ -388,7 +519,7 @@ function wireChart(card, m) {
     hair.setAttribute('x1', cx); hair.setAttribute('x2', cx); hair.setAttribute('visibility', 'visible');
     dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('visibility', 'visible');
     tip.hidden = false;
-    tip.textContent = `${h[i].t} · ${m.prefix || ''}${fmtNum(vals[i])}`;
+    tip.textContent = `week of ${h[i].t} · ${fmtNum(vals[i])}${m.unit || ''}`;
     const cr = card.getBoundingClientRect();
     tip.style.left = `${r.left - cr.left + (cx / W) * r.width}px`;
     tip.style.top = `${r.top - cr.top + (cy / H) * r.height}px`;
@@ -451,11 +582,11 @@ function renderBackbone() {
 // ------------------------------------------------------------------ router view
 
 const EXAMPLES = [
-  'turn yesterday\'s hoodie video into posts for instagram',
-  'what are my priorities?',
-  'explain CPM in one line',
-  'is heated gloves worth dropshipping',
-  'plan a winter drop with two pieces',
+  'find 10 leads: accounting firms in Malmö',
+  'who should I follow up with today?',
+  'write cold emails for the new leads',
+  'what is a good reply rate for cold email?',
+  'prep for my call with Nordic Dental',
   'hello',
 ];
 
@@ -478,11 +609,11 @@ function renderRouter() {
         <div class="node bridge"><strong>The Bridge</strong>one brain for both apps<br><br>takes every request from both front doors</div>
         <div class="node router"><strong>Router</strong>sorts each request into the right tier, from predefined choices</div>
         <div class="tiers">
-          <div class="node t1"><strong>Tier 1</strong>rules + saved data, no AI, instant</div>
+          <div class="node t1"><strong>Tier 1</strong>rules + your pipeline and notes, no AI, instant</div>
           <div class="node t2"><strong>Tier 2</strong>quick answer, Claude Haiku 5.5</div>
           <div class="node t3"><strong>Tier 3</strong>real work: Claude Code or Codex runs a skill in the background</div>
         </div>
-        <div class="node conn"><strong>Connectors</strong>Gmail · Calendar · Drive · Shopify · Higgsfield</div>
+        <div class="node conn"><strong>Connectors</strong>Gmail · Calendar · Drive · Web</div>
       </div>
       <div class="vault-bar"><strong>THE VAULT: SHARED MEMORY</strong><br>daily notes · skills · outputs · logs — the Bridge reads and records every request, Tier 3 saves its reports here</div>
     </div>
@@ -838,7 +969,7 @@ function setEngine(id, { silent = false } = {}) {
   const e = app.state.engines[id];
   $('#core-name').textContent = e.core;
   $('#core-sub').textContent = `${e.label} mode · Tier 3 engine${e.available === false ? ' · not installed' : ''}`;
-  renderUsage();
+  renderGoal();
   renderCommand();
   if (!app.composing) renderDock();
   if (!silent && !app.demo) api('/api/engine', { engine: id }).catch((err) => toast(err.message));
@@ -856,7 +987,7 @@ function setView(view) {
 
 function setTab(tab) {
   app.tab = tab;
-  for (const t of ['overview', 'audience', 'research']) $(`#tab-${t}`).hidden = t !== tab;
+  for (const t of ['overview', 'pipeline', 'research']) $(`#tab-${t}`).hidden = t !== tab;
   $$('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
 }
 

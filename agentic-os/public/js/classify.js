@@ -30,9 +30,14 @@ export const TIER1_INTENTS = [
     terms: ['tasks', 'task list', 'to do', 'todo', 'to-do', 'checklist', 'open loops'],
   },
   {
-    id: 'vitals',
-    label: 'Channel numbers',
-    terms: ['followers', 'subscribers', 'my stats', 'my numbers', 'how many', 'views', 'revenue', 'my metrics', 'audience size', 'orders'],
+    id: 'numbers',
+    label: 'Outreach numbers',
+    terms: ['emails sent', 'how many emails', 'reply rate', 'response rate', 'my numbers', 'my stats', 'stats', 'pipeline value', 'mrr', 'revenue', 'how many clients', 'calls booked', 'how many calls', 'how many leads', 'how am i doing', 'goal'],
+  },
+  {
+    id: 'followups',
+    label: 'Follow-ups due',
+    terms: ['who should i follow up', 'who do i follow up', 'who to follow up', 'follow-ups due', 'follow ups due', 'followups due', 'due today', 'who is due'],
   },
   {
     id: 'time',
@@ -47,7 +52,7 @@ export const TIER1_INTENTS = [
 ];
 
 const QUESTION_STARTS = ['what', 'why', 'how', 'who', 'when', 'where', 'is', 'are', 'can', 'could', 'should', 'does', 'do', 'explain', 'define', 'summarize', 'summarise', 'tell me', 'give me', 'quick'];
-const WORK_VERBS = ['make', 'write', 'draft', 'plan', 'run', 'research', 'build', 'create', 'find', 'turn', 'repurpose', 'prepare', 'generate', 'analyze', 'analyse', 'audit', 'review', 'clean', 'pull', 'update', 'refresh', 'track', 'design', 'script'];
+const WORK_VERBS = ['make', 'write', 'draft', 'plan', 'run', 'research', 'build', 'create', 'find', 'turn', 'prepare', 'prep', 'generate', 'analyze', 'analyse', 'audit', 'review', 'clean', 'pull', 'update', 'refresh', 'track', 'sync', 'check', 'chase', 'send'];
 
 function norm(text) {
   return ` ${String(text || '').toLowerCase().replace(/[^\p{L}\p{N}'\s/-]/gu, ' ').replace(/\s+/g, ' ').trim()} `;
@@ -61,7 +66,8 @@ function hits(t, terms) {
     const ok = needle.includes(' ') ? t.includes(needle) : t.includes(` ${needle} `) || t.includes(` ${needle}s `);
     if (ok) found.push(term);
   }
-  return found;
+  // "lead", "leads" and "new leads" in one message are one signal, not three.
+  return found.filter((f) => !found.some((g) => g !== f && g.toLowerCase().includes(f.toLowerCase())));
 }
 
 function softmax(values, temperature = 1.8) {

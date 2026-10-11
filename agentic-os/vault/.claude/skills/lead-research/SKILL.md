@@ -1,23 +1,30 @@
 ---
 name: lead-research
-description: Research potential clients for Naim's content and paid-social services and write a briefing per lead with a personalised opening line. Use for "find clients", "leads", "research this business", or when the lead-added event fires.
+description: Find and research potential clients for Naim's outreach business, add them to the pipeline and write a short briefing per lead with a real observation to open with. Use for "find leads", "find clients", "prospects", "build a list", "research this business".
 ---
 
 # Lead research
 
 ## Input
-Either a business name or link (one lead), or a niche and city ("cafés in Malmö") to find 10 leads.
+Either one business (name or link), or a niche and place ("accounting firms in Malmö") to find 10 leads.
+If no input is given, research the businesses listed in `inbox/leads.md` first (remove each line once it is in the pipeline), then fall back to the niche and place from `projects/outreach-business.md`.
 
 ## Do (per lead)
-1. Business basics: what they sell, location, size signals, website, Instagram and TikTok handles.
-2. Social audit: last post date, posting frequency, average views or likes on recent posts, whether they run ads (Meta Ad Library).
-3. One specific, observable gap ("last Reel 9 weeks ago", "great product photos, no video").
-4. One idea Naim could film for them in a day.
-5. An opening message under 60 words: references the gap, offers the idea, asks one easy question. No flattery, no "I hope this finds you well".
-6. Fit score 1-5 with the reason.
+1. Skip it if the company or email is already in `ops/pipeline.md`.
+2. Basics: what they sell, location, size signals, website.
+3. Contact: the best person to email (owner, CEO, marketing lead) and an email address **only if the
+   business publishes it** (website, contact page, public registry). Prefer a named person's published address over info@.
+4. One specific, observable detail you could open an email with (a new service, a hiring post,
+   a slow website, no booking page, a recent award). It must be true and checkable.
+5. Fit score 1–5 against the offer, with the reason.
+6. Add a row to the table in `ops/pipeline.md`: next free `id` (L001, L002…), company, contact,
+   email, website, niche, city, `status` = `researched`, `value` = estimated monthly deal from
+   `system/business.json` `avg_deal`, `added` = today, `next_action` = `Draft first email`, `notes` = the observation.
+   Keep every column, one row per lead.
 
 ## Never
-- Never contact anyone or submit forms. Never guess emails; only list contact details published by the business.
+- Never guess or pattern-generate email addresses. Leave `email` empty if none is published.
+- Never contact anyone or submit forms.
 
 ## Output
-Append each lead to `outputs/lead-research/YYYY-MM-DD.md` and update the "Researched leads" count in `projects/income-now.md`. Reply with the top lead and why.
+Append a briefing per lead to `outputs/lead-research/YYYY-MM-DD.md`. Reply with how many leads were added and the best fit.

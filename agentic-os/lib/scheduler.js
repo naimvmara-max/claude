@@ -11,6 +11,7 @@ export function parseSchedule(spec) {
   const s = String(spec || 'manual').trim().toLowerCase();
   let m;
   if ((m = s.match(/^daily (\d{1,2}):(\d{2})$/))) return { kind: 'daily', h: +m[1], min: +m[2] };
+  if ((m = s.match(/^weekdays (\d{1,2}):(\d{2})$/))) return { kind: 'weekdays', h: +m[1], min: +m[2] };
   if ((m = s.match(/^weekly (sun|mon|tue|wed|thu|fri|sat) (\d{1,2}):(\d{2})$/))) return { kind: 'weekly', day: DAYS.indexOf(m[1]), h: +m[2], min: +m[3] };
   if ((m = s.match(/^monthly (\d{1,2}) (\d{1,2}):(\d{2})$/))) return { kind: 'monthly', date: +m[1], h: +m[2], min: +m[3] };
   if ((m = s.match(/^event ([a-z0-9-]+)$/))) return { kind: 'event', event: m[1] };
@@ -19,10 +20,11 @@ export function parseSchedule(spec) {
 
 /** The most recent moment this schedule was due, or null if it is not due today. */
 export function lastDue(sched, now = new Date()) {
-  if (!['daily', 'weekly', 'monthly'].includes(sched.kind)) return null;
+  if (!['daily', 'weekdays', 'weekly', 'monthly'].includes(sched.kind)) return null;
   const due = new Date(now);
   due.setHours(sched.h, sched.min, 0, 0);
   if (sched.kind === 'weekly' && now.getDay() !== sched.day) return null;
+  if (sched.kind === 'weekdays' && (now.getDay() === 0 || now.getDay() === 6)) return null;
   if (sched.kind === 'monthly' && now.getDate() !== sched.date) return null;
   return due <= now ? due : null;
 }
@@ -32,6 +34,7 @@ export function describe(spec) {
   const hm = (x) => `${String(x.h).padStart(2, '0')}:${String(x.min).padStart(2, '0')}`;
   switch (s.kind) {
     case 'daily': return { icon: 'clock', text: `daily ${hm(s)}` };
+    case 'weekdays': return { icon: 'clock', text: `weekdays ${hm(s)}` };
     case 'weekly': return { icon: 'clock', text: `${DAYS[s.day][0].toUpperCase()}${DAYS[s.day].slice(1)}days ${hm(s)}` };
     case 'monthly': return { icon: 'clock', text: `${s.date === 1 ? '1st' : `day ${s.date}`} of the month` };
     case 'event': return { icon: 'bolt', text: s.event.replace(/-/g, ' ') };

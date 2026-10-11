@@ -69,6 +69,7 @@ try {
 
 function state() {
   vault.ensureToday();
+  const pipe = vault.pipeline();
   const usage = runner.weekUsage();
   const budget = cfg.usage?.weeklyBudgetUsd || 40;
   return {
@@ -86,7 +87,9 @@ function state() {
       week: { ...usage[id], pct: Math.min(100, Math.round(((usage[id]?.costUsd || 0) / budget) * 100)) },
     }])),
     budgetUsd: budget,
-    vitals: vault.vitals(),
+    business: vault.business(),
+    leads: pipe.rows,
+    stats: vault.stats(pipe.rows),
     directives: vault.directives(),
     schedule: vault.schedule(),
     tasks: vault.tasks(),
@@ -108,6 +111,7 @@ function ctxForModel() {
     date: new Date().toDateString(),
     directives: vault.directives().map((d) => d.text).join('; '),
     skills: catalog.skills.map((s) => `/${s.name}`).join(', '),
+    numbers: (() => { const st = vault.stats(); return `${st.leads} leads, ${st.sentWeek} first emails this week, reply rate ${st.replyRate == null ? 'n/a' : `${Math.round(st.replyRate * 100)}%`}, ${st.callsMonth} calls this month, ${st.won} clients, MRR ${st.mrr} ${st.currency}`; })(),
     cwd: vault.root,
   };
 }
@@ -272,9 +276,18 @@ const server = http.createServer(async (req, res) => {
       if (!/^(daily-notes|ops)\/[\w.-]+\.md$/.test(String(body.file))) return send(res, 400, { error: 'Tasks live in daily-notes/ or ops/.' });
       return send(res, 200, { done: vault.toggleTask(body.file, Number(body.line)) });
     }
-    if (p === '/api/vitals' && req.method === 'POST') {
-      const body = await readBody(req);
-      return send(res, 200, vault.setVital(String(body.key), body.value));
+    if (p === '/api/leads' && req.method === 'POST') {
+      const row = vault.addLead(await readBody(req));
+      vault.logRequest({ tier: 1, route: 'add lead', text: row.company });
+      return send(res, 200, { lead: row });
+    }
+    const leadMatch = p.match(/^\/api\/leads\/(L\d+)$/);
+    if (leadMatch && req.method === 'POST') {
+      const { row, movedTo } = vault.updateLead(leadMatch[1], await readBody(req));
+      let fired = [];
+      // Moving a lead to "Call booked" fires the call-booked event (call-prep drafts the prep).
+      if (movedTo === 'call') fired = scheduler.trigger('call-booked', `${row.company} (${row.id}), contact ${row.contact || 'unknown'}, ${row.website || ''}`);
+      return send(res, 200, { lead: row, fired });
     }
     const trig = p.match(/^\/api\/trigger\/([a-z0-9-]+)$/);
     if (trig && req.method === 'POST') {

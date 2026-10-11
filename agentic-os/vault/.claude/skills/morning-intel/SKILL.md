@@ -1,21 +1,21 @@
 ---
 name: morning-intel
-description: Daily news brief on AI tools, e-commerce and streetwear, filtered for what Naim can act on. Use for "catch me up", "AI news", "what happened", or at 06:30 on schedule.
+description: Daily news brief on AI tools, cold email and sales, filtered for what Naim's outreach business can act on. Use for "catch me up", "AI news", "what happened", or at 06:30 on schedule.
 ---
 
 # Morning intel
 
 ## Scope (in this order)
-1. AI tools that change how content, design or marketing gets made (new models, video/image generators, agent tools, Claude Code updates).
-2. TikTok and Instagram: algorithm, feature and policy changes, especially around AI labels, Shops and creator monetisation.
-3. E-commerce: Shopify, print-on-demand, payment, shipping and ad-cost changes.
-4. Streetwear and fashion: drops, collabs and trends that small brands can learn from.
+1. Cold email and deliverability: Gmail, Outlook and Yahoo sender rules, spam-filter changes, sending tools (Instantly, Smartlead, Lemlist and similar).
+2. AI tools that make prospecting, research and writing faster (new models, agent tools, Claude and Claude Code updates).
+3. Sales and lead generation: tactics with real numbers behind them, data sources, B2B rules in Sweden and the EU.
+4. The niche in `projects/outreach-business.md`: news about that industry that could open a conversation.
 
 ## Do
-1. Search the web for the last 24-48 hours on each scope. Prefer primary sources (official blogs, changelogs) over aggregators.
+1. Search the web for the last 24-48 hours on each scope. Prefer primary sources (official blogs, changelogs, regulators) over aggregators.
 2. Keep 5-8 items total. Drop anything Naim cannot act on.
-3. For each item write one bullet: what happened, then "→" and what it means for Naim. Link the source.
-4. End with "Today's angle": one content idea for TikTok/Instagram that rides one of the stories.
+3. For each item write one bullet: what happened, then "→" and what it means for the outreach business. Link the source.
+4. End with "Today's opener": one news item that could be the observation in a cold email to the niche.
 
 ## Never
 - Never include an item you could not open a source for.

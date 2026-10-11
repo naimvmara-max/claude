@@ -7,9 +7,8 @@ The Obsidian plugin in `.obsidian/plugins/agentic-os-hud` opens the same view in
 
 ## Start here
 
-- Today: open the daily note (Ctrl/Cmd + click a date in the calendar, or run /plan-today).
+- Pipeline: [[ops/pipeline]] (every number on the dashboard comes from here)
 - This week: [[ops/directives]] · [[ops/tasks]]
-- Projects: [[projects/income-now]] · [[projects/clothing-brand]]
-- Playbooks: [[wiki/brand-bible]] · [[wiki/content-playbook]] · [[wiki/connectors]]
-- Numbers: `system/vitals.json` (edit it, or run /pull-metrics)
+- Business: [[projects/outreach-business]] · targets in `system/business.json`
+- How to write emails: [[wiki/outreach-playbook]] · [[wiki/connectors]]
 - Skills map: `system/backbone.json`

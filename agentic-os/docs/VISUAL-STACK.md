@@ -40,29 +40,28 @@ Sources: [The Register](https://www.theregister.com/devops/2026/09/23/shut-up-an
 | audit-suite | community | Includes web-animation-design and make-interfaces-feel-better: a polish pass on motion and micro-interactions. |
 | designs-drift | community | Locks a design system with hooks so later edits do not drift from it. |
 
-## MCP connectors
+## MCP connectors (updated for the outreach business)
 
-Already connected on your claude.ai account: **Gmail, Google Calendar, Google Drive,
-Shopify, Higgsfield**. **Canva needs reconnecting.**
+Already connected on your claude.ai account: **Gmail, Google Calendar, Google Drive**. Those
+three cover the email skills. Shopify and Higgsfield are connected too but no skill uses them now.
 
 | Connector | Status | Why |
 | --- | --- | --- |
-| Metricool | not connected | Real TikTok and Instagram numbers for the vitals, plus best posting times. Read only. |
-| vidIQ | not connected | Research, outliers and channel stats for YouTube, Instagram and TikTok. |
-| Supermetrics | not connected | Pulls TikTok, Instagram and ad data into one place, if you start running ads. |
-| Figma | not connected | Read designs into code and generate diagrams. Pair it with one component source. |
-| Canva | needs reconnect | Carousels and story templates for /content-cascade. |
-| Adobe, Moda | not connected | Heavier design and motion tools. Skip until Canva and Higgsfield are not enough. |
-| TikTok for Business, AfterShip TikTok Shop | not connected | Only once you run TikTok ads or sell on TikTok Shop. |
+| Vibe Prospecting | not connected | Find companies and enrich published contacts for /lead-research. |
+| Pipedrive or HubSpot | not connected | Only if the pipeline outgrows one Markdown table. /sync-pipeline could then read the CRM. |
+| Outreach | not connected | Only if you move sending onto the Outreach platform. |
+| Figma, Canva | not connected / needs reconnect | Only for designing the HUD further; not needed for the business. |
+
+Your sending tool, if you move off Gmail (Instantly, Smartlead, Lemlist), is the next thing
+worth connecting: then sent and reply counts can come from it directly.
 
 Outside the claude.ai directory, for building UI in Claude Code:
-[21st.dev Magic MCP](https://www.augmentcode.com/mcp/21st-dev-magic-mcp-server) (generates components from a prompt, needs a free key),
-[shadcn/ui MCP servers](https://images.glama.ai/mcp/servers/integrations/shadcn-ui), and Magic UI for animated marketing components.
-Roundups such as [mcp.directory](https://mcp.directory/blog/best-mcp-servers-for-design-2026) recommend two
-servers rather than nine: one that reads your design source and one component library.
+[21st.dev Magic MCP](https://www.augmentcode.com/mcp/21st-dev-magic-mcp-server),
+[shadcn/ui MCP servers](https://images.glama.ai/mcp/servers/integrations/shadcn-ui), and Magic UI.
 
 ## Recommendation
 
-1. Connect **Metricool** (or vidIQ) so the vitals show real numbers. This matters more than any visual tweak.
-2. Reconnect **Canva**; keep **Higgsfield** for mockups and AI model shots.
-3. For the next HUD iteration, install the **frontend-design** plugin. Add Figma only if you start designing in Figma.
+1. Make Gmail and Calendar work inside Claude Code (see `vault/wiki/connectors.md`). That turns
+   the email skills from "drafts in a file" into "drafts in your Gmail" and makes the numbers sync.
+2. Add a prospecting data source only once you know your niche converts.
+3. For the next HUD iteration, install the **frontend-design** plugin.

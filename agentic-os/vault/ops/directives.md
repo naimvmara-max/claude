@@ -4,12 +4,12 @@ Three things that matter this week. Everything else waits. /weekly-review rewrit
 on Sundays; edit it any time.
 
 ## This week
-- [ ] Land the first paid client: 50 personalised outreach messages, 3 calls booked
-- [ ] Lock the brand bible: name shortlist, audience, three visual rules
-- [ ] Post 5 short videos documenting the brand build (one per weekday)
+- [ ] Fill in the offer and pick one niche + city in projects/outreach-business
+- [ ] Add 50 researched leads to the pipeline
+- [ ] Send 100 first emails and every follow-up on time
 
 ## Why these three
 
-Income first, because it buys time for the brand. The brand bible before any product,
-because every AI image and caption needs the same rules. Daily posting, because organic
-reach on TikTok and Instagram comes from volume and consistency before it comes from polish.
+The offer and the niche decide whether anyone replies. Volume decides whether the numbers
+mean anything: under a few hundred sends, a reply rate is mostly noise. Follow-ups are where
+most replies come from, so they are not optional.

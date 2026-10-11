@@ -9,10 +9,51 @@ import { localDate, localTime, slugify } from './vault.js';
 const MAX_PARALLEL = 3;
 const MAX_LOG = 600;
 
-function quoteForCmd(arg) {
-  // cmd.exe cannot carry newlines inside one argument.
-  return `"${String(arg).replace(/\r?\n/g, ' ').replace(/"/g, '\\"')}"`;
+/**
+ * Environment for an engine run. Claude Code bills an API key instead of your Claude
+ * subscription whenever ANTHROPIC_API_KEY (or ANTHROPIC_AUTH_TOKEN) is set, which shows up
+ * as "Credit balance is too low". With billing "subscription" (the default) those are
+ * removed so the run uses your logged-in plan.
+ */
+export function engineEnv(eng) {
+  const env = { ...process.env };
+  if ((eng.billing || 'subscription') === 'subscription') {
+    delete env.ANTHROPIC_API_KEY;
+    delete env.ANTHROPIC_AUTH_TOKEN;
+  }
+  return env;
 }
+
+/**
+ * Arguments for an engine run. The prompt goes through stdin by default, so nothing
+ * you type ever passes through the Windows shell.
+ */
+export function engineArgs(eng, prompt) {
+  const args = [...eng.args];
+  if (eng.model) args.push('--model', eng.model);
+  return args.map((a) => (a === '{prompt}' ? prompt : a));
+}
+
+const HINTS = [
+  {
+    test: /credit balance|insufficient credit|billing|purchase credits|out of credits/i,
+    lines: [
+      'FIX: Claude Code is billing API credits instead of your subscription.',
+      '1. In a terminal run: claude   then type /status and check the login method.',
+      '2. If it says API key or Console: type /logout, run claude again and pick "Claude account with subscription".',
+      '3. Remove ANTHROPIC_API_KEY from your environment variables if you set one, then restart the Bridge.',
+      '4. In claude, type /model and pick a model without "1M" if it shows one; 1M-context models can need extra usage.',
+    ],
+  },
+  {
+    test: /has not been trusted|trust dialog/i,
+    lines: ['FIX: open a terminal in the vault folder, run claude, choose "Yes, proceed", then type /exit. Runs can then use the vault\'s allowed tools.'],
+  },
+  {
+    test: /not logged in|please run \/login|invalid api key|authentication/i,
+    lines: ['FIX: run claude in a terminal and log in with your Claude account, then try again.'],
+  },
+];
 
 export function probe(bin) {
   return new Promise((resolve) => {
@@ -51,13 +92,13 @@ export class JobRunner extends EventEmitter {
     return [...this.jobs.values()]
       .sort((a, b) => b.startedAt - a.startedAt)
       .slice(0, 30)
-      .map(({ child, log, ...rest }) => ({ ...rest, lines: log.length }));
+      .map(({ child, log, hinted, ...rest }) => ({ ...rest, lines: log.length }));
   }
 
   get(id) {
     const j = this.jobs.get(id);
     if (!j) return null;
-    const { child, ...rest } = j;
+    const { child, hinted, ...rest } = j;
     return rest;
   }
 
@@ -109,22 +150,38 @@ export class JobRunner extends EventEmitter {
   }
 
   push(job, kind, text) {
+    if (kind === 'err' || kind === 'out') this.hint(job, text);
     const entry = { t: Date.now(), kind, text: String(text).slice(0, 4000) };
     job.log.push(entry);
     if (job.log.length > MAX_LOG) job.log.splice(0, job.log.length - MAX_LOG);
     this.emit('job', { type: 'log', id: job.id, entry });
   }
 
+  /** When an error has a known fix, print the fix once under it. */
+  hint(job, text) {
+    job.hinted ||= new Set();
+    HINTS.forEach((h, i) => {
+      if (job.hinted.has(i) || !h.test.test(String(text))) return;
+      job.hinted.add(i);
+      setTimeout(() => h.lines.forEach((line) => this.push(job, 'hint', line)), 0);
+    });
+  }
+
   exec(job) {
     const eng = this.engines[job.engine];
-    const isWin = process.platform === 'win32';
-    const args = eng.args.map((a) => (a === '{prompt}' ? job.prompt : a));
-    const child = spawn(eng.bin, isWin ? args.map(quoteForCmd) : args, {
+    const viaStdin = (eng.promptVia || 'stdin') === 'stdin';
+    const child = spawn(eng.bin, engineArgs(eng, job.prompt), {
       cwd: this.vault.root,
-      env: process.env,
-      shell: isWin,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      env: engineEnv(eng),
+      // Windows needs the shell to find claude.cmd. The arguments are fixed config,
+      // and the prompt travels through stdin, so nothing typed reaches the shell.
+      shell: process.platform === 'win32',
+      stdio: [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
     });
+    if (viaStdin) {
+      child.stdin.on('error', () => {});
+      child.stdin.end(job.prompt);
+    }
     job.child = child;
     job.status = 'running';
     this.emit('job', { type: 'start', job: this.get(job.id) });
@@ -177,6 +234,7 @@ export class JobRunner extends EventEmitter {
       }
     } else if (ev.type === 'result') {
       job.result = ev.result || '';
+      if (ev.is_error && ev.result) this.push(job, 'err', ev.result);
       job.costUsd = typeof ev.total_cost_usd === 'number' ? ev.total_cost_usd : null;
       this.push(job, ev.is_error ? 'err' : 'sys', `${ev.is_error ? 'failed' : 'finished'} · ${ev.num_turns ?? '?'} turns · ${Math.round((ev.duration_ms || 0) / 1000)}s${job.costUsd != null ? ` · $${job.costUsd.toFixed(3)}` : ''}`);
       job.isError = Boolean(ev.is_error); // status flips in finish(), once the process has exited

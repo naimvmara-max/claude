@@ -6,6 +6,7 @@
 //   2. The Claude Code CLI with `--model haiku`. Uses your Claude plan, no API key.
 
 import { spawn } from 'node:child_process';
+import { engineEnv } from './jobs.js';
 
 let sdk; // undefined = not tried yet, null = not installed
 async function loadSdk() {
@@ -17,9 +18,9 @@ async function loadSdk() {
 function systemPrompt(ctx) {
   return [
     `You are ${ctx.name}, the voice of ${ctx.owner}'s Agentic OS. Answer in at most 90 words, plain sentences, no Markdown, because the answer may be read aloud.`,
-    `${ctx.owner} is 24, building an AI-made clothing brand marketed organically on Instagram and TikTok, with skills in digital marketing, dropshipping, SaaS and AI. Be direct and realistic; never promise income.`,
-    'If the request needs real work (research, files, multi-step output), answer briefly and name the skill that should do it, for example /deep-research or /hook-lab.',
-    `Today: ${ctx.date}. Directives: ${ctx.directives || 'none set'}. Skills: ${ctx.skills}.`,
+    `${ctx.owner} is 24, based in Sweden, and runs an email outreach business: finding businesses, cold emailing them, booking calls and signing clients. Skills: digital marketing, SaaS, AI. Be direct and realistic; never promise income or reply rates.`,
+    'If the request needs real work (research, files, multi-step output), answer briefly and name the skill that should do it, for example /lead-research or /outreach-drafts.',
+    `Today: ${ctx.date}. Directives: ${ctx.directives || 'none set'}. Pipeline: ${ctx.numbers || 'empty'}. Skills: ${ctx.skills}.`,
   ].join('\n');
 }
 
@@ -49,14 +50,20 @@ async function viaSdk(text, ctx, model) {
   }
 }
 
-function viaCli(text, ctx, bin, model) {
+function viaCli(text, ctx, eng, model) {
   return new Promise((resolve) => {
-    const isWin = process.platform === 'win32';
     const prompt = `${systemPrompt(ctx)}\n\nRequest: ${text}`;
-    const args = ['-p', isWin ? `"${prompt.replace(/\r?\n/g, ' ').replace(/"/g, '\\"')}"` : prompt, '--model', model, '--output-format', 'json', '--max-turns', '2'];
     let out = '';
     let err = '';
-    const child = spawn(bin, args, { shell: isWin, stdio: ['ignore', 'pipe', 'pipe'], cwd: ctx.cwd });
+    // The prompt goes through stdin; the arguments never contain user text.
+    const child = spawn(eng.bin, ['-p', '--model', model, '--output-format', 'json', '--max-turns', '2'], {
+      shell: process.platform === 'win32',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      cwd: ctx.cwd,
+      env: engineEnv(eng),
+    });
+    child.stdin.on('error', () => {});
+    child.stdin.end(prompt);
     const timer = setTimeout(() => child.kill(), 90_000);
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { err += d; });
@@ -65,7 +72,11 @@ function viaCli(text, ctx, bin, model) {
       clearTimeout(timer);
       try {
         const parsed = JSON.parse(out);
-        resolve({ answer: String(parsed.result || '').trim(), backend: `claude-cli:${model}`, costUsd: parsed.total_cost_usd ?? null });
+        let answer = String(parsed.result || '').trim();
+        if (parsed.is_error && /credit balance|billing|credits/i.test(answer)) {
+          answer = `${answer} Claude Code is billing API credits instead of your subscription: run claude, type /status, and if it shows an API key or Console login, /logout and log in with your Claude account.`;
+        }
+        resolve({ answer, backend: `claude-cli:${model}`, costUsd: parsed.total_cost_usd ?? null });
       } catch {
         resolve(err.trim() ? { answer: `Claude Code said: ${err.trim().slice(0, 300)}`, backend: 'claude-cli' } : null);
       }
@@ -76,7 +87,7 @@ function viaCli(text, ctx, bin, model) {
 export async function quickAnswer(text, ctx, cfg) {
   const viaApi = await viaSdk(text, ctx, cfg.router.quickModel);
   if (viaApi) return viaApi;
-  const viaCode = await viaCli(text, ctx, cfg.engines.claude.bin, cfg.router.quickCliModel);
+  const viaCode = await viaCli(text, ctx, cfg.engines.claude, cfg.router.quickCliModel);
   if (viaCode) return viaCode;
   return {
     answer: 'No quick-answer model is reachable. Install Claude Code and log in, or run `npm install` and set ANTHROPIC_API_KEY.',

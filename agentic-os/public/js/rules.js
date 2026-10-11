@@ -13,7 +13,7 @@ export { fmtNum };
 
 /**
  * @param {string} intent  one of the TIER1_INTENTS ids
- * @param {object} state   { owner, directives, schedule, tasks, vitals, skills, now }
+ * @param {object} state   { owner, directives, schedule, tasks, stats, skills, now }
  */
 export function answerRule(intent, state) {
   const now = state.now ? new Date(state.now) : new Date();
@@ -36,12 +36,18 @@ export function answerRule(intent, state) {
       if (!open.length) return 'No open tasks. Either you are done or nothing is written down.';
       return `${open.length} open: ${open.slice(0, 5).map((t) => t.text).join('; ')}${open.length > 5 ? `; plus ${open.length - 5} more` : ''}.`;
     }
-    case 'vitals': {
-      const v = state.vitals?.metrics || {};
-      const parts = Object.values(v).map((m) => `${m.label} ${m.prefix || ''}${fmtNum(m.value)}`);
-      if (!parts.length) return 'No numbers saved yet. Run /pull-metrics or edit system/vitals.json.';
-      const tag = state.vitals?.example ? ' These are example numbers until you run /pull-metrics.' : '';
-      return `${parts.join(', ')}.${tag}`;
+    case 'numbers': {
+      const st = state.stats;
+      if (!st || !st.leads) return 'No leads in the pipeline yet, so there is nothing to count. Run /lead-research or add a lead in Command, Pipeline.';
+      const cur = st.currency === 'EUR' ? '€' : `${st.currency} `;
+      const rate = st.replyRate == null ? 'no emails in the last 30 days' : `${Math.round(st.replyRate * 100)}% (${st.replied30} of ${st.contacted30})`;
+      const goal = st.goal.target ? ` That is ${st.goal.pct}% of your ${cur}${fmtNum(st.goal.target)} goal.` : '';
+      return `This week you sent ${st.sentWeek} first emails (last week ${st.sentPrevWeek}). Reply rate over 30 days: ${rate}. ${st.callsMonth} calls booked this month, ${st.proposalsOpen} proposals open, ${st.won} clients. MRR ${cur}${fmtNum(st.mrr)}.${goal}`;
+    }
+    case 'followups': {
+      const f = state.stats?.followups || [];
+      if (!f.length) return 'No follow-ups due today.';
+      return `${f.length} due: ${f.slice(0, 5).map((x) => `${x.company} (${x.action}${x.overdue ? ', overdue' : ''})`).join('; ')}${f.length > 5 ? `; plus ${f.length - 5} more` : ''}. /follow-ups drafts them.`;
     }
     case 'time':
       return `It is ${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} on ${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}.`;

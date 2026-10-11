@@ -9,6 +9,6 @@
 {{schedule}}
 
 ## Tasks
-- [ ] Post today's video and log it in content/posting-log.md
+- [ ] Send today's drafted emails and every follow-up that is due
 
 ## Log

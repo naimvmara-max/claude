@@ -1,0 +1,7 @@
+{
+  "_readme": "Targets for the dashboard. goal_mrr is the monthly recurring revenue you are working toward, daily_sends is how many first emails you aim to send per weekday. Edit freely.",
+  "currency": "EUR",
+  "goal_mrr": 3000,
+  "daily_sends": 20,
+  "avg_deal": 500
+}

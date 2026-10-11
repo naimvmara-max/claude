@@ -5,10 +5,12 @@ both run here. Obsidian reads the same files. Keep everything plain Markdown or 
 
 ## Who this is for
 
-Naim, 24. Skills: digital marketing, dropshipping, SaaS, AI. Goals, in order:
+Naim, 24, based in Sweden. Skills: digital marketing, SaaS, AI. He runs an **email outreach
+business**: finding businesses, emailing them, booking calls and signing clients.
 
-1. Income now: paid work from the skills he already has (see `projects/income-now.md`).
-2. An AI-made clothing brand grown organically on Instagram and TikTok (see `projects/clothing-brand.md`).
+Goals, in order:
+1. Paying clients from cold email, tracked in `ops/pipeline.md`.
+2. Monthly recurring revenue toward the goal in `system/business.json`.
 3. Financial freedom over years, not weeks.
 
 He wants honesty. No hype, no invented numbers, no income promises. If something is
@@ -16,34 +18,42 @@ unlikely to work, say so and say what would.
 
 ## Where things go
 
-| Folder | What lives there | Who writes |
+| Path | What lives there | Who writes |
 | --- | --- | --- |
 | `_index.md` | Home note with the embedded HUD | Naim |
-| `daily-notes/` | One note per day: `YYYY-MM-DD.md` with `## Directives`, `## Schedule`, `## Tasks`, `## Log` | /plan-today, /close-day, Naim |
-| `inbox/` | Raw drops: pasted DMs, comment exports, links, voice notes | Naim |
-| `ops/` | `directives.md` (this week's top 3), `tasks.md` (open loops) | /weekly-review, Naim |
-| `projects/` | One note per project with status and next actions | Naim, skills |
-| `content/` | Ideas, scripts, hooks, captions, the posting log | content skills |
-| `wiki/` | Durable knowledge: brand bible, playbooks, connectors | Naim, /vault-cleanup |
-| `outputs/<skill>/` | Every report a skill produces, dated | skills |
+| `ops/pipeline.md` | **The pipeline**: one row per lead. Every dashboard number comes from it. | skills, the HUD, Naim |
+| `ops/directives.md`, `ops/tasks.md` | This week's top 3, open loops | /weekly-review, Naim |
+| `daily-notes/` | One note per day: `## Directives`, `## Schedule`, `## Tasks`, `## Log` | /plan-today, /close-day |
+| `projects/outreach-business.md` | The offer, the niche, the rules | Naim |
+| `wiki/outreach-playbook.md` | How emails and follow-ups are written | Naim, /vault-cleanup |
+| `inbox/` | Raw drops: pasted notes, links, call notes | Naim |
+| `outputs/<skill>/` | Every report or draft batch a skill produces, dated | skills |
 | `outputs/runs/` | Automatic transcript of every headless run | the Bridge |
-| `system/` | `backbone.json` (skills map), `vitals.json` (numbers), `routine.md`, logs | the Bridge, /pull-metrics |
-| `_archive-vault/` | Anything stale. Move, never delete. | /vault-cleanup |
+| `system/` | `backbone.json` (skills map), `business.json` (targets), `routine.md`, logs | the Bridge, Naim |
+| `_archive-vault/` | Anything stale, including the old social-media and clothing-brand skills. Move, never delete. | /vault-cleanup |
+
+## The pipeline table
+
+`ops/pipeline.md` has one Markdown table. Keep its columns and order exactly:
+`id | company | contact | email | website | niche | city | status | value | added | contacted | replied | call | proposal | closed | next_date | next_action | notes`
+
+- `status` is one of: researched, drafted, contacted, replied, call, proposal, won, lost.
+- When a lead moves to a stage, set that stage's date (`contacted`, `replied`, `call`, `proposal`, `closed` for won/lost) if it is empty.
+- `value` is a monthly amount in EUR, digits only.
+- Escape a `|` inside a cell as `\|`. One line per row.
 
 ## Rules for every run
 
-- Read before you write. Check `ops/directives.md` and today's daily note first.
+- Read before you write. Check `ops/directives.md`, today's daily note and the pipeline first.
 - Save deliverables to `outputs/<skill-name>/YYYY-MM-DD-<slug>.md` unless the skill says otherwise.
 - Never delete a note. Move it to `_archive-vault/` with the same relative path.
-- Never send, post, publish, buy or spend. Draft it and leave it for Naim. This includes emails, DMs, posts, ads and orders.
-- Numbers come from a source. If a metric is unknown, write `unknown`, never a guess.
-- Mark AI-generated visuals as AI-generated wherever they will be posted. TikTok and Meta both require labels for realistic AI content.
-- Dates are `YYYY-MM-DD`, times are 24h `HH:MM`, money is EUR unless a source says otherwise.
-- Keep notes short. Bullet points over paragraphs. Link related notes with `[[wikilinks]]`.
+- **Never send, post, publish, buy or spend.** Emails are Gmail drafts at most. Naim sends.
+- Never guess an email address. Only use addresses a business publishes.
+- Anyone who asks not to be contacted is marked `lost` and never emailed again.
+- Numbers come from a source. If something is unknown, write `unknown`.
+- Dates are `YYYY-MM-DD`, times 24h `HH:MM`, money EUR.
 
 ## Tiers (how requests reach you)
-
-The Bridge routes each request before you see it:
 
 - Tier 1 answers from saved files with no model.
 - Tier 2 is a quick answer from a small model.

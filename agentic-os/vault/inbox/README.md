@@ -1,9 +1,10 @@
 # Inbox
 
-Drop anything here: pasted DMs and comments, links, screenshots, voice-note transcripts,
-half ideas. /vault-cleanup files it every Sunday.
+Drop anything here: call notes, pasted replies, lead lists, links, half ideas.
+/vault-cleanup files it every Sunday.
 
 Two files the skills look for:
 
-- `metrics.md`: lines like `tiktok: 1300` or `instagram: 905`. /pull-metrics reads them.
+- `leads.md`: paste businesses you want researched, one per line (name or website).
+  Run /lead-research and they land in the pipeline.
 - `money.md`: lines like `2026-10-03 -12.99 Canva`. /money-check reads them.
