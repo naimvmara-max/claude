@@ -194,7 +194,7 @@ function metrics() {
   return [
     { key: 'sent', icon: 'i-mail', label: 'Sent this week', short: 'Sent this week', value: fmtNum(st.sentWeek), delta: `${arrow(st.sentWeek - st.sentPrevWeek)} vs last wk`, up: st.sentWeek > st.sentPrevWeek, sub: st.dailyTarget ? `today ${st.sentToday} / ${st.dailyTarget}` : `today ${st.sentToday}`, history: st.sentHistory },
     { key: 'reply', icon: 'i-reply', label: 'Reply rate 30d', short: 'Reply rate 30d', value: pct(st.replyRate), delta: st.contacted30 ? `${st.replied30} of ${st.contacted30}` : 'no sends yet', up: false, sub: 'replies ÷ first emails', history: st.replyHistory, unit: '%' },
-    { key: 'calls', icon: 'i-phone', label: 'Calls this month', short: 'Calls this month', value: fmtNum(st.callsMonth), delta: `${arrow(wkDelta(st.callsHistory))} this wk`, up: wkDelta(st.callsHistory) > 0, sub: `${st.proposalsOpen} proposals open`, history: st.callsHistory },
+    { key: 'calls', icon: 'i-phone', label: 'Calls this month', short: 'Calls this month', value: fmtNum(st.callsMonth), delta: `${arrow(wkDelta(st.callsHistory))} this wk`, up: wkDelta(st.callsHistory) > 0, sub: `${st.proposalsOpen} proposal${st.proposalsOpen === 1 ? '' : 's'} open`, history: st.callsHistory },
     { key: 'value', icon: 'i-coin', label: 'Open pipeline value', short: 'Pipeline value', value: money(st.pipelineValue), delta: `${st.won} client${st.won === 1 ? '' : 's'} won`, up: false, sub: 'replied + call + proposal, per month', history: null },
   ];
 }

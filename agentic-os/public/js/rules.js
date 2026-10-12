@@ -42,7 +42,8 @@ export function answerRule(intent, state) {
       const cur = st.currency === 'EUR' ? '€' : `${st.currency} `;
       const rate = st.replyRate == null ? 'no emails in the last 30 days' : `${Math.round(st.replyRate * 100)}% (${st.replied30} of ${st.contacted30})`;
       const goal = st.goal.target ? ` That is ${st.goal.pct}% of your ${cur}${fmtNum(st.goal.target)} goal.` : '';
-      return `This week you sent ${st.sentWeek} first emails (last week ${st.sentPrevWeek}). Reply rate over 30 days: ${rate}. ${st.callsMonth} calls booked this month, ${st.proposalsOpen} proposals open, ${st.won} clients. MRR ${cur}${fmtNum(st.mrr)}.${goal}`;
+      const n = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+      return `This week you sent ${n(st.sentWeek, 'first email', 'first emails')} (last week ${st.sentPrevWeek}). Reply rate over 30 days: ${rate}. ${n(st.callsMonth, 'call', 'calls')} booked this month, ${n(st.proposalsOpen, 'proposal', 'proposals')} open, ${n(st.won, 'client', 'clients')}. MRR ${cur}${fmtNum(st.mrr)}.${goal}`;
     }
     case 'followups': {
       const f = state.stats?.followups || [];
