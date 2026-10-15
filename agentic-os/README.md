@@ -99,6 +99,12 @@ runs; if you still see it:
 
 The terminal prints these fixes in yellow under the error when it recognises one.
 
+**"Anthropic profile login expired" or "Login expired · run /login".** Claude Code was signed in
+through an Anthropic (Console) profile, not your Claude account. Jarvis now hides that profile
+from its runs, but Claude Code itself still needs a valid Claude login. In a black window run
+`claude auth login --claudeai`, sign in with your Claude account, check with
+`claude auth status --text`, then restart Jarvis.
+
 **Voice does nothing (Jarvis "can't hear you").** You are probably in Opera, Opera GX or Brave.
 They show the microphone button but cannot reach the speech service voice input needs. Use
 Chrome or Edge: `Start Jarvis.bat` opens Jarvis in Chrome (or Edge) as its own window. Then

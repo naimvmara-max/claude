@@ -8,3 +8,4 @@ vault/.obsidian/workspace*.json
 vault/.obsidian/cache
 .env
 dist/
+.runtime/

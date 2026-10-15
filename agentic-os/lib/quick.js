@@ -6,7 +6,7 @@
 //   2. The Claude Code CLI with `--model haiku`. Uses your Claude plan, no API key.
 
 import { spawn } from 'node:child_process';
-import { engineEnv } from './jobs.js';
+import { engineEnv, fixesFor } from './jobs.js';
 
 let sdk; // undefined = not tried yet, null = not installed
 async function loadSdk() {
@@ -73,12 +73,13 @@ function viaCli(text, ctx, eng, model) {
       try {
         const parsed = JSON.parse(out);
         let answer = String(parsed.result || '').trim();
-        if (parsed.is_error && /credit balance|billing|credits/i.test(answer)) {
-          answer = `${answer} Claude Code is billing API credits instead of your subscription: run claude, type /status, and if it shows an API key or Console login, /logout and log in with your Claude account.`;
-        }
+        const fix = parsed.is_error ? fixesFor(answer) : [];
+        if (fix.length) answer = `${answer}\n\n${fix.join('\n')}`;
         resolve({ answer, backend: `claude-cli:${model}`, costUsd: parsed.total_cost_usd ?? null });
       } catch {
-        resolve(err.trim() ? { answer: `Claude Code said: ${err.trim().slice(0, 300)}`, backend: 'claude-cli' } : null);
+        const said = err.trim() || out.trim();
+        const fix = fixesFor(said);
+        resolve(said ? { answer: `Claude Code said: ${said.slice(0, 300)}${fix.length ? `\n\n${fix.join('\n')}` : ''}`, backend: 'claude-cli' } : null);
       }
     });
   });

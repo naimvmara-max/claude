@@ -4,22 +4,33 @@
 
 import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { localDate, localTime, slugify } from './vault.js';
 
 const MAX_PARALLEL = 3;
 const MAX_LOG = 600;
 
+// An empty folder Claude Code is pointed at instead of the real Anthropic profile folder
+// (%APPDATA%\\anthropic on Windows, ~/.config/anthropic elsewhere).
+const NO_PROFILE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.runtime', 'no-anthropic-profile');
+
 /**
- * Environment for an engine run. Claude Code bills an API key instead of your Claude
- * subscription whenever ANTHROPIC_API_KEY (or ANTHROPIC_AUTH_TOKEN) is set, which shows up
- * as "Credit balance is too low". With billing "subscription" (the default) those are
- * removed so the run uses your logged-in plan.
+ * Environment for an engine run. Claude Code prefers, in order, ANTHROPIC_API_KEY,
+ * ANTHROPIC_AUTH_TOKEN and any Anthropic (Console) profile over your claude.ai login. Any of
+ * those bills API credits ("Credit balance is too low") or breaks when it expires ("Anthropic
+ * profile login expired"). With billing "subscription" (the default) all three are hidden, so
+ * runs use the Claude account you logged in with.
  */
 export function engineEnv(eng) {
   const env = { ...process.env };
   if ((eng.billing || 'subscription') === 'subscription') {
     delete env.ANTHROPIC_API_KEY;
     delete env.ANTHROPIC_AUTH_TOKEN;
+    delete env.ANTHROPIC_PROFILE;
+    try { fs.mkdirSync(NO_PROFILE_DIR, { recursive: true }); } catch { /* read-only install: skip */ }
+    env.ANTHROPIC_CONFIG_DIR = NO_PROFILE_DIR;
   }
   return env;
 }
@@ -36,24 +47,35 @@ export function engineArgs(eng, prompt) {
 
 const HINTS = [
   {
-    test: /credit balance|insufficient credit|billing|purchase credits|out of credits/i,
+    test: /credit balance|insufficient credit|purchase credits|out of credits/i,
     lines: [
-      'FIX: Claude Code is billing API credits instead of your subscription.',
-      '1. In a terminal run: claude   then type /status and check the login method.',
-      '2. If it says API key or Console: type /logout, run claude again and pick "Claude account with subscription".',
-      '3. Remove ANTHROPIC_API_KEY from your environment variables if you set one, then restart the Bridge.',
-      '4. In claude, type /model and pick a model without "1M" if it shows one; 1M-context models can need extra usage.',
+      'FIX: Claude Code is billing API credits instead of your Claude plan.',
+      '1. Open a black window (cmd) and run:  claude auth login --claudeai',
+      '2. Sign in with your Claude account in the browser that opens.',
+      '3. Check with:  claude auth status --text   then restart Jarvis.',
+      'If you set ANTHROPIC_API_KEY in Windows environment variables, delete it.',
+    ],
+  },
+  {
+    test: /profile login expired|re-authenticate|login expired|run \/login|not logged in|please run \/login|invalid api key|authentication error/i,
+    lines: [
+      'FIX: Claude Code needs you to sign in with your Claude account again.',
+      '1. Open a black window (cmd) and run:  claude auth login --claudeai',
+      '2. Sign in in the browser that opens, then run:  claude auth status --text',
+      '3. Restart Jarvis (close the black Jarvis window, double-click Start Jarvis.bat).',
     ],
   },
   {
     test: /has not been trusted|trust dialog/i,
     lines: ['FIX: open a terminal in the vault folder, run claude, choose "Yes, proceed", then type /exit. Runs can then use the vault\'s allowed tools.'],
   },
-  {
-    test: /not logged in|please run \/login|invalid api key|authentication/i,
-    lines: ['FIX: run claude in a terminal and log in with your Claude account, then try again.'],
-  },
 ];
+
+/** The fix lines for an error message, or an empty list. */
+export function fixesFor(text) {
+  const h = HINTS.find((x) => x.test.test(String(text)));
+  return h ? h.lines : [];
+}
 
 export function probe(bin) {
   return new Promise((resolve) => {
