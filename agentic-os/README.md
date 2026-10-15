@@ -73,7 +73,8 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
    ```bash
    npm start
    ```
-   Open http://127.0.0.1:3217 and keep the terminal window open.
+   Open http://127.0.0.1:3217 in Chrome or Edge and keep the terminal window open. Or just
+   double-click `Start Jarvis.bat`, which starts the Bridge and opens Jarvis in Chrome or Edge.
 4. **Make it yours:** fill in the offer in `vault/projects/outreach-business.md`, set
    `goal_mrr` and `daily_sends` in `vault/system/business.json`, and edit `vault/system/routine.md`.
 5. **Gmail and Calendar in Claude Code:** the email skills need them to create drafts and read
@@ -97,6 +98,11 @@ runs; if you still see it:
    such as `claude-opus-5[1m]` can need extra usage on some plans.
 
 The terminal prints these fixes in yellow under the error when it recognises one.
+
+**Voice does nothing (Jarvis "can't hear you").** You are probably in Opera, Opera GX or Brave.
+They show the microphone button but cannot reach the speech service voice input needs. Use
+Chrome or Edge: `Start Jarvis.bat` opens Jarvis in Chrome (or Edge) as its own window. Then
+allow the microphone when asked.
 
 **`npm start` says it cannot find package.json.** The terminal is in the wrong folder. Open the
 `agentic-os` folder in File Explorer, type `cmd` in the address bar, press Enter, run `npm start`.

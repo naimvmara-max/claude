@@ -56,6 +56,7 @@ async function boot() {
     try { await timeout(api('/api/health'), 1800); } catch { app.demo = true; }
   }
   bind();
+  renderVoiceSupport();
   await refresh();
   setEngine(app.state.engine || 'claude', { silent: true });
   const fromHash = location.hash.slice(1);
@@ -863,20 +864,52 @@ const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null;
 let levelTimer = null;
 
+/**
+ * Chromium browsers other than Chrome and Edge (Opera, Opera GX, Brave, Vivaldi…) expose the
+ * speech API but cannot reach the speech service behind it, so they listen and hear nothing.
+ * Say so up front instead of failing silently.
+ */
+function voiceBlockedReason() {
+  const ua = navigator.userAgent;
+  if (!Recognition) return 'This browser has no voice input.';
+  if (/OPR\/|Opera|OPX\//.test(ua)) return 'Opera and Opera GX cannot use voice input: they have no access to the speech service it needs.';
+  if (navigator.brave) return 'Brave blocks the speech service that voice input needs.';
+  if (/Vivaldi|YaBrowser|SamsungBrowser/.test(ua)) return 'This browser cannot reach the speech service that voice input needs.';
+  return null;
+}
+
+const VOICE_FIX = 'Open Jarvis in Chrome or Edge (Start Jarvis.bat does this for you), or type instead.';
+
+function renderVoiceSupport() {
+  const reason = voiceBlockedReason();
+  const label = $('#voice-engine');
+  if (!label) return;
+  if (reason) {
+    label.textContent = 'Voice needs Chrome or Edge';
+    label.style.color = 'var(--warm)';
+    label.title = `${reason} ${VOICE_FIX}`;
+  }
+}
+
 function startListening() {
-  if (!Recognition) { toast('Voice input needs Chrome or Edge. You can still type.'); return; }
+  const blocked = voiceBlockedReason();
+  if (blocked) { toast(`${blocked} ${VOICE_FIX}`); return; }
   if (app.listening) { stopListening(true); return; }
   try {
     rec = new Recognition();
   } catch {
-    toast('Voice input is blocked here. Type instead.');
+    toast(`Voice input is blocked here. ${VOICE_FIX}`);
     return;
   }
   rec.lang = navigator.language || 'en-US';
   rec.interimResults = true;
   rec.continuous = false;
   let finalText = '';
+  let heard = false;
+  let failed = false;
+  const startedAt = Date.now();
   rec.onresult = (e) => {
+    heard = true;
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i += 1) {
       if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
@@ -885,13 +918,19 @@ function startListening() {
     $('#ask-input').value = (finalText + interim).trim();
   };
   rec.onerror = (e) => {
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Microphone access was refused. Allow it in the browser, or type.');
-    else if (e.error !== 'aborted' && e.error !== 'no-speech') toast(`Voice error: ${e.error}`);
+    failed = true;
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Microphone access was refused. Click the lock icon next to the address, allow the microphone, and try again.');
+    else if (e.error === 'network') toast(`Voice could not reach the speech service. ${VOICE_FIX}`);
+    else if (e.error === 'audio-capture') toast('No microphone found. Check that one is plugged in and selected in Windows sound settings.');
+    else if (e.error === 'no-speech') toast('I did not hear anything. Speak right after tapping, or check the microphone.');
+    else if (e.error !== 'aborted') toast(`Voice error: ${e.error}. ${VOICE_FIX}`);
   };
   rec.onend = () => {
     const text = finalText.trim();
     setListening(false);
-    if (text) { $('#ask-input').value = ''; ask(text, { voice: true }); }
+    if (text) { $('#ask-input').value = ''; ask(text, { voice: true }); return; }
+    // Ended almost at once with nothing heard and no error: the speech service never answered.
+    if (!heard && !failed && Date.now() - startedAt < 1500) toast(`Voice stopped before hearing you. ${VOICE_FIX}`);
   };
   try { rec.start(); setListening(true); } catch (err) { toast(err.message); }
 }
