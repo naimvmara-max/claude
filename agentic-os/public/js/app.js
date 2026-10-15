@@ -56,6 +56,7 @@ async function boot() {
     try { await timeout(api('/api/health'), 1800); } catch { app.demo = true; }
   }
   bind();
+  bindVoiceDialog();
   renderVoiceSupport();
   await refresh();
   setEngine(app.state.engine || 'claude', { silent: true });
@@ -689,7 +690,7 @@ async function ask(text, { voice = false, force = null } = {}) {
       else if (res.job) { upsertJob(res.job); openJob(res.job.id); }
     }
     if (res.tier === 1 && /rule:(tasks|priorities)/.test(res.route.pick.id)) softRefresh();
-    if (voice || store.get('speakAll', false)) speak(res.answer);
+    if (voice || voiceSettings().speakAll) speak(res.answer);
   } catch (err) {
     app.lastError = Date.now();
     entry.a = err.message;
@@ -901,7 +902,8 @@ function startListening() {
     toast(`Voice input is blocked here. ${VOICE_FIX}`);
     return;
   }
-  rec.lang = navigator.language || 'en-US';
+  const lang = voiceSettings().lang;
+  rec.lang = lang && lang !== 'auto' ? lang : navigator.language || 'en-US';
   rec.interimResults = true;
   rec.continuous = false;
   let finalText = '';
@@ -958,17 +960,110 @@ function setListening(on) {
   syncCore();
 }
 
+// Jarvis's spoken voice: the browser's own voices. Edge has the most natural ones
+// ("… Online (Natural)"); a British male voice is the closest to the films.
+const JARVIS_LIKE = [
+  /Ryan.*United Kingdom/i, /Thomas.*United Kingdom/i, /Google UK English Male/i,
+  /George.*United Kingdom/i, /Oliver.*United Kingdom/i, /\bDaniel\b/i, /\bArthur\b/i,
+];
+const VOICE_DEFAULTS = { name: '', rate: 1, pitch: 0.95, speakAll: false, lang: 'auto' };
+
+function voiceSettings() { return { ...VOICE_DEFAULTS, ...store.get('voice', {}) }; }
+function saveVoice(patch) { store.set('voice', { ...voiceSettings(), ...patch }); }
+
+function allVoices() {
+  try { return ('speechSynthesis' in window && speechSynthesis.getVoices()) || []; } catch { return []; }
+}
+
+function jarvisDefault(voices) {
+  for (const re of JARVIS_LIKE) {
+    const v = voices.find((x) => re.test(x.name));
+    if (v) return v;
+  }
+  return voices.find((v) => /^en-GB/i.test(v.lang)) || voices.find((v) => /^en/i.test(v.lang)) || voices[0] || null;
+}
+
+function currentVoice() {
+  const voices = allVoices();
+  return voices.find((v) => v.name === voiceSettings().name) || jarvisDefault(voices);
+}
+
 let pulseTimer = null;
 function speak(text) {
   if (!('speechSynthesis' in window) || !text) return;
   try {
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(String(text).slice(0, 600));
-    u.rate = 1.04;
+    const s = voiceSettings();
+    // FIX lines and file paths are for reading, not for hearing.
+    const spoken = String(text).split(/\n\nFIX:/)[0].slice(0, 600);
+    const u = new SpeechSynthesisUtterance(spoken);
+    const v = currentVoice();
+    if (v) { u.voice = v; u.lang = v.lang; }
+    u.rate = Number(s.rate) || 1;
+    u.pitch = Number(s.pitch) || 1;
     u.onstart = () => { app.speaking = true; syncCore(); pulseTimer = setInterval(() => core.pulse(), 650); };
     u.onend = u.onerror = () => { app.speaking = false; clearInterval(pulseTimer); syncCore(); };
     speechSynthesis.speak(u);
   } catch { /* speech unavailable */ }
+}
+
+function renderVoiceDialog() {
+  const s = voiceSettings();
+  const voices = allVoices();
+  const sel = $('#voice-select');
+  const best = jarvisDefault(voices);
+  const chosen = currentVoice();
+  const opt = (v) => `<option value="${esc(v.name)}"${chosen && v.name === chosen.name ? ' selected' : ''}>${esc(v.name.replace(/^Microsoft\s+/, ''))} · ${esc(v.lang)}</option>`;
+  if (!voices.length) {
+    sel.innerHTML = '<option value="">No voices in this browser</option>';
+    sel.disabled = true;
+  } else {
+    sel.disabled = false;
+    const english = voices.filter((v) => /^en/i.test(v.lang) && v !== best);
+    const other = voices.filter((v) => !/^en/i.test(v.lang) && v !== best);
+    sel.innerHTML = [
+      best ? `<optgroup label="Closest to Jarvis">${opt(best)}</optgroup>` : '',
+      english.length ? `<optgroup label="English">${english.map(opt).join('')}</optgroup>` : '',
+      other.length ? `<optgroup label="Other languages">${other.map(opt).join('')}</optgroup>` : '',
+    ].join('');
+  }
+  const natural = voices.some((v) => /Natural/i.test(v.name));
+  $('#voice-note').textContent = !voices.length
+    ? 'This browser offers no voices. Open Jarvis in Edge or Chrome.'
+    : natural
+      ? 'Voices marked "Online (Natural)" sound the most human. They need an internet connection.'
+      : 'For more natural voices, open Jarvis in Microsoft Edge and pick a "Natural" voice (try Ryan, British).';
+  $('#voice-rate').value = s.rate;
+  $('#voice-pitch').value = s.pitch;
+  $('#voice-rate-out').textContent = Number(s.rate).toFixed(2);
+  $('#voice-pitch-out').textContent = Number(s.pitch).toFixed(2);
+  $('#speak-all').checked = Boolean(s.speakAll);
+  $('#listen-lang').value = s.lang;
+}
+
+function voiceSample() {
+  const h = new Date().getHours();
+  const part = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
+  const due = app.state?.stats?.followups?.length ?? 0;
+  return `Good ${part}, ${app.state?.owner || 'sir'}. You have ${due} follow-up${due === 1 ? '' : 's'} due today.`;
+}
+
+function bindVoiceDialog() {
+  $('#voice-settings').addEventListener('click', () => { renderVoiceDialog(); $('#voice-dlg').showModal(); });
+  $('#voice-select').addEventListener('change', (e) => { saveVoice({ name: e.target.value }); speak(voiceSample()); });
+  for (const k of ['rate', 'pitch']) {
+    $(`#voice-${k}`).addEventListener('input', (e) => {
+      $(`#voice-${k}-out`).textContent = Number(e.target.value).toFixed(2);
+      saveVoice({ [k]: Number(e.target.value) });
+    });
+  }
+  $('#speak-all').addEventListener('change', (e) => saveVoice({ speakAll: e.target.checked }));
+  $('#listen-lang').addEventListener('change', (e) => saveVoice({ lang: e.target.value }));
+  $('#voice-test').addEventListener('click', () => speak(voiceSample()));
+  $('#voice-reset').addEventListener('click', () => { store.set('voice', { ...VOICE_DEFAULTS }); renderVoiceDialog(); speak(voiceSample()); });
+  $('#voice-form').addEventListener('submit', (e) => e.preventDefault());
+  // Voices load after the page; refresh the list when they arrive.
+  try { speechSynthesis.addEventListener('voiceschanged', () => { if ($('#voice-dlg').open) renderVoiceDialog(); }); } catch { /* no speech */ }
 }
 
 // ------------------------------------------------------------------ core state, engine, views

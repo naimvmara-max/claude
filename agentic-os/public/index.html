@@ -104,7 +104,7 @@
         <div class="col" style="gap:10px">
           <div class="voice-row">
             <span class="label">Voice <b>tap to talk</b></span>
-            <span class="level" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="voice-tools"><span class="level" aria-hidden="true"><i></i><i></i><i></i></span><button class="ghost-btn" id="voice-settings" title="Choose how Jarvis sounds">Voice</button></span>
           </div>
           <div class="dash"></div>
           <button class="talk" id="talk" aria-pressed="false"><span class="mic"></span><span id="talk-label">Tap to talk</span></button>
@@ -163,6 +163,28 @@
 
 <dialog id="reader"><div class="dlg"><div class="dlg-h"><span class="label" id="reader-title">Report</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b"><pre id="reader-text"></pre></div></div></dialog>
 <dialog id="skills-dlg"><div class="dlg"><div class="dlg-h"><span class="label">All skills</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b"><div class="skill-list" id="skill-list"></div></div></div></dialog>
+<dialog id="voice-dlg"><div class="dlg"><div class="dlg-h"><span class="label">Jarvis's voice</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b">
+  <form class="voice-form" id="voice-form" autocomplete="off">
+    <label for="voice-select">Voice</label>
+    <select id="voice-select"></select>
+    <p class="muted" id="voice-note"></p>
+    <div class="voice-sliders">
+      <label for="voice-rate">Speed <output id="voice-rate-out">1.00</output></label>
+      <input type="range" id="voice-rate" min="0.7" max="1.4" step="0.05">
+      <label for="voice-pitch">Pitch <output id="voice-pitch-out">1.00</output></label>
+      <input type="range" id="voice-pitch" min="0.6" max="1.4" step="0.05">
+    </div>
+    <label class="check" for="speak-all"><input type="checkbox" id="speak-all"> Read every answer aloud, not only when I speak</label>
+    <label for="listen-lang">I speak</label>
+    <select id="listen-lang">
+      <option value="auto">Same language as my browser</option>
+      <option value="en-US">English</option>
+      <option value="en-GB">English (UK)</option>
+      <option value="sv-SE">Svenska</option>
+    </select>
+    <div class="voice-actions"><button type="button" class="dock-btn" id="voice-test">Hear it</button><button type="button" class="ghost-btn" id="voice-reset">Back to Jarvis default</button></div>
+  </form>
+</div></div></dialog>
 <dialog id="transcript-dlg"><div class="dlg"><div class="dlg-h"><span class="label">Transcript · this session</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b"><div class="transcript" id="transcript"></div></div></div></dialog>
 <!--BODY-END-->
 <script type="module" src="js/app.js"></script>

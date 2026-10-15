@@ -306,6 +306,17 @@ body[data-engine='codex'] .ticks i.on { background: var(--ink); box-shadow: 0 0 
 .level i { width: 4px; height: 4px; border-radius: 50%; background: var(--ink-2); transition: transform 0.08s; }
 body[data-state='listening'] .level i { background: var(--accent); }
 .dash { height: 0; border-top: 1px dashed var(--line-2); }
+.voice-tools { display: inline-flex; align-items: center; gap: 6px; }
+.voice-tools .ghost-btn { padding: 5px 8px; }
+.voice-form { display: grid; gap: 10px; }
+.voice-form > label, .voice-sliders label { font: 500 10.5px/1.2 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+.voice-form select { padding: 9px 10px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(0, 0, 0, 0.35); color: var(--ink); font: 400 13px/1.2 var(--font-body); }
+.voice-sliders { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: center; }
+.voice-sliders output { color: var(--ink); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.voice-form input[type='range'] { accent-color: var(--accent); width: 100%; }
+.voice-form .check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-2); text-transform: none; letter-spacing: 0; font-family: var(--font-body); }
+.voice-form .check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.voice-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .talk {
   justify-self: start; display: inline-flex; align-items: center; gap: 8px;
   padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.04); font-size: 12px;

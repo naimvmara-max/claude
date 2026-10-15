@@ -110,6 +110,12 @@ They show the microphone button but cannot reach the speech service voice input 
 Chrome or Edge: `Start Jarvis.bat` opens Jarvis in Chrome (or Edge) as its own window. Then
 allow the microphone when asked.
 
+**Changing Jarvis's voice.** Click **Voice** next to Tap to talk. Pick a voice, set speed and
+pitch, and choose whether every answer is read aloud. The list is the voices your browser and
+Windows have installed; in Edge the "Natural" (online) voices sound best, and British male voices
+such as Ryan are closest to the film Jarvis. More voices: Windows Settings → Time & language →
+Speech → Add voices. The choice is saved in that browser.
+
 **`npm start` says it cannot find package.json.** The terminal is in the wrong folder. Open the
 `agentic-os` folder in File Explorer, type `cmd` in the address bar, press Enter, run `npm start`.
 
