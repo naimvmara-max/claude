@@ -68,6 +68,17 @@
       "triggers": ["draft emails", "write emails", "cold email", "cold emails", "outreach email", "outreach emails", "first emails", "email copy", "write outreach", "draft outreach", "skriv mejl", "kalla mejl", "skriv mail", "första mejlen", "mejlutkast"]
     },
     {
+      "name": "campaign",
+      "domain": "outreach",
+      "task": "Automatisera kalla mejl",
+      "does": "kampanj-CSV + sekvens på bokmål",
+      "connectors": ["Pipeline", "Utskicksverktyg"],
+      "schedule": "manual",
+      "quick": false,
+      "label": "Kampanj",
+      "triggers": ["campaign", "build the campaign", "email campaign", "kampanj", "kampanjen", "bygg kampanj", "bygg kampanjen", "veckans kampanj", "veckans utskick", "utskick", "massutskick", "instantly", "smartlead"]
+    },
+    {
       "name": "call-list",
       "domain": "outreach",
       "task": "Ring kalla samtal",

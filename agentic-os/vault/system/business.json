@@ -8,16 +8,69 @@
   "goal_deals_month": 4,
   "daily_contacts": 60,
   "packages": {
-    "S": { "name": "Small", "price": 4695, "credits": 5, "commission": 5000, "tagline": "For de første agentene", "example": "f.eks. 2 agenter, 1 kø, 1 webchat og 1 AI-agent" },
-    "M": { "name": "Medium", "price": 7595, "credits": 15, "commission": 10000, "tagline": "For et etablert kundeserviceteam (anbefalt)", "example": "f.eks. 8 agenter, 2 køer, 1 webchat, 1 e-post og 1 AI-agent" },
-    "L": { "name": "Large", "price": 13595, "credits": 30, "commission": 20000, "tagline": "For større team og flere kanaler", "example": "f.eks. 20 agenter, 3 køer, 2 webchatter, 1 e-post og 2 AI-agenter" }
+    "S": {
+      "name": "Small",
+      "price": 4695,
+      "credits": 5,
+      "commission": 5000,
+      "tagline": "For de første agentene",
+      "example": "f.eks. 2 agenter, 1 kø, 1 webchat og 1 AI-agent"
+    },
+    "M": {
+      "name": "Medium",
+      "price": 7595,
+      "credits": 15,
+      "commission": 10000,
+      "tagline": "For et etablert kundeserviceteam (anbefalt)",
+      "example": "f.eks. 8 agenter, 2 køer, 1 webchat, 1 e-post og 1 AI-agent"
+    },
+    "L": {
+      "name": "Large",
+      "price": 13595,
+      "credits": 30,
+      "commission": 20000,
+      "tagline": "For større team og flere kanaler",
+      "example": "f.eks. 20 agenter, 3 køer, 2 webchatter, 1 e-post og 2 AI-agenter"
+    }
   },
-  "credit_costs": { "agent": 1, "queue": 1, "webchat": 1, "ai_agent": 1, "email_channel": 2 },
+  "credit_costs": {
+    "agent": 1,
+    "queue": 1,
+    "webchat": 1,
+    "ai_agent": 1,
+    "email_channel": 2
+  },
   "extra_credit_price": 299,
   "default_package": "M",
-  "typical_mix": { "S": 55, "M": 35, "L": 10 },
-  "assumptions": { "book_rate": 2, "show_rate": 80, "close_rate": 10 },
+  "typical_mix": {
+    "S": 55,
+    "M": 35,
+    "L": 10
+  },
+  "assumptions": {
+    "book_rate": 2,
+    "show_rate": 80,
+    "close_rate": 10
+  },
   "confirmed": true,
   "confirmed_by": "provisionsbladet från Driv, okt 2026",
-  "email_language": "nb"
+  "email_language": "nb",
+  "outreach": {
+    "_readme": "Kalla mejl. mode 'drafts' = Jarvis gör utkast i din egen inkorg och du skickar (högst ~30 om dagen från Drivs huvuddomän). mode 'campaign' = /campaign bygger en CSV och en sekvens som du granskar och laddar upp i utskicksverktyget, som skickar från separata, uppvärmda domäner. Fyll i när det är uppsatt.",
+    "mode": "drafts",
+    "sender_name": "Naim Amara",
+    "sender_address": "",
+    "sender_phone": "",
+    "sending_domains": [],
+    "inboxes": 0,
+    "per_inbox_daily": 30,
+    "warmup_started": "",
+    "tool": "",
+    "steps": [
+      0,
+      3,
+      7,
+      14
+    ]
+  }
 }

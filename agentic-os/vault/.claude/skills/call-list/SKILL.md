@@ -13,6 +13,8 @@ description: Build today's call list - companies to cold call or call back, with
 1. Pick, in this order, up to half of `daily_contacts`:
    - companies whose `next_action` is `Call again` or a call, due today or earlier;
    - companies that replied by email but have no meeting yet;
+   - companies whose email sequence (campaign) ended without a reply: call the decision maker by
+     name, and open with the email ("Jeg sendte en e-post til post@ forrige uke …");
    - `researched` companies with a published phone number and no email address;
    - other `researched` companies with a phone number, best fit first.
 2. For each: company, contact, phone (published only), why now, the observation, a

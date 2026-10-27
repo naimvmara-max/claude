@@ -36,6 +36,8 @@ const routes = {
   'planera dagen': 'skill:plan-today',
   'hitta 10 företag: nettbutikker i Bergen': 'skill:lead-research',
   'skriv mejl till nya leads': 'skill:outreach-drafts',
+  'bygg veckans kampanj': 'skill:campaign',
+  'gör kampanjen till instantly': 'skill:campaign',
   'vem ska jag ringa idag?': 'skill:call-list',
   'ringlistan för idag': 'skill:call-list',
   'skriv uppföljningar': 'skill:follow-ups',

@@ -24,10 +24,15 @@ exakta verktygsnamnen till listan `allow`.
 | Google Kalender | plan-today, inbox-brief, sync-pipeline, demo-prep | lista och läsa händelser, föreslå tider | skapa, ändra, radera händelser |
 | Webbsök och hämtning | lead-research, call-list, demo-prep, morning-intel, deep-research (brreg.no, proff.no, FINN) | tillåtet som standard | — |
 
+## Utskicksverktyget (Instantly eller Smartlead)
+Plan och checklista: `projects/email-outreach.md`. /campaign gör en CSV som du laddar upp själv.
+/sync-pipeline läser verktygets export (CSV i `inbox/`, namnet börjar på `kampanj`). Om du senare
+kopplar verktyget till Claude Code: tillåt bara läsverktyg (kampanjstatus, svar), aldrig att
+starta, ändra eller skicka.
+
 ## Värt att lägga till senare
 - Drivs CRM, så att affärer inte följs upp på två ställen (fråga vilket CRM ni använder).
-- Ett utskicksverktyg (Instantly, Smartlead, Lemlist) om du skickar volym därifrån i stället för
-  Gmail: då ska /sync-pipeline läsa skickat och svar därifrån.
+- Microsoft 365 i stället för Gmail om Driv kör Outlook: säg till, så byter vi koppling.
 - En dialer om du ringer mycket, så att samtal loggas utan att du skriver.
 
 ## Status

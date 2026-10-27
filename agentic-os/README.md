@@ -54,6 +54,7 @@ booked → demo → offer → won/lost. Moving a company to **Möte bokat** star
 | --- | --- | --- |
 | Prospecting | /lead-research: Norwegian companies with a real customer service load (job ads for kundeservice first), published contacts, one observation each | manual |
 | Outreach | /outreach-drafts: first emails in bokmål as Gmail drafts | weekdays 08:30 |
+| Outreach | /campaign: this week's cold email campaign as a CSV + a four-step bokmål sequence for Instantly/Smartlead; Naim checks, uploads and starts it | manual |
 | Outreach | /call-list: who to call today, published numbers, a 20-second opener each | weekdays 08:15 |
 | Outreach | /follow-ups: day 3, 7 and 14 emails, call-backs, after-demo follow-ups | weekdays 08:45 |
 | Outreach | /inbox-brief: pipeline replies first, draft answers with demo times | daily 08:00 |
@@ -65,6 +66,12 @@ booked → demo → offer → won/lost. Moving a company to **Möte bokat** star
 | Research | /morning-intel (buying signals, competitors, one idea), /deep-research | weekdays 06:30, manual |
 | Commission | /commission-check: earned vs paid out, against the contract | 1st of the month |
 | Memory | /vault-cleanup | Sundays 18:00 |
+
+**Cold email in Norway goes only to generic company addresses** (post@, kontakt@): under
+Forbrukertilsynet's guidance to markedsføringsloven § 15, email to a named person's work address
+needs consent. Decision makers are called instead. Volume is sent by the sending tool from
+separate warmed-up domains, never from Driv's main domain; the plan, costs and a message for the
+manager are in `vault/projects/email-outreach.md`.
 
 No skill sends, calls or spends anything. Emails are Gmail drafts at most; you send them and
 make the calls. Product claims come only from `vault/projects/product.md`, and prices marked
@@ -106,7 +113,7 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
 6. **Obsidian (optional):** open `agentic-os/vault` as a vault, Settings → Community plugins →
    turn off Restricted mode → enable *Agentic OS HUD*.
 
-`npm run check` runs 47 offline checks (Swedish and English routing, schedules, pipeline, commission, credits and pace maths).
+`npm run check` runs 49 offline checks (Swedish and English routing, schedules, pipeline, commission, credits and pace maths).
 `npm run demo` builds `dist/jarvis-demo.html`, a single-file demo that needs no server.
 
 ## Troubleshooting

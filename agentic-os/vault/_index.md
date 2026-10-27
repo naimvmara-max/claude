@@ -10,5 +10,6 @@ Obsidian-pluginet i `.obsidian/plugins/agentic-os-hud` öppnar samma vy i en sid
 - Pipeline: [[ops/pipeline]] (varje siffra på dashboarden kommer härifrån)
 - Den här veckan: [[ops/directives]] · [[ops/tasks]]
 - Jobbet: [[projects/sales-job]] (provision, utbetalning, öppna frågor) · [[projects/product]] (Driv Kundesenter)
+- Kalla mejl: [[projects/email-outreach]] (domäner, inkorgar, utskicksverktyg, lagen, kostnad)
 - Så säljer du: [[wiki/sales-playbook]] · [[wiki/objections]] · [[wiki/connectors]]
 - Paket, provision och mål: `system/business.json` · skill-karta: `system/backbone.json`

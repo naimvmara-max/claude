@@ -19,9 +19,12 @@ the pipeline), then find 10 companies that are **hiring customer service staff**
 ## Do (per company)
 1. Skip it if the company, org number or email is already in `ops/pipeline.md`.
 2. Basics from brreg.no and proff.no: org number, industry, municipality, employees, daglig leder.
-3. Contact: the person who decides (see the playbook) and an email address and phone number
-   **only if published** (website, brreg.no, proff.no, 1881.no, gulesider.no). Prefer a
-   company address (post@, kontakt@) for cold email until the employer says otherwise.
+3. Contact: the person who decides (see the playbook), by name, with a published phone number
+   for calls. For `email`, put **only a generic, published company address** (post@, kontakt@,
+   firmapost@, kundeservice@, info@): Norwegian law needs consent before cold email to a named
+   person's own work address. If the only published address is a person's (kari@firma.no),
+   leave `email` empty and note "ring". Note the organisasjonsform from brreg; for ENK
+   (enkeltpersonforetak) leave `email` empty: call them.
 4. One specific, checkable observation that shows a customer service load: a job ad for
    kundeservice, only a contact form, no chat, a long FAQ, short phone hours, reviews about
    slow replies, questions asked in the evening and at weekends.

@@ -44,6 +44,7 @@ unlikely to work, say so and say what would.
 | `daily-notes/` | One note per day: `## Fokus`, `## Schema`, `## Uppgifter`, `## Logg` | /plan-today, /close-day |
 | `projects/product.md` | **What we sell**: Driv Kundesenter, packages, credits, prices, process. The only source for product claims. | Naim |
 | `projects/sales-job.md` | The job: commission, payout, open questions, contract checklist | Naim |
+| `projects/email-outreach.md` | The cold email setup: domains, inboxes, sending tool, rules, costs | Naim |
 | `wiki/sales-playbook.md` | Who to target, the six questions, the five-step process, emails and calls | Naim, /weekly-review |
 | `wiki/objections.md` | Driv's answers to objections, plus ones heard in the field | /objections, Naim |
 | `inbox/` | Raw drops: call notes, demo notes, lead lists, links | Naim |
@@ -83,6 +84,15 @@ unlikely to work, say so and say what would.
 - **Never send, post, publish, call, buy or spend.** Emails are Gmail drafts at most. Naim sends and calls.
 - Never guess an email address or phone number. Only use contact details a business publishes
   (its website, brreg.no, proff.no, 1881.no, gulesider.no).
+- **Cold email goes only to generic company addresses** (post@, kontakt@, kundeservice@, info@).
+  Forbrukertilsynet's guidance under markedsføringsloven § 15: email to a named person's own work
+  address needs prior consent, even for a business offer. Never cold email a named address or an
+  enkeltpersonforetak (ENK); call those instead. Named addresses may be used once the person has
+  replied or asked to be contacted.
+- Volume email is sent by the sending tool from separate, warmed-up domains that Driv has
+  approved (`outreach` in `system/business.json`, plan in `projects/email-outreach.md`). Naim's
+  own address on Driv's main domain is for replies, offers and at most ~30 personal emails a day.
+  Skills prepare files for the tool; they never upload, launch or send.
 - Anyone who asks not to be contacted is marked `lost` with `opt-out` in notes and never contacted again.
 - Numbers come from a source. If something is unknown, write `okänt`.
 - Dates are `YYYY-MM-DD`, times 24h `HH:MM`, money NOK (SEK only as a rough conversion).

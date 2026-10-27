@@ -83,10 +83,23 @@ upp efter 2. Ett «nei» eller «ikke interessert» avslutar: markera företaget
 3. Räkna krediter med kunden och välj ett paket. Visa inte alla tre som en meny.
 4. Bestäm nästa steg innan ni lägger på: offert, beslutsdatum, vem mer som bestämmer.
 
+## Mejl + samtal: modellen
+Kalla mejl går till företagets **allmänna adress** (post@, kontakt@, kundeservice@) och ber dem
+skicka vidare till den som har ansvar för kundtjänst. Beslutsfattaren når du **i telefon**:
+ring när mejlsekvensen är slut utan svar och börja med mejlet ("Jeg sendte en e-post til post@ …").
+Volymen skickas av utskicksverktyget från separata domäner, se projects/email-outreach.md.
+
 ## Regler som håller det ärligt och lagligt
-- Norge har egna regler för marknadsföringsmejl och telefonförsäljning (markedsføringsloven,
-  och Reservasjonsregisteret för samtal). De skiljer på företag och privatpersoner. Fråga Driv
-  vad de tillåter innan du skickar stora volymer. Till dess: använd företagsadresser
-  (post@, kontakt@) för kalla mejl och ha alltid med avregistreringsraden.
+- **Kalla mejl bara till allmänna företagsadresser.** Forbrukertilsynets veiledning
+  (markedsføringsloven § 15): mejl till en namngiven persons egen jobbadress
+  (kari.nordmann@firma.no) räknas som marknadsföring till en privatperson och kräver samtycke,
+  även om erbjudandet gäller företaget och även om adressen står i Brønnøysund. Adresser som
+  inte tillhör en viss person (post@, firmapost@) omfattas inte. Företaget ska själv se till att
+  inga personliga adresser kommer med.
+- **Enkeltpersonforetak (ENK)**: mejla inte, deras adress är ägarens. Ring.
+- **Samtal till företag** stoppas inte av Reservasjonsregisteret, som gäller privatpersoner.
+  Kolla ändå med Driv vilka regler de vill att du följer.
+- Varje mejl ska visa vem du är och ha avregistreringsraden. Den som säger nej markeras förlorad
+  och kontaktas aldrig igen.
 - Lova aldrig rabatt (bestäms med ledningen) eller bindningstid (oklart, se projects/sales-job.md).
 - Siffran 30–50 % kommer från Lynes: säg «ifølge Lynes», aldrig som ett löfte.
