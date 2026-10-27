@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="sv">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jarvis Agentic OS</title>
-<meta name="description" content="Naim's agentic OS for selling AI customer service in Norway: sales HUD, commission and pace, tiered router and skill backbone on an Obsidian vault.">
+<meta name="description" content="Naims Agentic OS för att sälja Driv Kundesenter i Norge: sälj-HUD, provision och takt, router i nivåer och skill-ryggrad på ett Obsidian-valv.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@200;300;400;600&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
@@ -33,10 +33,10 @@
   <header class="top">
     <div class="brand">
       <h1 class="wordmark"><span id="os-name">JARVIS</span><span class="ver">/ V2</span></h1>
-      <p class="tag label" id="os-tag">Your sales command center · Norway</p>
+      <p class="tag label" id="os-tag">Din säljcentral · Driv Kundesenter</p>
     </div>
 
-    <div class="engine" role="tablist" aria-label="Engine for Tier 3 work">
+    <div class="engine" role="tablist" aria-label="Motor för nivå 3">
       <button role="tab" data-engine="claude" aria-selected="true"><svg aria-hidden="true"><use href="#i-spark"/></svg>Claude Code</button>
       <button role="tab" data-engine="codex" aria-selected="false"><svg aria-hidden="true"><use href="#i-code"/></svg>Codex</button>
     </div>
@@ -46,10 +46,10 @@
         <div class="time"><span id="hhmm">--:--</span><span class="sec" id="ss">:--</span></div>
         <div class="date label" id="date"></div>
       </div>
-      <nav class="views" role="tablist" aria-label="Views">
+      <nav class="views" role="tablist" aria-label="Vyer">
         <button role="tab" data-view="hud" aria-selected="true">HUD</button>
-        <button role="tab" data-view="command" aria-selected="false">Command</button>
-        <button role="tab" data-view="backbone" aria-selected="false">Backbone</button>
+        <button role="tab" data-view="command" aria-selected="false">Kommando</button>
+        <button role="tab" data-view="backbone" aria-selected="false">Ryggrad</button>
         <button role="tab" data-view="router" aria-selected="false">Router</button>
       </nav>
     </div>
@@ -59,21 +59,21 @@
     <!-- ============ HUD ============ -->
     <section class="view hud" id="view-hud" aria-label="HUD">
       <aside class="col left">
-        <div class="section-h label">Sales vitals <b>pipeline</b></div>
+        <div class="section-h label">Säljläget <b>pipeline</b></div>
         <div id="vitals" class="col" style="gap:18px"></div>
         <div id="goal-card"></div>
         <div>
-          <div class="section-h label" style="margin-bottom:10px">Directives <b>top 3</b></div>
+          <div class="section-h label" style="margin-bottom:10px">Fokus <b>topp 3</b></div>
           <ul class="checks" id="directives"></ul>
         </div>
         <div class="col" style="gap:10px">
-          <div class="section-h label">Follow-ups <b>emails + calls</b></div>
+          <div class="section-h label">Uppföljningar <b>mejl + samtal</b></div>
           <div id="followups"></div>
         </div>
         <div class="col" style="gap:10px">
-          <div class="section-h label">Documents <b>outputs</b></div>
+          <div class="section-h label">Dokument <b>rapporter</b></div>
           <div class="docs" id="docs"></div>
-          <button class="ghost-btn" id="open-transcript">Transcript</button>
+          <button class="ghost-btn" id="open-transcript">Samtalslogg</button>
         </div>
       </aside>
 
@@ -82,41 +82,41 @@
         <div class="core-slot" id="core-slot"></div>
         <div class="core-name">
           <h2 id="core-name">CLAUDE</h2>
-          <p class="label" id="core-sub">Claude Code mode · Tier 3 engine</p>
-          <div class="states" role="group" aria-label="Core state">
-            <button data-state="idle" aria-pressed="true">Idle</button>
-            <button data-state="listening" aria-pressed="false">Listening</button>
-            <button data-state="working" aria-pressed="false">Working</button>
-            <button data-state="speaking" aria-pressed="false">Speaking</button>
-            <button data-state="error" aria-pressed="false">Error</button>
+          <p class="label" id="core-sub">Claude Code-läge · motor för nivå 3</p>
+          <div class="states" role="group" aria-label="Kärnans läge">
+            <button data-state="idle" aria-pressed="true">Vila</button>
+            <button data-state="listening" aria-pressed="false">Lyssnar</button>
+            <button data-state="working" aria-pressed="false">Arbetar</button>
+            <button data-state="speaking" aria-pressed="false">Talar</button>
+            <button data-state="error" aria-pressed="false">Fel</button>
             <span class="sep" aria-hidden="true"></span>
             <button data-state="auto" aria-pressed="true">Auto</button>
           </div>
-          <p class="ready"><span id="ready-text">Ready · idle</span><button id="pause">Pause motion</button></p>
-          <p class="ready" style="margin-top:8px"><span id="foot-text">V2 · Connected vault · Shared agent terminals</span></p>
+          <p class="ready"><span id="ready-text">Redo · vila</span><button id="pause">Pausa rörelse</button></p>
+          <p class="ready" style="margin-top:8px"><span id="foot-text">V2 · Valv anslutet · Delade agentterminaler</span></p>
         </div>
       </div>
 
       <aside class="col right">
         <div class="col" style="gap:10px">
-          <div class="section-h label">Skills <b>quick access</b></div>
+          <div class="section-h label">Skills <b>snabbval</b></div>
           <div class="quick-grid" id="quick-skills"></div>
-          <button class="browse" id="browse-skills"><span>Browse all skills</span><span id="skill-count">0 ↗</span></button>
-          <div class="label" style="font-size:9.5px">Runs in the background · reports appear here</div>
+          <button class="browse" id="browse-skills"><span>Visa alla skills</span><span id="skill-count">0 ↗</span></button>
+          <div class="label" style="font-size:9.5px">Körs i bakgrunden · rapporterna hamnar här</div>
         </div>
         <div class="col" style="gap:10px">
           <div class="voice-row">
-            <span class="label">Voice <b>tap to talk</b></span>
-            <span class="voice-tools"><span class="level" aria-hidden="true"><i></i><i></i><i></i></span><button class="ghost-btn" id="voice-settings" title="Choose how Jarvis sounds">Voice</button></span>
+            <span class="label">Röst <b>tryck och prata</b></span>
+            <span class="voice-tools"><span class="level" aria-hidden="true"><i></i><i></i><i></i></span><button class="ghost-btn" id="voice-settings" title="Välj hur Jarvis låter">Röst</button></span>
           </div>
           <div class="dash"></div>
-          <button class="talk" id="talk" aria-pressed="false"><span class="mic"></span><span id="talk-label">Tap to talk</span></button>
-          <div class="label" style="font-size:9.5px" id="voice-engine">Web Speech · browser voice</div>
-          <p class="hint">Tap to talk, then pause to send. Escape cancels.</p>
+          <button class="talk" id="talk" aria-pressed="false"><span class="mic"></span><span id="talk-label">Tryck och prata</span></button>
+          <div class="label" style="font-size:9.5px" id="voice-engine">Web Speech · webbläsarens röst</div>
+          <p class="hint">Tryck, prata och gör en paus för att skicka. Esc avbryter.</p>
           <form class="ask" id="ask-form" autocomplete="off">
-            <label for="ask-input" class="label" hidden>Ask or command</label>
-            <input id="ask-input" name="ask" placeholder="Ask or command…  ( / )">
-            <button type="submit">Send</button>
+            <label for="ask-input" class="label" hidden>Fråga eller uppdrag</label>
+            <input id="ask-input" name="ask" placeholder="Fråga eller ge ett uppdrag…  ( / )">
+            <button type="submit">Skicka</button>
           </form>
         </div>
         <div id="answer"></div>
@@ -124,27 +124,29 @@
     </section>
 
     <!-- ============ COMMAND (glass) ============ -->
-    <section class="view command" id="view-command" aria-label="Command" hidden>
+    <section class="view command" id="view-command" aria-label="Kommando" hidden>
       <div class="glass cmd-head">
         <div class="cmd-title">
           <h2>∿ Agentic OS v2</h2>
-          <span class="pill" id="vault-pill">Connected vault</span>
+          <span class="pill" id="vault-pill">Valv anslutet</span>
         </div>
-        <div class="tabs" role="tablist" aria-label="Command tabs">
-          <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+        <div class="tabs" role="tablist" aria-label="Flikar">
+          <button role="tab" data-tab="overview" aria-selected="true">Översikt</button>
           <button role="tab" data-tab="pipeline" aria-selected="false">Pipeline</button>
-          <button role="tab" data-tab="pace" aria-selected="false">Pace</button>
-          <button role="tab" data-tab="research" aria-selected="false">Research</button>
+          <button role="tab" data-tab="pace" aria-selected="false">Takt</button>
+          <button role="tab" data-tab="packages" aria-selected="false">Paket</button>
+          <button role="tab" data-tab="research" aria-selected="false">Rapporter</button>
         </div>
       </div>
       <div id="tab-overview" class="command" style="gap:12px"></div>
       <div id="tab-pipeline" class="command" style="gap:12px" hidden></div>
       <div id="tab-pace" class="command" style="gap:12px" hidden></div>
+      <div id="tab-packages" class="command" style="gap:12px" hidden></div>
       <div id="tab-research" class="command" style="gap:12px" hidden></div>
     </section>
 
     <!-- ============ BACKBONE ============ -->
-    <section class="view board" id="view-backbone" aria-label="Skill backbone" hidden></section>
+    <section class="view board" id="view-backbone" aria-label="Skill-ryggrad" hidden></section>
 
     <!-- ============ ROUTER ============ -->
     <section class="view board" id="view-router" aria-label="Router" hidden></section>
@@ -153,45 +155,44 @@
 
 <footer class="dock" id="dock" data-open="false">
   <div class="dock-bar">
-    <button class="dock-toggle" id="dock-toggle" aria-expanded="false" aria-controls="term"><span class="k">⌘</span>Terminals <span class="label" id="term-count">0 open</span><span class="chev">⌃</span></button>
+    <button class="dock-toggle" id="dock-toggle" aria-expanded="false" aria-controls="term"><span class="k">⌘</span>Terminaler <span class="label" id="term-count">0 öppna</span><span class="chev">⌃</span></button>
     <div class="dock-right">
-      <span class="shared">Shared with Obsidian</span>
-      <button class="dock-btn" id="dock-talk">Tap to talk</button>
-      <button class="dock-btn" id="new-term">+ New<span class="hide-sm"> terminal</span></button>
+      <span class="shared">Delas med Obsidian</span>
+      <button class="dock-btn" id="dock-talk">Tryck och prata</button>
+      <button class="dock-btn" id="new-term">+ Ny<span class="hide-sm"> terminal</span></button>
     </div>
   </div>
   <div class="term" id="term" hidden>
-    <div class="term-tabs" id="term-tabs" role="tablist" aria-label="Runs"></div>
+    <div class="term-tabs" id="term-tabs" role="tablist" aria-label="Körningar"></div>
     <div class="term-body" id="term-body"></div>
   </div>
 </footer>
 
-<dialog id="reader"><div class="dlg"><div class="dlg-h"><span class="label" id="reader-title">Report</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b"><pre id="reader-text"></pre></div></div></dialog>
-<dialog id="skills-dlg"><div class="dlg"><div class="dlg-h"><span class="label">All skills</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b"><div class="skill-list" id="skill-list"></div></div></div></dialog>
-<dialog id="voice-dlg"><div class="dlg"><div class="dlg-h"><span class="label">Jarvis's voice</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b">
+<dialog id="reader"><div class="dlg"><div class="dlg-h"><span class="label" id="reader-title">Rapport</span><button class="ghost-btn" data-close>Stäng</button></div><div class="dlg-b"><pre id="reader-text"></pre></div></div></dialog>
+<dialog id="skills-dlg"><div class="dlg"><div class="dlg-h"><span class="label">Alla skills</span><button class="ghost-btn" data-close>Stäng</button></div><div class="dlg-b"><div class="skill-list" id="skill-list"></div></div></div></dialog>
+<dialog id="voice-dlg"><div class="dlg"><div class="dlg-h"><span class="label">Jarvis röst</span><button class="ghost-btn" data-close>Stäng</button></div><div class="dlg-b">
   <form class="voice-form" id="voice-form" autocomplete="off">
-    <label for="voice-select">Voice</label>
+    <label for="voice-select">Röst</label>
     <select id="voice-select"></select>
     <p class="muted" id="voice-note"></p>
     <div class="voice-sliders">
-      <label for="voice-rate">Speed <output id="voice-rate-out">1.00</output></label>
+      <label for="voice-rate">Hastighet <output id="voice-rate-out">1.00</output></label>
       <input type="range" id="voice-rate" min="0.7" max="1.4" step="0.05">
-      <label for="voice-pitch">Pitch <output id="voice-pitch-out">1.00</output></label>
+      <label for="voice-pitch">Tonhöjd <output id="voice-pitch-out">1.00</output></label>
       <input type="range" id="voice-pitch" min="0.6" max="1.4" step="0.05">
     </div>
-    <label class="check" for="speak-all"><input type="checkbox" id="speak-all"> Read every answer aloud, not only when I speak</label>
-    <label for="listen-lang">I speak</label>
+    <label class="check" for="speak-all"><input type="checkbox" id="speak-all"> Läs upp alla svar, inte bara när jag pratar</label>
+    <label for="listen-lang">Jag pratar</label>
     <select id="listen-lang">
-      <option value="auto">Same language as my browser</option>
-      <option value="en-US">English</option>
-      <option value="en-GB">English (UK)</option>
       <option value="sv-SE">Svenska</option>
-      <option value="nb-NO">Norsk (to practise your pitch)</option>
+      <option value="nb-NO">Norska (för att öva pitchen)</option>
+      <option value="en-US">Engelska</option>
+      <option value="auto">Samma språk som webbläsaren</option>
     </select>
-    <div class="voice-actions"><button type="button" class="dock-btn" id="voice-test">Hear it</button><button type="button" class="ghost-btn" id="voice-reset">Back to Jarvis default</button></div>
+    <div class="voice-actions"><button type="button" class="dock-btn" id="voice-test">Lyssna</button><button type="button" class="ghost-btn" id="voice-reset">Tillbaka till Jarvis standard</button></div>
   </form>
 </div></div></dialog>
-<dialog id="transcript-dlg"><div class="dlg"><div class="dlg-h"><span class="label">Transcript · this session</span><button class="ghost-btn" data-close>Close</button></div><div class="dlg-b"><div class="transcript" id="transcript"></div></div></div></dialog>
+<dialog id="transcript-dlg"><div class="dlg"><div class="dlg-h"><span class="label">Samtalslogg · den här sessionen</span><button class="ghost-btn" data-close>Stäng</button></div><div class="dlg-b"><div class="transcript" id="transcript"></div></div></div></dialog>
 <!--BODY-END-->
 <script type="module" src="js/app.js"></script>
 </body>

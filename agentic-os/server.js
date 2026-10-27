@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { Vault, localDate } from './lib/vault.js';
+import { H, Vault, localDate } from './lib/vault.js';
 import { loadSkills } from './lib/skills.js';
 import { JobRunner } from './lib/jobs.js';
 import { Scheduler, describe } from './lib/scheduler.js';
@@ -93,7 +93,7 @@ function state() {
     directives: vault.directives(),
     schedule: vault.schedule(),
     tasks: vault.tasks(),
-    contract: vault.listItems('projects/sales-job.md', 'before i sign') || [],
+    contract: vault.listItems('projects/sales-job.md', H.contract) || [],
     brief: vault.brief(),
     outputs: vault.outputs(12),
     todayNote: vault.todayNotePath(),
@@ -148,7 +148,7 @@ async function route(text) {
 }
 
 async function ask({ text, engine, force }) {
-  if (!text || !String(text).trim()) throw Object.assign(new Error('Say or type something first.'), { status: 400 });
+  if (!text || !String(text).trim()) throw Object.assign(new Error('Säg eller skriv något först.'), { status: 400 });
   if (engine && cfg.engines[engine]) activeEngine = engine;
   const r = await route(String(text));
   if (force) {
@@ -253,14 +253,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/terminal' && req.method === 'POST') {
       const body = await readBody(req);
-      if (!String(body.prompt || '').trim()) return send(res, 400, { error: 'Type a task for the new terminal.' });
+      if (!String(body.prompt || '').trim()) return send(res, 400, { error: 'Skriv en uppgift till den nya terminalen.' });
       if (body.engine && cfg.engines[body.engine]) activeEngine = body.engine;
       vault.logRequest({ tier: 3, route: 'terminal', text: body.prompt });
       return send(res, 200, { job: runner.runPrompt(String(body.prompt), { engine: activeEngine }) });
     }
     if (p === '/api/engine' && req.method === 'POST') {
       const body = await readBody(req);
-      if (!cfg.engines[body.engine]) return send(res, 400, { error: 'Unknown engine' });
+      if (!cfg.engines[body.engine]) return send(res, 400, { error: 'Okänd motor' });
       activeEngine = body.engine;
       broadcast('state', { at: Date.now() });
       return send(res, 200, { engine: activeEngine });
@@ -270,11 +270,11 @@ const server = http.createServer(async (req, res) => {
     if (jobMatch) {
       if (jobMatch[2] && req.method === 'POST') { runner.stop(jobMatch[1]); return send(res, 200, { ok: true }); }
       const job = runner.get(jobMatch[1]);
-      return job ? send(res, 200, job) : send(res, 404, { error: 'No such job' });
+      return job ? send(res, 200, job) : send(res, 404, { error: 'Körningen finns inte' });
     }
     if (p === '/api/tasks/toggle' && req.method === 'POST') {
       const body = await readBody(req);
-      if (!/^(daily-notes|ops|projects)\/[\w.-]+\.md$/.test(String(body.file))) return send(res, 400, { error: 'Checkboxes can be ticked in daily-notes/, ops/ or projects/.' });
+      if (!/^(daily-notes|ops|projects)\/[\w.-]+\.md$/.test(String(body.file))) return send(res, 400, { error: 'Kryssrutor kan bara bockas i daily-notes/, ops/ eller projects/.' });
       return send(res, 200, { done: vault.toggleTask(body.file, Number(body.line)) });
     }
     if (p === '/api/leads' && req.method === 'POST') {
@@ -297,7 +297,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/file' && req.method === 'GET') {
       const rel = String(url.searchParams.get('path') || '');
-      if (!/\.(md|json)$/.test(rel)) return send(res, 400, { error: 'Only Markdown and JSON files can be read.' });
+      if (!/\.(md|json)$/.test(rel)) return send(res, 400, { error: 'Bara Markdown- och JSON-filer kan läsas.' });
       const text = vault.read(rel, null);
       return text == null ? send(res, 404, { error: 'Not found' }) : send(res, 200, { path: rel, text });
     }

@@ -1,16 +1,16 @@
-# Directives
+# Fokus
 
-Three things that matter this week. Everything else waits. /weekly-review rewrites this
-on Sundays; edit it any time.
+Tre saker som spelar roll den här veckan. Allt annat får vänta. /weekly-review skriver om
+listan på söndagar; ändra den när du vill.
 
-## This week
-- [ ] Get the commission terms in writing and tick off the checklist in projects/sales-job
-- [ ] Add 100 Norwegian companies with a real customer service load to the pipeline
-- [ ] Contact 60 companies a day (emails + calls) and book the first 3 demos
+## Den här veckan
+- [ ] Få svar från chefen på de öppna frågorna i projects/sales-job (bindningstid, CRM, uppstart)
+- [ ] Lägg in 100 norska företag med riktig kundtjänstbelastning i pipelinen
+- [ ] Kontakta 60 företag om dagen (mejl + samtal) och boka de första 3 demona
 
-## Why these three
+## Varför just de här tre
 
-The contract decides what every deal is worth, so it comes first. The list decides whether
-anyone says yes: companies hiring customer service staff are the warmest. Volume decides
-whether the numbers mean anything: at typical rates a deal takes hundreds of contacts, and
-the Pace tab shows exactly how many with your own numbers.
+Svaren från chefen avgör vad du får lova kunden. Listan avgör om någon säger ja: företag
+som söker kundtjänstpersonal är varmast. Volymen avgör om siffrorna betyder något: med
+vanliga siffror tar en affär hundratals kontakter, och fliken Takt visar exakt hur många
+med dina egna siffror.

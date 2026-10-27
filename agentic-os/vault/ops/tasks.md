@@ -1,11 +1,12 @@
-# Tasks
+# Uppgifter
 
-Open loops that are not tied to a single day. Daily tasks live in the daily note.
+Öppna trådar som inte hör till en viss dag. Dagens uppgifter står i dagsanteckningen.
 
-## Open
-- [ ] Ask the manager for the price list, the product sheet and a demo account
-- [ ] Fill in projects/product.md (product name, languages, integrations, prices)
-- [ ] Ask which email address and domain to send from, and the rules for cold email and calls
-- [ ] Connect Gmail and Google Calendar to Claude Code (see wiki/connectors.md)
-- [ ] Learn the 20-second opener in wiki/sales-playbook.md by heart
-- [x] Install Claude Code and run the Agentic OS once
+## Öppna
+- [ ] Fråga chefen vilket CRM vi använder och be om en demo-miljö
+- [ ] Fråga om bindningstiden: 12 månader eller 24/36?
+- [ ] Fråga vad en extra kredit kostar (299 kr per månad eller en gång?)
+- [ ] Fråga vilken e-postadress och domän jag skickar från, och reglerna för kalla mejl och samtal
+- [ ] Koppla Gmail och Google Kalender till Claude Code (se wiki/connectors.md)
+- [ ] Lär dig de sex frågorna och öppningen i wiki/sales-playbook.md utantill
+- [x] Installera Claude Code och kör Agentic OS en gång

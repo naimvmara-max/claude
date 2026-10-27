@@ -29,16 +29,20 @@ export function lastDue(sched, now = new Date()) {
   return due <= now ? due : null;
 }
 
+const SV_DAYS = ['söndagar', 'måndagar', 'tisdagar', 'onsdagar', 'torsdagar', 'fredagar', 'lördagar'];
+const SV_EVENTS = { 'meeting-booked': 'när ett möte bokas' };
+
+/** A schedule in plain Swedish for the HUD. */
 export function describe(spec) {
   const s = parseSchedule(spec);
   const hm = (x) => `${String(x.h).padStart(2, '0')}:${String(x.min).padStart(2, '0')}`;
   switch (s.kind) {
-    case 'daily': return { icon: 'clock', text: `daily ${hm(s)}` };
-    case 'weekdays': return { icon: 'clock', text: `weekdays ${hm(s)}` };
-    case 'weekly': return { icon: 'clock', text: `${DAYS[s.day][0].toUpperCase()}${DAYS[s.day].slice(1)}days ${hm(s)}` };
-    case 'monthly': return { icon: 'clock', text: `${s.date === 1 ? '1st' : `day ${s.date}`} of the month` };
-    case 'event': return { icon: 'bolt', text: s.event.replace(/-/g, ' ') };
-    default: return { icon: 'hand', text: 'manual, you check it' };
+    case 'daily': return { icon: 'clock', text: `dagligen ${hm(s)}` };
+    case 'weekdays': return { icon: 'clock', text: `vardagar ${hm(s)}` };
+    case 'weekly': return { icon: 'clock', text: `${SV_DAYS[s.day]} ${hm(s)}` };
+    case 'monthly': return { icon: 'clock', text: `den ${s.date} varje månad` };
+    case 'event': return { icon: 'bolt', text: SV_EVENTS[s.event] || s.event.replace(/-/g, ' ') };
+    default: return { icon: 'hand', text: 'manuell, du bestämmer' };
   }
 }
 

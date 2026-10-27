@@ -16,48 +16,48 @@
 export const TIER1_INTENTS = [
   {
     id: 'priorities',
-    label: 'Top priorities',
-    terms: ['priorities', 'priority', 'directives', 'focus on', 'most important', 'what should i work on', 'what should i do', 'top 3', 'top three', 'prioriteringar', 'vad ska jag göra', 'vad ska jag fokusera på'],
+    label: 'Dagens fokus',
+    terms: ['priorities', 'priority', 'directives', 'focus on', 'most important', 'what should i work on', 'what should i do', 'top 3', 'top three', 'prioriteringar', 'fokus', 'dagens fokus', 'vad ska jag göra', 'vad ska jag fokusera på', 'vad är viktigast'],
   },
   {
     id: 'schedule',
-    label: "Today's schedule",
-    terms: ['schedule', 'calendar', 'agenda', 'meetings today', "what's on today", 'whats on today', 'what do i have today', 'next event', 'appointments', 'schema', 'kalender', 'vad har jag idag'],
+    label: 'Dagens schema',
+    terms: ['schedule', 'calendar', 'agenda', 'meetings today', "what's on today", 'whats on today', 'what do i have today', 'next event', 'appointments', 'schema', 'schemat', 'kalender', 'kalendern', 'vad har jag idag', 'vad händer idag', 'dagens schema'],
   },
   {
     id: 'tasks',
-    label: 'Open tasks',
-    terms: ['tasks', 'task list', 'to do', 'todo', 'to-do', 'checklist', 'open loops', 'uppgifter', 'att göra'],
+    label: 'Öppna uppgifter',
+    terms: ['tasks', 'task list', 'to do', 'todo', 'to-do', 'checklist', 'open loops', 'uppgifter', 'mina uppgifter', 'att göra', 'att göra-lista'],
   },
   {
     id: 'numbers',
-    label: 'Sales numbers',
-    terms: ['my numbers', 'my stats', 'stats', 'how am i doing', 'commission', 'how much have i earned', 'how many deals', 'deals this month', 'meetings booked', 'how many meetings', 'how many demos', 'reply rate', 'booking rate', 'contacts this week', 'how many leads', 'provision', 'mina siffror', 'hur går det', 'hur mycket har jag tjänat', 'hur många affärer'],
+    label: 'Säljsiffror',
+    terms: ['my numbers', 'my stats', 'stats', 'how am i doing', 'commission', 'how much have i earned', 'how many deals', 'deals this month', 'meetings booked', 'how many meetings', 'how many demos', 'reply rate', 'booking rate', 'contacts this week', 'how many leads', 'provision', 'mina siffror', 'siffrorna', 'hur går det', 'hur ligger jag till', 'hur mycket har jag tjänat', 'hur många affärer', 'hur många möten', 'hur många demos', 'bokade möten', 'affärer denna månad'],
   },
   {
     id: 'pace',
-    label: 'Pace to the goal',
-    terms: ['on pace', 'on track', 'pace', 'behind', 'to hit my goal', 'reach my goal', 'hit the goal', 'how many calls do i need', 'how many contacts do i need', 'how many emails do i need', 'how many calls', 'how many contacts', 'what do i need', 'i fas', 'takt', 'hur många samtal', 'hur många kontakter', 'nå målet'],
+    label: 'Takt mot målet',
+    terms: ['on pace', 'on track', 'pace', 'behind', 'to hit my goal', 'reach my goal', 'hit the goal', 'how many calls do i need', 'how many contacts do i need', 'how many emails do i need', 'how many calls', 'how many contacts', 'what do i need', 'i fas', 'takt', 'takten', 'hur många samtal', 'hur många kontakter', 'hur många mejl', 'nå målet', 'klara målet', 'ligger jag efter'],
   },
   {
     id: 'followups',
-    label: 'Follow-ups due',
-    terms: ['who should i follow up', 'who do i follow up', 'who to follow up', 'follow-ups due', 'follow ups due', 'followups due', 'due today', 'who is due', 'vem ska jag följa upp', 'vilka ska jag följa upp'],
+    label: 'Uppföljningar idag',
+    terms: ['who should i follow up', 'who do i follow up', 'who to follow up', 'follow-ups due', 'follow ups due', 'followups due', 'due today', 'who is due', 'vem ska jag följa upp', 'vilka ska jag följa upp', 'vilka ska följas upp', 'vem ska jag ringa tillbaka', 'återuppringningar'],
   },
   {
     id: 'time',
-    label: 'Time and date',
-    terms: ['what time', 'the time', 'what day', "today's date", 'todays date', 'what date', 'vad är klockan', 'vilket datum'],
+    label: 'Tid och datum',
+    terms: ['what time', 'the time', 'what day', "today's date", 'todays date', 'what date', 'vad är klockan', 'vilket datum', 'vilken dag är det'],
   },
   {
     id: 'skills',
-    label: 'List skills',
-    terms: ['list skills', 'what skills', 'which skills', 'what can you do', 'commands', 'show skills', 'vad kan du göra', 'vilka skills'],
+    label: 'Lista skills',
+    terms: ['list skills', 'what skills', 'which skills', 'what can you do', 'commands', 'show skills', 'vad kan du göra', 'vilka skills', 'vad kan du'],
   },
 ];
 
-const QUESTION_STARTS = ['what', 'why', 'how', 'who', 'when', 'where', 'is', 'are', 'can', 'could', 'should', 'does', 'do', 'explain', 'define', 'summarize', 'summarise', 'tell me', 'give me', 'quick', 'vad', 'varför', 'hur', 'vem', 'när', 'var', 'kan', 'ska', 'förklara'];
-const WORK_VERBS = ['make', 'write', 'draft', 'plan', 'run', 'research', 'build', 'create', 'find', 'turn', 'prepare', 'prep', 'generate', 'analyze', 'analyse', 'audit', 'review', 'clean', 'pull', 'update', 'refresh', 'track', 'sync', 'check', 'chase', 'send', 'skriv', 'hitta', 'gör', 'förbered', 'planera', 'kolla', 'uppdatera'];
+const QUESTION_STARTS = ['what', 'why', 'how', 'who', 'when', 'where', 'is', 'are', 'can', 'could', 'should', 'does', 'do', 'explain', 'define', 'summarize', 'summarise', 'tell me', 'give me', 'quick', 'vad', 'varför', 'hur', 'vem', 'vilka', 'vilken', 'när', 'var', 'kan', 'ska', 'bör', 'är', 'har', 'förklara', 'berätta'];
+const WORK_VERBS = ['make', 'write', 'draft', 'plan', 'run', 'research', 'build', 'create', 'find', 'turn', 'prepare', 'prep', 'generate', 'analyze', 'analyse', 'audit', 'review', 'clean', 'pull', 'update', 'refresh', 'track', 'sync', 'check', 'chase', 'send', 'skriv', 'hitta', 'gör', 'förbered', 'planera', 'kolla', 'uppdatera', 'synka', 'leta', 'ta fram', 'samla', 'städa', 'researcha', 'undersök'];
 
 function norm(text) {
   return ` ${String(text || '').toLowerCase().replace(/[^\p{L}\p{N}'\s/-]/gu, ' ').replace(/\s+/g, ' ').trim()} `;
@@ -113,7 +113,7 @@ export function classify(text, opts = {}) {
   if (isQuestion) quick += 1.0;
   if (words.length <= 12) quick += 0.3;
   if (workVerbs.length && !isQuestion) quick -= 0.6;
-  choices.push({ id: 'quick', tier: 2, label: 'Quick answer', score: quick, matched: isQuestion ? ['question'] : [] });
+  choices.push({ id: 'quick', tier: 2, label: 'Snabbt svar', score: quick, matched: isQuestion ? ['fråga'] : [] });
 
   for (const skill of skills) {
     const found = hits(t, skill.triggers || []);
@@ -135,8 +135,8 @@ export function classify(text, opts = {}) {
   if (unsure && pick.id !== 'quick') pick = choices.find((c) => c.id === 'quick');
 
   const reason = pick.matched && pick.matched.length
-    ? `matched ${pick.matched.slice(0, 3).map((m) => `"${m}"`).join(', ')}`
-    : unsure ? `no choice above ${Math.round(minConfidence * 100)}%, using the cheapest tier that can answer` : 'closest fit';
+    ? `träffade ${pick.matched.slice(0, 3).map((m) => `"${m}"`).join(', ')}`
+    : unsure ? `inget val över ${Math.round(minConfidence * 100)} %, tar den billigaste nivån som kan svara` : 'närmast';
 
   return {
     text: String(text || ''),

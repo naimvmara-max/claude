@@ -1,7 +1,7 @@
 {
   "name": "JARVIS",
   "owner": "Naim",
-  "tagline": "Your sales command center · Norway",
+  "tagline": "Din säljcentral · Driv Kundesenter",
   "host": "127.0.0.1",
   "port": 3217,
   "vault": "./vault",

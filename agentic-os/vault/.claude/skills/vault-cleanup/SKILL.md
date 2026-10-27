@@ -17,5 +17,9 @@ description: Tidy the vault - file inbox notes, archive old outputs and daily no
 ## Never
 - Never delete a file. Move it.
 
+
+## Language
+Write everything for Naim (the output file and your final reply) in Swedish. Anything for a customer is Norwegian bokmål.
+
 ## Output
 `outputs/vault-cleanup/YYYY-MM-DD.md` listing what moved. Reply with the count and anything that needs a decision.

@@ -1,37 +1,37 @@
-# Connectors
+# Kopplingar (connectors)
 
-Skills reach outside the vault through MCP connectors. Headless runs cannot answer
-permission prompts, so each tool a skill needs must be allowed in `.claude/settings.json`.
-Only allow read and draft tools. Sending stays manual.
+Skills når utanför valvet via MCP-kopplingar. Körningar i bakgrunden kan inte svara på
+behörighetsfrågor, så varje verktyg en skill behöver måste vara tillåtet i
+`.claude/settings.json`. Tillåt bara läs- och utkastverktyg. Att skicka är alltid manuellt.
 
-## How to add one to Claude Code
+## Så lägger du till en i Claude Code
 
 ```bash
-# from the vault folder
-claude mcp add --transport http <name> <server-url>
-claude mcp list          # check it is connected
+# från vault-mappen
+claude mcp add --transport http <namn> <server-url>
+claude mcp list          # kontrollera att den är ansluten
 ```
 
-Connectors already connected on claude.ai can also appear inside Claude Code when you are
-logged in with the same account. Run `/mcp` inside `claude` to see what is available, then
-copy the exact tool names into the `allow` list.
+Kopplingar som redan är anslutna på claude.ai kan också dyka upp i Claude Code när du är
+inloggad med samma konto. Kör `/mcp` i `claude` för att se vad som finns, och kopiera de
+exakta verktygsnamnen till listan `allow`.
 
-## Which skill needs what
+## Vilken skill behöver vad
 
-| Connector | Skills | Allow | Keep manual |
+| Koppling | Skills | Tillåt | Behåll manuellt |
 | --- | --- | --- | --- |
-| Gmail | outreach-drafts, follow-ups, sync-pipeline, inbox-brief, offer, commission-check | search, read, create draft | send, forward, delete, label |
-| Google Calendar | plan-today, inbox-brief, sync-pipeline, demo-prep | list and read events, suggest times | create, update, delete events |
-| Web search and fetch | lead-research, call-list, demo-prep, morning-intel, deep-research (brreg.no, proff.no, FINN) | allowed by default | — |
+| Gmail | outreach-drafts, follow-ups, sync-pipeline, inbox-brief, offer, commission-check | sök, läs, skapa utkast | skicka, vidarebefordra, radera, etiketter |
+| Google Kalender | plan-today, inbox-brief, sync-pipeline, demo-prep | lista och läsa händelser, föreslå tider | skapa, ändra, radera händelser |
+| Webbsök och hämtning | lead-research, call-list, demo-prep, morning-intel, deep-research (brreg.no, proff.no, FINN) | tillåtet som standard | — |
 
-## Worth adding later
-- The employer's CRM, if they have one, so deals are not tracked twice.
-- Your sending tool (Instantly, Smartlead, Lemlist) if you send volume from it instead of Gmail:
-  then /sync-pipeline should read sent and replied counts from it.
-- A dialer if you call a lot, so calls are logged without typing.
+## Värt att lägga till senare
+- Drivs CRM, så att affärer inte följs upp på två ställen (fråga vilket CRM ni använder).
+- Ett utskicksverktyg (Instantly, Smartlead, Lemlist) om du skickar volym därifrån i stället för
+  Gmail: då ska /sync-pipeline läsa skickat och svar därifrån.
+- En dialer om du ringer mycket, så att samtal loggas utan att du skriver.
 
 ## Status
-- Connected on claude.ai today: Gmail, Google Calendar, Google Drive.
-- Without Gmail in Claude Code, the email skills write drafts into `outputs/` instead, and you
-  update the pipeline yourself in the HUD (Command → Pipeline).
-- brreg.no's open API needs no account: lead-research reaches it with web fetch.
+- Anslutet på claude.ai idag: Gmail, Google Kalender, Google Drive.
+- Utan Gmail i Claude Code skriver mejl-skills utkasten i `outputs/` i stället, och du
+  uppdaterar pipelinen själv i HUD:en (Kommando → Pipeline).
+- brreg.no:s öppna API kräver inget konto: lead-research når det med webbhämtning.

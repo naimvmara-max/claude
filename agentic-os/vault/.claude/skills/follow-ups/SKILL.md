@@ -23,18 +23,23 @@ Email, by days since `contacted`:
 Phone: list them as call-backs (up to 3 tries in total), do not draft emails for them unless
 a published email exists and two calls got no answer.
 
-Also due: companies at `demo` whose `next_date` has come (follow up after the demo, refer to
-what they said in the demo notes in `inbox/` or `outputs/demo-prep/`).
+Also due: companies at `offer` whose `next_date` has come (follow up on the offer: ask about
+the e-signing and the decision date, refer to what they said in the demo), and companies at
+`demo` with no offer yet (remind Naim to make the offer in Driv's CRM).
 
 ## Do
 1. Write each follow-up in the language of the first email, under 60 words.
 2. With a Gmail tool, create the draft **as a reply in the original thread**. Never send.
-3. Update the row: `next_action` = the step drafted (e.g. `Send follow-up 1`), `next_date` = today.
-   After the last step: `next_action` = `Mark lost if no reply`, `next_date` = 7 days from today.
+3. Update the row: `next_action` = the step drafted (e.g. `Skicka uppföljning 1`), `next_date` = today.
+   After the last step: `next_action` = `Markera förlorad om inget svar`, `next_date` = 7 days from today.
 4. If Gmail shows they replied, set `replied` and `status` = `replied` instead.
 
 ## Never
 - Never send. Never follow up with anyone who said no or asked not to be contacted: mark them `lost`.
+
+
+## Language
+Write everything for Naim (the output file and your final reply) in Swedish. Anything for a customer is Norwegian bokmål.
 
 ## Output
 `outputs/follow-ups/YYYY-MM-DD.md` with each draft and the call-backs. Reply with the count per step.

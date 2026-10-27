@@ -1,40 +1,44 @@
 // The sales pipeline: one Markdown table in ops/pipeline.md, one row per company.
 // Every number on the dashboard is counted from these rows, so nothing is estimated.
-// Commission comes from the package on each won row and the amounts in system/business.json.
+// Commission comes from the package on each won row and the amounts in system/business.json
+// (Driv Kundesenter: Small, Medium, Large). Status ids stay English in the file because the
+// skills write them; everything the HUD shows is Swedish.
 // Shared by the server and the browser demo, so it has no imports.
 
-export const COLUMNS = ['id', 'company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'status', 'added', 'contacted', 'replied', 'booked', 'demo', 'closed', 'paid', 'next_date', 'next_action', 'notes'];
+export const COLUMNS = ['id', 'company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'status', 'added', 'contacted', 'replied', 'booked', 'demo', 'offer', 'closed', 'paid', 'next_date', 'next_action', 'notes'];
 
-export const STAGES = ['researched', 'drafted', 'contacted', 'replied', 'booked', 'demo', 'won', 'lost'];
+export const STAGES = ['researched', 'drafted', 'contacted', 'replied', 'booked', 'demo', 'offer', 'won', 'lost'];
 
 export const STAGE_LABELS = {
-  researched: 'Researched', drafted: 'Drafted', contacted: 'Contacted', replied: 'Replied',
-  booked: 'Meeting booked', demo: 'Demo held', won: 'Won', lost: 'Lost',
+  researched: 'Hittad', drafted: 'Utkast', contacted: 'Kontaktad', replied: 'Har svarat',
+  booked: 'Möte bokat', demo: 'Demo hållen', offer: 'Offert skickad', won: 'Vunnen', lost: 'Förlorad',
 };
 
 /** Which date column gets stamped when a company enters a stage. */
-export const STAGE_DATE = { contacted: 'contacted', replied: 'replied', booked: 'booked', demo: 'demo', won: 'closed', lost: 'closed' };
+export const STAGE_DATE = { contacted: 'contacted', replied: 'replied', booked: 'booked', demo: 'demo', offer: 'offer', won: 'closed', lost: 'closed' };
 
 export const CHANNELS = ['email', 'phone', 'linkedin', 'other'];
+export const CHANNEL_LABELS = { email: 'mejl', phone: 'telefon', linkedin: 'linkedin', other: 'annat' };
 export const PACKAGES = ['S', 'M', 'L'];
 const PACKAGE_NAMES = { S: 'Small', M: 'Medium', L: 'Large' };
 
 // Older tables used other names; read them as the new ones.
 const COLUMN_ALIASES = { niche: 'industry', call: 'booked' };
-const STATUS_ALIASES = { call: 'booked', meeting: 'booked', proposal: 'demo' };
+const STATUS_ALIASES = { call: 'booked', meeting: 'booked', proposal: 'offer', tilbud: 'offer', offert: 'offer' };
 
-// Contacts, then the employer's own funnel: meeting booked, demo held, deal won.
-const FUNNEL = ['researched', 'contacted', 'booked', 'demo', 'won'];
+// Contacts, then Driv's own sales process: meeting booked, demo held, offer sent, signed.
+const FUNNEL = ['researched', 'contacted', 'booked', 'demo', 'offer', 'won'];
 
 /** The usual next step after a company enters a stage: [action, days from today or null to clear]. */
 export const NEXT_STEP = {
-  researched: ['Draft first email or call', null],
-  drafted: ['Send first email', 0],
-  contacted: ['Follow-up 1', 3],
-  replied: ['Reply and offer demo times', 0],
-  booked: ['Demo meeting', 0],
-  demo: ['Follow up after the demo', 2],
-  won: ['Hand over to onboarding', 0],
+  researched: ['Skriv första mejlet eller ring', null],
+  drafted: ['Skicka första mejlet', 0],
+  contacted: ['Uppföljning 1', 3],
+  replied: ['Svara och föreslå demotider', 0],
+  booked: ['Demomöte', 0],
+  demo: ['Skicka offert', 1],
+  offer: ['Följ upp offerten', 2],
+  won: ['Lämna över till onboarding', 0],
   lost: ['', null],
 };
 
@@ -118,13 +122,13 @@ export function applyStatus(row, status, today) {
   // A cold call that books a meeting never "replied", so phone leads skip that stamp.
   const idx = STAGES.indexOf(status);
   if (status !== 'lost') {
-    for (const s of ['contacted', 'replied', 'booked', 'demo']) {
+    for (const s of ['contacted', 'replied', 'booked', 'demo', 'offer']) {
       if (s === 'replied' && channelOf(row) === 'phone') continue;
       if (STAGES.indexOf(s) < idx && !row[STAGE_DATE[s]]) row[STAGE_DATE[s]] = today;
     }
   }
   let [action, days] = NEXT_STEP[status];
-  if (status === 'contacted' && channelOf(row) === 'phone') [action, days] = ['Call again', 2];
+  if (status === 'contacted' && channelOf(row) === 'phone') [action, days] = ['Ring igen', 2];
   row.next_action = action;
   if (days == null) row.next_date = '';
   // A booked meeting keeps the meeting date if one was typed.
@@ -170,13 +174,41 @@ export function workdaysLeft(today) {
 
 // ------------------------------------------------------------------ money
 
-/** Package names and commission per deal from system/business.json. */
+/** Package names, price, credits and commission per deal from system/business.json. */
 export function packageInfo(business = {}) {
   const p = business.packages || {};
   return Object.fromEntries(PACKAGES.map((k) => [k, {
     name: p[k]?.name || PACKAGE_NAMES[k],
     commission: Number(p[k]?.commission) || 0,
+    price: Number(p[k]?.price) || 0,
+    credits: Number(p[k]?.credits) || 0,
+    example: p[k]?.example || '',
+    tagline: p[k]?.tagline || '',
   }]));
+}
+
+/** What one unit of each thing costs in credits (Driv's price list). The chat widget is free. */
+export const CREDIT_COSTS = { agent: 1, queue: 1, webchat: 1, ai_agent: 1, email_channel: 2 };
+
+/**
+ * Count credits for what a customer needs and pick a package. Driv's rule: the smallest
+ * package that covers the need. The cheapest way (a smaller package plus extra credits)
+ * is shown too, so the customer gets an honest choice.
+ * @param {{agent?:number, queue?:number, webchat?:number, ai_agent?:number, email_channel?:number}} need
+ */
+export function creditPlan(need, business = {}) {
+  const costs = { ...CREDIT_COSTS, ...(business.credit_costs || {}) };
+  const credits = Object.keys(CREDIT_COSTS).reduce((a, k) => a + (Number(need?.[k]) || 0) * (Number(costs[k]) || 0), 0);
+  const pk = packageInfo(business);
+  const extraPrice = Number(business.extra_credit_price) || 0;
+  const options = PACKAGES.map((k) => {
+    const extra = Math.max(0, credits - pk[k].credits);
+    return { key: k, ...pk[k], extraCredits: extra, monthly: pk[k].price + extra * extraPrice };
+  });
+  const fits = options.find((o) => o.extraCredits === 0) || null;
+  const pick = fits || options[options.length - 1];
+  const cheapest = options.reduce((a, o) => (o.monthly < a.monthly ? o : a), options[0]);
+  return { credits, options, pick, fits: Boolean(fits), cheapest, extraPrice };
 }
 
 // ------------------------------------------------------------------ stats
@@ -216,6 +248,7 @@ export function computeStats(rows, opts = {}) {
   let demosMonth = 0;
   let commissionMonth = 0;
   let unpaid = 0;
+  let overdueUnpaid = 0;
   let paidMonth = 0;
   let missingPackage = 0;
 
@@ -249,8 +282,11 @@ export function computeStats(rows, opts = {}) {
         commissionMonth += amount;
         wonThisMonth.push({ id: r.id, company: r.company, package: k, closed: r.closed, commission: amount });
       }
-      if (!pd) unpaid += amount;
-      else if (inMonth(pd)) paidMonth += amount;
+      if (!pd) {
+        unpaid += amount;
+        // Paid with the salary the month after signing: two months on and still unpaid is late.
+        if (cl && (today.getFullYear() * 12 + today.getMonth()) - (cl.getFullYear() * 12 + cl.getMonth()) >= 2) overdueUnpaid += amount;
+      } else if (inMonth(pd)) paidMonth += amount;
     }
   }
   wonThisMonth.sort((a, b) => a.closed.localeCompare(b.closed));
@@ -265,7 +301,7 @@ export function computeStats(rows, opts = {}) {
   const f = Object.fromEntries(funnel.map((x) => [x.stage, x.count]));
 
   const open = rows.filter((r) => !['won', 'lost'].includes(r.status));
-  const inPlayRows = open.filter((r) => ['booked', 'demo'].includes(r.status));
+  const inPlayRows = open.filter((r) => ['booked', 'demo', 'offer'].includes(r.status));
   const followups = open
     .map((r) => {
       let due = r.next_date;
@@ -273,9 +309,9 @@ export function computeStats(rows, opts = {}) {
       if (!due && r.status === 'contacted' && !r.replied && r.contacted) {
         const c = parseDay(r.contacted);
         const phone = channelOf(r) === 'phone';
-        if (c) { due = isoLocal(new Date(c.getTime() + (phone ? 2 : 3) * DAY)); action = action || (phone ? 'Call again' : 'Follow-up 1'); }
+        if (c) { due = isoLocal(new Date(c.getTime() + (phone ? 2 : 3) * DAY)); action = action || (phone ? 'Ring igen' : 'Uppföljning 1'); }
       }
-      return due && due <= todayStr ? { id: r.id, company: r.company, contact: r.contact, email: r.email, phone: r.phone, status: r.status, due, action: action || 'Follow up', overdue: due < todayStr } : null;
+      return due && due <= todayStr ? { id: r.id, company: r.company, contact: r.contact, email: r.email, phone: r.phone, status: r.status, due, action: action || 'Följ upp', overdue: due < todayStr } : null;
     })
     .filter(Boolean)
     .sort((a, b) => a.due.localeCompare(b.due));
@@ -315,10 +351,13 @@ export function computeStats(rows, opts = {}) {
     commissionMonth,
     commissionHistory: series(earned),
     unpaid,
+    overdueUnpaid,
+    payoutNextMonth: wonThisMonth.reduce((a, d) => a + d.commission, 0),
     paidMonth,
     missingPackage,
     inPlay: { count: inPlayRows.length, commission: inPlayRows.reduce((a, r) => a + pk[packageOf(r) || defPkg].commission, 0) },
     won: rows.filter((r) => r.status === 'won').length,
+    offersOpen: rows.filter((r) => r.status === 'offer').length,
     funnel,
     rates: {
       book: f.contacted ? f.booked / f.contacted : null,
@@ -358,8 +397,10 @@ export function goalMath(st, business = {}, o = {}) {
   const close = rate('close', own.close, s.demo >= MIN_SAMPLE.close, a.close_rate ?? 10);
 
   const pk = st.packages || packageInfo(business);
-  const mix = o.mix && PACKAGES.some((k) => Number(o.mix[k]) > 0) ? o.mix : null;
+  const typical = business.typical_mix && PACKAGES.some((k) => Number(business.typical_mix[k]) > 0) ? business.typical_mix : null;
+  const mix = o.mix && PACKAGES.some((k) => Number(o.mix[k]) > 0) ? o.mix : typical;
   const mixSum = mix ? PACKAGES.reduce((x, k) => x + (Number(mix[k]) || 0), 0) : 0;
+  const mixSource = mix ? (mix === typical ? 'typical' : 'typed') : 'default';
   const avgCommission = mix
     ? PACKAGES.reduce((x, k) => x + (Number(mix[k]) || 0) * pk[k].commission, 0) / mixSum
     : pk[st.defaultPackage || 'M'].commission;
@@ -382,6 +423,7 @@ export function goalMath(st, business = {}, o = {}) {
     workdaysLeft: days,
     perDay: contactsNeeded != null && days ? contactsNeeded / days : null,
     avgCommission,
+    mixSource,
     commissionAtGoal: target * avgCommission,
     commissionLeft: left * avgCommission,
     // A month of contacts at the guessed rates, for the "what does N contacts give me" view.

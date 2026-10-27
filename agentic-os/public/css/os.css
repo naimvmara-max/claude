@@ -652,7 +652,7 @@ body[data-engine='codex'] .slot.on { border-color: var(--ink); background: rgba(
 .pace-card { padding: 16px 18px; display: grid; gap: 12px; align-content: start; }
 .pace-card code { font: 400 11px/1 var(--font-mono); color: var(--ink-2); }
 .pace-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 14px; }
-.rate { display: grid; gap: 5px; }
+.rate { display: grid; gap: 5px; align-content: start; }
 .rate > span { font: 500 9.5px/1.2 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
 .rate input, .pkg input {
   width: 100%; min-width: 0; padding: 8px 9px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(0, 0, 0, 0.35);
@@ -686,6 +686,23 @@ body[data-engine='codex'] .slot.on { border-color: var(--ink); background: rgba(
 @media (max-width: 480px) {
   .pkg-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- packages tab: Driv's three packages + the credit calculator ---------- */
+.pkg-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pkg-card { padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.pkg-card.rec { border-color: rgba(79, 178, 255, 0.55); box-shadow: 0 0 24px rgba(79, 178, 255, 0.12); }
+.pc-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pc-head b { font: 400 30px/1 var(--font-display); letter-spacing: 0.03em; }
+.pill-rec { font: 600 9.5px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 5px 8px; }
+.pc-price b { font: 400 40px/1 var(--font-display); color: var(--ink); font-variant-numeric: tabular-nums; }
+.pc-price small { color: var(--mute); font: 400 11px/1.4 var(--font-mono); }
+.pc-ex { margin: 0; font-size: 12.5px; color: var(--ink-2); padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
+.pc-com { display: grid; gap: 3px; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.pc-com b { font: 400 28px/1 var(--font-display); color: var(--warm); }
+.pc-com small { font: 400 10.5px/1.3 var(--font-mono); color: var(--mute); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.need-inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+@media (max-width: 900px) { .pkg-cards { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- embed (Obsidian side panel) ---------- */
 body.embed .hud { grid-template-columns: 1fr; }

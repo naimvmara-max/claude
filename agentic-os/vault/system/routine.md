@@ -1,24 +1,24 @@
-# Routine
+# Rutin
 
-The Bridge copies the blocks under "Every day" into each new daily note's `## Schedule`.
-/plan-today then adds calendar events (demos first) and moves blocks around them. Edit freely.
-Norway is in the same time zone as Sweden.
+Bridge kopierar blocken under "Varje dag" till varje ny dagsanteckning under `## Schema`.
+/plan-today lägger sedan till kalenderhändelser (demos först) och flyttar blocken runt dem.
+Ändra fritt. Norge har samma tidszon som Sverige.
 
-## Every day
+## Varje dag
 
-- 07:00 Plan the day: pace, follow-ups due, demos
+- 07:00 Planera dagen: takt, uppföljningar, demos
 - 08:00 Gym
-- 09:00 Calls: first calling block (people answer best before lunch)
-- 11:30 Emails: send the drafted first emails and follow-ups
+- 09:00 Samtal: första ringpasset (folk svarar bäst före lunch)
+- 11:30 Mejl: skicka utkasten och uppföljningarna
 - 12:30 Lunch
-- 13:00 Calls: second calling block, call-backs first
-- 15:00 Demos and offers
-- 16:00 Prospecting: research tomorrow's companies
-- 21:30 Close the day
+- 13:00 Samtal: andra ringpasset, återuppringningar först
+- 15:00 Demos och offerter
+- 16:00 Prospektering: researcha morgondagens företag
+- 21:30 Avsluta dagen
 
-## Notes
+## Anteckningar
 
-- Prayer times move through the year. If you want them as blocks, add your city here
-  (for example `city: Stockholm`) and /plan-today will look the times up and insert them.
-- Call and email on weekdays during business hours. Many Norwegian offices close early on
-  Fridays and in July (fellesferie), so plan volume around that.
+- Bönetider flyttar sig under året. Vill du ha dem som block: skriv din stad här
+  (till exempel `stad: Stockholm`) så slår /plan-today upp tiderna och lägger in dem.
+- Ring och mejla vardagar under kontorstid. Många norska kontor stänger tidigt på fredagar
+  och i juli (fellesferie), så planera volymen efter det.

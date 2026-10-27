@@ -17,11 +17,11 @@ async function loadSdk() {
 
 function systemPrompt(ctx) {
   return [
-    `You are ${ctx.name}, the voice of ${ctx.owner}'s Agentic OS. Answer in at most 90 words, plain sentences, no Markdown, because the answer may be read aloud.`,
-    `${ctx.owner} is 24, based in Sweden, and works as a commission-only salesman selling an AI customer service platform to companies in Norway: an AI chat widget on the company's website and AI agents that answer simple repeated questions (opening hours, returns, order status), summarise conversations and hand the rest to staff. He is paid per deal (packages Small, Medium, Large), finds leads with his own email and calling, books demos and closes. Background: cold calling, digital marketing, SaaS, AI.`,
-    'Be direct and realistic; never promise deals, income or conversion rates. Never invent product features, prices or customers: those come from projects/product.md in the vault, and if you do not know, say to check it. If he writes in Swedish, answer in Swedish.',
+    `You are ${ctx.name}, the voice of ${ctx.owner}'s Agentic OS. Answer in Swedish unless he writes in another language. At most 90 words, plain sentences, no Markdown, because the answer may be read aloud.`,
+    `${ctx.owner} is 24, based in Sweden, and sells Driv Kundesenter for Driv Mobil AS to companies in Norway: webchat on the company's website, an AI agent that answers at once (opening hours, order status, returns, prices, booking) and hands the rest to staff with a summary, case handling in one shared inbox with SLA, and an AI assistant for staff. Integrations: HubSpot, Lime CRM, Zoho, Microsoft 365. Packages (NOK per month excl. VAT): Small 4 695 (5 credits), Medium 7 595 (15 credits, recommended), Large 13 595 (30 credits). Credits: agent 1, queue 1, webchat 1, AI agent per channel 1, email channel 2. His commission per signed agreement: 5 000, 10 000, 20 000 NOK, paid with the salary the month after signing. Driv's process: map needs with six questions, demo, count credits and pick the smallest package that covers, offer from the CRM by e-signing, follow up.`,
+    'Be direct and realistic; never promise deals, income or conversion rates. Never invent features, integrations, prices, customers or results; the binding period (12 vs 24/36 months) and discounts must be cleared with Driv, so never promise them. Customer-facing lines are in Norwegian bokmål.',
     'If the request needs real work (research, files, multi-step output), answer briefly and name the skill that should do it, for example /lead-research, /call-list or /demo-prep.',
-    `Today: ${ctx.date}. Directives: ${ctx.directives || 'none set'}. Pipeline: ${ctx.numbers || 'empty'}. Skills: ${ctx.skills}.`,
+    `Today: ${ctx.date}. Focus: ${ctx.directives || 'none set'}. Pipeline: ${ctx.numbers || 'empty'}. Skills: ${ctx.skills}.`,
   ].join('\n');
 }
 
@@ -80,7 +80,7 @@ function viaCli(text, ctx, eng, model) {
       } catch {
         const said = err.trim() || out.trim();
         const fix = fixesFor(said);
-        resolve(said ? { answer: `Claude Code said: ${said.slice(0, 300)}${fix.length ? `\n\n${fix.join('\n')}` : ''}`, backend: 'claude-cli' } : null);
+        resolve(said ? { answer: `Claude Code svarade: ${said.slice(0, 300)}${fix.length ? `\n\n${fix.join('\n')}` : ''}`, backend: 'claude-cli' } : null);
       }
     });
   });
@@ -92,7 +92,7 @@ export async function quickAnswer(text, ctx, cfg) {
   const viaCode = await viaCli(text, ctx, cfg.engines.claude, cfg.router.quickCliModel);
   if (viaCode) return viaCode;
   return {
-    answer: 'No quick-answer model is reachable. Install Claude Code and log in, or run `npm install` and set ANTHROPIC_API_KEY.',
+    answer: 'Ingen modell för snabba svar går att nå. Installera Claude Code och logga in, eller kör `npm install` och sätt ANTHROPIC_API_KEY.',
     backend: 'none',
   };
 }

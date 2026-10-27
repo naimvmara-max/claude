@@ -7,9 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classify } from '../public/js/classify.js';
 import { answerRule } from '../public/js/rules.js';
-import { parseSchedule, lastDue } from '../lib/scheduler.js';
-import { Vault } from '../lib/vault.js';
-import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath } from '../public/js/pipeline.js';
+import { parseSchedule, lastDue, describe } from '../lib/scheduler.js';
+import { H, Vault } from '../lib/vault.js';
+import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan } from '../public/js/pipeline.js';
 import { loadSkills } from '../lib/skills.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -24,30 +24,34 @@ check('every skill in the backbone has a SKILL.md', () => {
 });
 
 const routes = {
-  'what are my priorities?': 'rule:priorities',
-  "what's on today": 'rule:schedule',
-  'how am I doing?': 'rule:numbers',
-  'how much commission have I earned?': 'rule:numbers',
+  // Swedish first: the HUD and Jarvis are Swedish now.
+  'vad är dagens fokus?': 'rule:priorities',
+  'vad har jag idag?': 'rule:schedule',
   'hur går det?': 'rule:numbers',
-  'am I on pace?': 'rule:pace',
-  'how many contacts do I need to hit my goal?': 'rule:pace',
-  'who should I follow up with today?': 'rule:followups',
-  'explain DMARC in one line': 'quick',
-  'how do I answer "we already have a chatbot"?': 'quick',
-  'plan my day': 'skill:plan-today',
-  'find 10 leads: nettbutikker i Bergen': 'skill:lead-research',
-  'write cold emails for the new leads': 'skill:outreach-drafts',
+  'hur mycket provision har jag tjänat?': 'rule:numbers',
+  'ligger jag i fas?': 'rule:pace',
+  'hur många samtal behöver jag för att nå målet?': 'rule:pace',
+  'vem ska jag följa upp idag?': 'rule:followups',
+  'vad svarar jag på «vi klarer oss med Outlook»?': 'quick',
+  'planera dagen': 'skill:plan-today',
+  'hitta 10 företag: nettbutikker i Bergen': 'skill:lead-research',
   'skriv mejl till nya leads': 'skill:outreach-drafts',
-  'who should I call today?': 'skill:call-list',
+  'vem ska jag ringa idag?': 'skill:call-list',
   'ringlistan för idag': 'skill:call-list',
-  'draft the follow-ups': 'skill:follow-ups',
-  'check my inbox': 'skill:inbox-brief',
-  'sync my pipeline with gmail': 'skill:sync-pipeline',
+  'skriv uppföljningar': 'skill:follow-ups',
+  'kolla inkorgen': 'skill:inbox-brief',
+  'synka pipelinen med gmail': 'skill:sync-pipeline',
+  'förbered demon med Havgløtt Hotell': 'skill:demo-prep',
+  'skriv offerten till Nordlys Sykkel': 'skill:offer',
+  'samla invändningarna från veckan': 'skill:objections',
+  'har jag fått betalt för Fjellsport?': 'skill:commission-check',
+  'undersök marknaden för treningssentre i norge': 'skill:deep-research',
+  'hej': 'quick',
+  // English still works.
+  'how am I doing?': 'rule:numbers',
+  'am I on pace?': 'rule:pace',
+  'find 10 leads: nettbutikker i Bergen': 'skill:lead-research',
   'prep for my demo with Havgløtt Hotell': 'skill:demo-prep',
-  'write the offer for Nordlys Sykkel': 'skill:offer',
-  'collect the objections from this week': 'skill:objections',
-  'have I been paid for Fjellsport?': 'skill:commission-check',
-  'research the market for gyms in norway': 'skill:deep-research',
   'hello': 'quick',
 };
 for (const [text, want] of Object.entries(routes)) {
@@ -79,7 +83,7 @@ check('weekly schedule only fires on its day', () => {
 });
 
 check('vault reads checkboxes with line numbers', () => {
-  const items = vault.listItems('ops/tasks.md', 'open');
+  const items = vault.listItems('ops/tasks.md', H.open);
   assert.ok(items.length >= 3);
   assert.equal(typeof items[0].line, 'number');
 });
@@ -138,7 +142,7 @@ check('stats are counted from the rows', () => {
   assert.equal(st.bookRate30, 2 / 5);
   assert.equal(st.unpaid, 20000);
   assert.deepEqual(st.inPlay, { count: 1, commission: 10000 }); // no package yet: the default
-  assert.deepEqual(st.followups.map((f) => [f.company, f.action]), [['D', 'Call again']]); // phone: due after 2 days
+  assert.deepEqual(st.followups.map((f) => [f.company, f.action]), [['D', 'Ring igen']]); // phone: due after 2 days
   assert.deepEqual([st.rates.book, st.rates.show, st.rates.close], [2 / 5, 1 / 2, 1]);
 });
 
@@ -173,8 +177,49 @@ check('old pipeline tables still read', () => {
 
 check('pace and numbers answers come from the pipeline', () => {
   const st = computeStats(ROWS, { business: BIZ, today: '2026-10-14' });
-  assert.match(answerRule('numbers', { stats: st, business: BIZ }), /1 deal of your 4 \(1 Large\), 20,000 NOK/);
-  assert.match(answerRule('pace', { stats: st, business: BIZ }), /3 more deals to reach 4/);
+  assert.match(answerRule('numbers', { stats: st, business: BIZ }), /1 affär av 4 \(1 Large\), 20 000 NOK/);
+  assert.match(answerRule('pace', { stats: st, business: BIZ }), /3 affärer kvar till 4/);
+});
+
+const DRIV = JSON.parse(fs.readFileSync(path.join(root, 'vault/system/business.json'), 'utf8'));
+
+check('credits pick the smallest Driv package that covers the need', () => {
+  assert.equal(creditPlan({ agent: 2, queue: 1, webchat: 1, ai_agent: 1 }, DRIV).pick.key, 'S'); // Driv's Small example: 5
+  const m = creditPlan({ agent: 8, queue: 2, webchat: 1, email_channel: 1, ai_agent: 1 }, DRIV); // Medium example: 14
+  assert.equal(m.credits, 14);
+  assert.equal(m.pick.key, 'M');
+  assert.equal(creditPlan({ agent: 20, queue: 3, webchat: 2, email_channel: 1, ai_agent: 2 }, DRIV).pick.key, 'L'); // 29
+  const big = creditPlan({ agent: 30, queue: 3 }, DRIV);
+  assert.equal(big.pick.key, 'L');
+  assert.equal(big.pick.extraCredits, 3);
+  assert.equal(big.pick.monthly, 13595 + 3 * 299);
+});
+
+check("goal money uses Driv's typical month (4 deals = 33 000)", () => {
+  const st = computeStats([], { business: DRIV, today: '2026-10-14' });
+  const g = goalMath(st, DRIV);
+  assert.equal(g.avgCommission, 8250);
+  assert.equal(g.commissionAtGoal, 33000);
+});
+
+check('offers are a stage, and late commission is flagged', () => {
+  const row = applyStatus({ status: 'demo', demo: '2026-10-10' }, 'offer', '2026-10-11');
+  assert.equal(row.offer, '2026-10-11');
+  assert.equal(row.next_action, 'Följ upp offerten');
+  assert.equal(applyStatus({ status: 'demo' }, 'proposal', '2026-10-11').status, 'offer'); // old name
+  const st = computeStats([
+    { id: 'L1', company: 'A', status: 'won', package: 'M', closed: '2026-08-20' }, // due with September salary: late
+    { id: 'L2', company: 'B', status: 'won', package: 'S', closed: '2026-09-20' }, // due with October salary
+    { id: 'L3', company: 'C', status: 'won', package: 'L', closed: '2026-10-05' }, // due next month
+  ], { business: DRIV, today: '2026-10-14' });
+  assert.equal(st.overdueUnpaid, 10000);
+  assert.equal(st.unpaid, 35000);
+  assert.equal(st.payoutNextMonth, 20000);
+});
+
+check('schedules read in Swedish', () => {
+  assert.equal(describe('weekdays 08:30').text, 'vardagar 08:30');
+  assert.equal(describe('event meeting-booked').text, 'när ett möte bokas');
 });
 
 check('tier 1 answers come from saved data', () => {

@@ -49,25 +49,25 @@ const HINTS = [
   {
     test: /credit balance|insufficient credit|purchase credits|out of credits/i,
     lines: [
-      'FIX: Claude Code is billing API credits instead of your Claude plan.',
-      '1. Open a black window (cmd) and run:  claude auth login --claudeai',
-      '2. Sign in with your Claude account in the browser that opens.',
-      '3. Check with:  claude auth status --text   then restart Jarvis.',
-      'If you set ANTHROPIC_API_KEY in Windows environment variables, delete it.',
+      'ÅTGÄRD: Claude Code drar API-krediter i stället för din Claude-plan.',
+      '1. Öppna ett svart fönster (cmd) och kör:  claude auth login --claudeai',
+      '2. Logga in med ditt Claude-konto i webbläsaren som öppnas.',
+      '3. Kontrollera med:  claude auth status --text   och starta sedan om Jarvis.',
+      'Om du har lagt ANTHROPIC_API_KEY i Windows miljövariabler: ta bort den.',
     ],
   },
   {
     test: /profile login expired|re-authenticate|login expired|run \/login|not logged in|please run \/login|invalid api key|authentication error/i,
     lines: [
-      'FIX: Claude Code needs you to sign in with your Claude account again.',
-      '1. Open a black window (cmd) and run:  claude auth login --claudeai',
-      '2. Sign in in the browser that opens, then run:  claude auth status --text',
-      '3. Restart Jarvis (close the black Jarvis window, double-click Start Jarvis.bat).',
+      'ÅTGÄRD: Claude Code vill att du loggar in med ditt Claude-konto igen.',
+      '1. Öppna ett svart fönster (cmd) och kör:  claude auth login --claudeai',
+      '2. Logga in i webbläsaren som öppnas och kör sedan:  claude auth status --text',
+      '3. Starta om Jarvis (stäng det svarta Jarvis-fönstret, dubbelklicka på Start Jarvis.bat).',
     ],
   },
   {
     test: /has not been trusted|trust dialog/i,
-    lines: ['FIX: open a terminal in the vault folder, run claude, choose "Yes, proceed", then type /exit. Runs can then use the vault\'s allowed tools.'],
+    lines: ['ÅTGÄRD: öppna ett terminalfönster i vault-mappen, kör claude, välj "Yes, proceed" och skriv /exit. Sedan får körningarna använda valvets tillåtna verktyg.'],
   },
 ];
 
@@ -146,9 +146,9 @@ export class JobRunner extends EventEmitter {
 
   start({ engine, skill, title, prompt, source }) {
     const eng = this.engines[engine];
-    if (!eng) throw new Error(`Unknown engine "${engine}".`);
+    if (!eng) throw new Error(`Okänd motor "${engine}".`);
     if (this.available[engine] && !this.available[engine].ok) {
-      throw new Error(`${eng.label} is not installed or not on PATH. Install it, then restart the Bridge.`);
+      throw new Error(`${eng.label} är inte installerat eller finns inte i PATH. Installera det och starta om Bridge.`);
     }
     const id = `j${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
     const job = { id, engine, skill, title, source, prompt, status: 'queued', startedAt: Date.now(), endedAt: null, costUsd: null, result: '', savedTo: null, log: [], child: null };
@@ -252,13 +252,13 @@ export class JobRunner extends EventEmitter {
       }
     } else if (ev.type === 'user' && Array.isArray(ev.message?.content)) {
       for (const block of ev.message.content) {
-        if (block.type === 'tool_result' && block.is_error) this.push(job, 'err', `tool error: ${JSON.stringify(block.content).slice(0, 200)}`);
+        if (block.type === 'tool_result' && block.is_error) this.push(job, 'err', `verktygsfel: ${JSON.stringify(block.content).slice(0, 200)}`);
       }
     } else if (ev.type === 'result') {
       job.result = ev.result || '';
       if (ev.is_error && ev.result) this.push(job, 'err', ev.result);
       job.costUsd = typeof ev.total_cost_usd === 'number' ? ev.total_cost_usd : null;
-      this.push(job, ev.is_error ? 'err' : 'sys', `${ev.is_error ? 'failed' : 'finished'} · ${ev.num_turns ?? '?'} turns · ${Math.round((ev.duration_ms || 0) / 1000)}s${job.costUsd != null ? ` · $${job.costUsd.toFixed(3)}` : ''}`);
+      this.push(job, ev.is_error ? 'err' : 'sys', `${ev.is_error ? 'misslyckades' : 'klar'} · ${ev.num_turns ?? '?'} varv · ${Math.round((ev.duration_ms || 0) / 1000)} s${job.costUsd != null ? ` · $${job.costUsd.toFixed(3)}` : ''}`);
       job.isError = Boolean(ev.is_error); // status flips in finish(), once the process has exited
     }
   }
@@ -289,7 +289,7 @@ export class JobRunner extends EventEmitter {
       job.savedTo = this.vault.write(rel, body);
       this.recordUsage(job);
     } catch (err) {
-      this.push(job, 'err', `could not save run: ${err.message}`);
+      this.push(job, 'err', `kunde inte spara körningen: ${err.message}`);
     }
     job.child = null;
     this.emit('job', { type: 'end', job: this.get(job.id) });
@@ -298,9 +298,9 @@ export class JobRunner extends EventEmitter {
 
   stop(id) {
     const job = this.jobs.get(id);
-    if (!job) throw new Error('No such job.');
+    if (!job) throw new Error('Körningen finns inte.');
     if (job.status === 'queued') { job.status = 'stopped'; this.finish(job, 'stopped'); return; }
-    if (job.child) { job.status = 'stopped'; job.child.kill('SIGTERM'); this.push(job, 'sys', 'stopped by you'); this.finish(job, 'stopped'); }
+    if (job.child) { job.status = 'stopped'; job.child.kill('SIGTERM'); this.push(job, 'sys', 'stoppad av dig'); this.finish(job, 'stopped'); }
   }
 
   recordUsage(job) {

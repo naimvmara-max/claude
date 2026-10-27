@@ -1,15 +1,15 @@
 # {{date}}
 
-## Directives
+## Fokus
 - [ ] {{directive1}}
 - [ ] {{directive2}}
 - [ ] {{directive3}}
 
-## Schedule
+## Schema
 {{schedule}}
 
-## Tasks
-- [ ] Contacts today: calls + emails up to the daily target
-- [ ] Every follow-up and call-back that is due
+## Uppgifter
+- [ ] Dagens kontakter: samtal + mejl upp till dagsmålet
+- [ ] Alla uppföljningar och återuppringningar som ska göras idag
 
-## Log
+## Logg

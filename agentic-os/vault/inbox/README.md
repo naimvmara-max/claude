@@ -1,11 +1,11 @@
-# Inbox
+# Inkorg
 
-Drop anything here: call notes, demo notes, pasted replies, lead lists, links.
-/vault-cleanup files it every Sunday.
+Släng in allt här: samtalsanteckningar, demoanteckningar, inklistrade svar, leadlistor, länkar.
+/vault-cleanup sorterar det varje söndag.
 
-Files the skills look for:
+Filer som skills letar efter:
 
-- `leads.md`: companies you want researched, one per line (name, website or org number).
-  Run /lead-research and they land in the pipeline. /morning-intel adds buying signals here.
-- `demo-<company>.md`: your notes from a demo. /offer turns them into an offer email,
-  /objections collects what they pushed back on.
+- `leads.md`: företag du vill ha researchade, ett per rad (namn, webbplats eller org.nummer).
+  Kör /lead-research så hamnar de i pipelinen. /morning-intel lägger till köpsignaler här.
+- `demo-<företag>.md`: dina anteckningar från en demo (svaren på de sex frågorna, antal
+  personer i kundtjänst). /offer gör ett offertmejl av dem, /objections samlar invändningarna.

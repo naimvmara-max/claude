@@ -1,71 +1,92 @@
-# Sales playbook: AI customer service in Norway
+# Säljplaybook: Driv Kundesenter i Norge
 
-How Naim finds, contacts and closes Norwegian companies. Short on purpose. /weekly-review
-suggests edits when the numbers say something is not working.
+Hur Naim hittar, kontaktar och stänger norska företag. Bygger på Drivs säljguide.
+/weekly-review föreslår ändringar när siffrorna säger att något inte fungerar.
 
-## Who to go after
+## Vem du ska gå efter
 
-Companies where people ask the same questions all day:
-- **Online shops (nettbutikker)**: "where is my order?", returns, delivery times. Peaks around
-  Black Friday and after Christmas.
-- **Clinics** (tannlege, fysioterapi, legesenter, hudklinikk): opening hours, booking, prices.
-- **Gyms, hotels, restaurants, workshops (bilverksted)**: hours, bookings, prices.
-- **Property managers, housing co-ops, energy and internet providers**: many repeated questions.
+Drivs målgrupp: företag med webbplats och ett jämnt flöde av kundfrågor.
+- **Nätbutik och handel (nettbutikk)**: order, leverans och retur. Toppar runt Black Friday och efter jul.
+- **Tidsbokning (timebestilling)**: kliniker, salonger, verkstäder.
+- **Rådgivning (rådgivning)**: redovisning, fastighet, försäkring.
+- **Service och uthyrning (service og utleie)**: hantverk, drift, uthyrning.
 
-Best signals, in order:
-1. **They are hiring customer service staff.** Search FINN jobb (finn.no/job) and
-   arbeidsplassen.nav.no for "kundeservice", "kundebehandler", "kundesenter".
-2. A long FAQ or "svar innen 24 timer" on the contact page.
-3. Short phone hours, or no chat at all.
-4. Reviews (Google, Trustpilot) that mention slow answers.
+Bästa signalerna, i ordning:
+1. **De söker kundtjänstpersonal.** Sök på FINN jobb (finn.no/job) och arbeidsplassen.nav.no
+   efter «kundeservice», «kundebehandler», «kundesenter».
+2. **Bara ett kontaktformulär**, ingen chatt på webbplatsen.
+3. Lång FAQ eller «svar innen 24 timer» på kontaktsidan, korta telefontider.
+4. Recensioner (Google, Trustpilot) om långsamma svar.
 
-Size: start with 10 to 200 employees. Smaller rarely has the volume; larger has long
-buying processes and procurement.
+Signaler att lyssna efter i samtal (från guiden): «Vi rekker ikke å svare alle.» ·
+«Vi får de samme spørsmålene hele tiden.» · «Kundene sender e-post til flere av oss.» ·
+«Vi har kunder på kveld og i helger.» · «Vi har bare et kontaktskjema.»
 
-## Where to find companies and contact details
-- **brreg.no (Enhetsregisteret)**: free, official company register. The open API
-  (data.brreg.no/enhetsregisteret/api/enheter) filters by industry code, municipality and
-  number of employees.
-- **proff.no**: revenue, employees, who is CEO (daglig leder) and on the board.
-- **1881.no, gulesider.no**: published phone numbers.
-- The company's own website for the contact page and email addresses.
+Storlek: börja med 5 till 200 anställda. Antalet personer i kundtjänst styr paketet.
 
-Only use contact details the company publishes. Never guess an address.
+## Var du hittar företag och kontaktuppgifter
+- **brreg.no (Enhetsregisteret)**: gratis, officiellt. Öppna API:et
+  (data.brreg.no/enhetsregisteret/api/enheter) filtrerar på bransch, kommun och antal anställda.
+- **proff.no**: omsättning, anställda, vem som är daglig leder.
+- **1881.no, gulesider.no**: publicerade telefonnummer.
+- Företagets egen webbplats för kontaktsidan och e-postadresser.
 
-## Who decides
-Small companies: the CEO (daglig leder). Mid-size: head of customer service
-(kundeservicesjef), e-commerce manager or COO. Write to one person, not three.
+Använd bara kontaktuppgifter som företaget publicerar. Gissa aldrig en adress.
 
-## First email (bokmål)
-- Subject: 2 to 4 words, lowercase, about them: "spørsmål om kundeservice", "ordrestatus hos dere".
-- Line 1: one real observation ("Så at dere søker en kundeservicemedarbeider i Bergen").
-- Line 2: the problem in their words (the same questions every day, slow answers at peak times).
-- Line 3: what we do, in one sentence, no superlatives.
-- Ask: a 20-minute demo, or "is this relevant for you?"
-- Under 90 words. Sign with your name and phone number.
-- Last line: "Ikke relevant? Svar «nei», så skriver jeg ikke igjen."
-- It is fine to be open about being Swedish. Do not pretend to be Norwegian.
+## Vem som bestämmer
+Små företag: daglig leder. Mellanstora: kundeservicesjef, e-handelsansvarig eller driftschef.
+Skriv till en person, inte tre.
 
-## Cold call (20-second opener)
-"Hei, dette er Naim. Jeg ringer om kundeservicen deres, har du et halvt minutt?"
-Then the observation, the problem, and a question: "Hvor mange av henvendelsene deres er
-spørsmål om ordrestatus eller åpningstider?" The goal of the call is a booked demo, not a sale.
+## Drivs säljprocess: fem steg
+1. **Kartlegg**: ställ de sex frågorna nedan och anteckna svaren i CRM:et.
+2. **Vis demo**: chatt på webbplatsen, AI-agenten svarar, ärendet dyker upp i inkorgen.
+3. **Velg pakke**: räkna krediter tillsammans med kunden och välj det minsta paketet som
+   täcker behovet (fliken Paket i Jarvis räknar).
+4. **Send tilbud**: gör offerten i CRM:et och skicka PDF:en till e-signering.
+5. **Følg opp**: lägg nästa uppföljning i CRM:et och markera offerten som signerad.
 
-## Follow-ups
-Email: day 3 (short bump), day 7 (a useful idea), day 14 (close the loop). Calls: try again
-after 2 days, up to 3 tries, at different times of day. A reply of "no" or "ikke interessert"
-ends it: mark the company lost.
+Kom ihåg: **sälj nyttan, inte funktionerna.** Snabbare svar, nöjda kunder och ett team med luft.
 
-## The demo (20 to 30 minutes)
-1. Their numbers first: how many questions a day, which ones, who answers, at what hours.
-2. Show only what solves those questions.
-3. Pick one package and say why. Do not show all three as a menu.
-4. Agree the next step before you hang up: offer by email, a decision date, who else decides.
+## De sex frågorna som öppnar samtalet (behovsavklaring)
+| Fråga (norska) | Lyssna efter |
+| --- | --- |
+| Hvordan tar kundene kontakt med dere i dag? | e-post, kontaktskjema, ingen chat på nettsiden |
+| Hva skjer med spørsmål som kommer etter stengetid? | «de besvares neste dag»: argument för AI-agenten |
+| Hvilke spørsmål får dere oftest? | återkommande frågor med tydliga svar: det AI-agenten ska ta |
+| Hvordan vet dere hvem som tar hvilken henvendelse? | delad inkorg och dubbelarbete: argument för ärendehantering |
+| Hvor mange jobber med kundeservice? | antal personer och team: styr paketvalet |
+| Hvordan måler dere svartid og kundetilfredshet? | «det gjør vi ikke»: då är statistiken en vinst |
 
-## Rules that keep it honest and legal
-- Norway has its own rules for marketing email and calls (markedsføringsloven, and the
-  Reservasjonsregisteret for calls). They treat companies and private people differently.
-  Ask the employer what they allow before sending volume. Until then, prefer company addresses
-  (post@, kontakt@) for cold email and always include the opt-out line.
-- Never promise results the product has not shown. "Norway is two years behind" is a story
-  to test, not to say to a customer.
+## Första mejlet (bokmål)
+- Ämnesrad: 2 till 4 ord, gemener, om dem: «spørsmål om kundeservice», «svar etter stengetid».
+- Rad 1: en äkta observation («Så at dere søker en kundeservicemedarbeider i Bergen»).
+- Rad 2: problemet med deras ord (samma frågor varje dag, frågor på kvällen som väntar).
+- Rad 3: vad Driv Kundesenter gör, i en mening, utan superlativ.
+- Fråga: en demo på 20 minuter, eller «er dette relevant for dere?»
+- Under 90 ord. Signera med namn, Driv Mobil och telefonnummer.
+- Sista raden: «Ikke relevant? Svar «nei», så skriver jeg ikke igjen.»
+- Det är helt okej att vara öppen med att du är svensk. Låtsas inte vara norsk.
+
+## Kalla samtal (öppning på 20 sekunder)
+«Hei, dette er Naim fra Driv. Jeg ringer om kundeservicen deres, har du et halvt minutt?»
+Sedan observationen och en av de sex frågorna, oftast: «Hva skjer med spørsmål som kommer
+etter stengetid?» Målet med samtalet är ett bokat demomöte, inte en försäljning.
+
+## Uppföljning
+Mejl: dag 3 (kort påminnelse), dag 7 (en användbar idé), dag 14 (avsluta snyggt). Samtal: ring
+igen efter 2 dagar, högst 3 försök, olika tider på dagen. Efter demo: offert inom 1 dag, följ
+upp efter 2. Ett «nei» eller «ikke interessert» avslutar: markera företaget som förlorat.
+
+## Demon (20 till 30 minuter)
+1. Deras siffror först: hur många frågor per dag, vilka, vem svarar, vilka tider.
+2. Visa bara det som löser de frågorna: chatt på webbplatsen, AI-agenten svarar, ärendet i inkorgen.
+3. Räkna krediter med kunden och välj ett paket. Visa inte alla tre som en meny.
+4. Bestäm nästa steg innan ni lägger på: offert, beslutsdatum, vem mer som bestämmer.
+
+## Regler som håller det ärligt och lagligt
+- Norge har egna regler för marknadsföringsmejl och telefonförsäljning (markedsføringsloven,
+  och Reservasjonsregisteret för samtal). De skiljer på företag och privatpersoner. Fråga Driv
+  vad de tillåter innan du skickar stora volymer. Till dess: använd företagsadresser
+  (post@, kontakt@) för kalla mejl och ha alltid med avregistreringsraden.
+- Lova aldrig rabatt (bestäms med ledningen) eller bindningstid (oklart, se projects/sales-job.md).
+- Siffran 30–50 % kommer från Lynes: säg «ifølge Lynes», aldrig som ett löfte.

@@ -5,7 +5,7 @@ import { Core } from './core.js';
 import { classify } from './classify.js';
 import { fmtNum, nok, packageMix } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped } from './demo.js';
-import { computeStats, applyStatus, nextId, goalMath, packageOf, channelOf, COLUMNS, STAGES, STAGE_LABELS, PACKAGES, CHANNELS, MIN_SAMPLE, isoLocal } from './pipeline.js';
+import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, COLUMNS, STAGES, STAGE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -39,7 +39,7 @@ core.setSlot($('#core-slot'));
 async function api(path, body) {
   const res = await fetch(path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  if (!res.ok) throw new Error(data.error || `Förfrågan misslyckades (${res.status})`);
   return data;
 }
 
@@ -80,7 +80,7 @@ async function refresh() {
       for (const j of app.state.jobs || []) upsertJob(j);
       renderAll();
     } catch (err) {
-      toast(`Could not load state: ${err.message}`);
+      toast(`Kunde inte ladda läget: ${err.message}`);
     } finally {
       refreshing = null;
     }
@@ -111,14 +111,14 @@ function renderAll() {
   document.title = `${s.name.charAt(0)}${s.name.slice(1).toLowerCase()} Agentic OS`;
   for (const btn of $$('.engine button')) {
     const e = s.engines[btn.dataset.engine];
-    btn.title = e?.available === false ? `${e.label} is not installed on this machine` : `${e?.label} ${e?.version || ''}`.trim();
+    btn.title = e?.available === false ? `${e.label} är inte installerat på den här datorn` : `${e?.label} ${e?.version || ''}`.trim();
     btn.querySelector('.off')?.remove();
-    if (e?.available === false) btn.insertAdjacentHTML('beforeend', '<span class="off">offline</span>');
+    if (e?.available === false) btn.insertAdjacentHTML('beforeend', '<span class="off">saknas</span>');
   }
   renderStatus(true);
   renderVitals();
   renderGoal();
-  renderChecks('#directives', s.directives, 'No directives yet. Add three under "## Directives" in today\'s note.');
+  renderChecks('#directives', s.directives, 'Inget fokus än. Skriv tre rader under "## Fokus" i dagens anteckning.');
   renderFollowups('#followups', 4);
   renderDocs();
   renderQuickSkills();
@@ -131,13 +131,13 @@ function renderAll() {
   syncCore();
 }
 
-const TRY = ['how am I doing?', 'am I on pace?', 'find 10 leads: nettbutikker i Bergen', 'how do I answer "we already have a chatbot"?'];
+const TRY = ['hur går det?', 'ligger jag i fas?', 'hitta 10 företag: nettbutikker i Bergen', 'vad svarar jag på «vi klarer oss med Outlook»?'];
 
 function renderWelcome() {
   $('#answer').innerHTML = `<div class="answer">
-    <span class="label">Try asking</span>
+    <span class="label">Prova att fråga</span>
     <div class="route-alt">${TRY.map((t) => `<button data-try="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-    <span class="label" style="text-transform:none;letter-spacing:0;font-size:11px">Each message is routed to Tier 1 (your pipeline and notes), Tier 2 (quick model) or Tier 3 (a skill in Claude Code or Codex). You see the odds.</span>
+    <span class="label" style="text-transform:none;letter-spacing:0;font-size:11px">Varje meddelande går till nivå 1 (din pipeline och dina anteckningar), nivå 2 (snabb modell) eller nivå 3 (en skill i Claude Code eller Codex). Du ser sannolikheterna.</span>
   </div>`;
   $$('#answer [data-try]').forEach((b) => b.addEventListener('click', () => ask(b.dataset.try)));
 }
@@ -148,38 +148,38 @@ function renderStatus(connected = true) {
   const running = [...app.jobs.values()].filter((j) => j.status === 'running' || j.status === 'queued').length;
   const st = currentState();
   $('#status-line').innerHTML = [
-    `<span class="dot">Core · ${esc(st)}</span>`,
-    app.demo ? '<span class="dot warn">Demo data</span>' : `<span class="${connected ? 'dot' : 'dot warn'}">${connected ? 'Connected vault' : 'Bridge offline'}</span>`,
-    `<span>Terminals · ${running ? `${running} running` : 'connected'}</span>`,
+    `<span class="dot">Kärna · ${esc(STATE_NAMES[st] || st)}</span>`,
+    app.demo ? '<span class="dot warn">Demodata</span>' : `<span class="${connected ? 'dot' : 'dot warn'}">${connected ? 'Valv anslutet' : 'Bridge offline'}</span>`,
+    `<span>Terminaler · ${running ? `${running} körs` : 'anslutna'}</span>`,
   ].join('');
-  $('#vault-pill').textContent = app.demo ? 'Demo data' : 'Connected vault';
+  $('#vault-pill').textContent = app.demo ? 'Demodata' : 'Valv anslutet';
   $('#vault-pill').classList.toggle('demo', app.demo);
-  $('#foot-text').textContent = `V2 · ${app.demo ? 'Demo, no vault connected' : 'Connected vault'} · Shared agent terminals`;
+  $('#foot-text').textContent = `V2 · ${app.demo ? 'Demo, inget valv anslutet' : 'Valv anslutet'} · Delade agentterminaler`;
 }
 
 function money(v) {
   return nok(v);
 }
 
-/** Whole number with thousands separators, for big displays where the unit sits beside it. */
+/** Whole number with Swedish thousands spacing, for big displays where the unit sits beside it. */
 function kr(v) {
-  return Math.round(Number(v) || 0).toLocaleString('en-US');
+  return Math.round(Number(v) || 0).toLocaleString('sv-SE');
 }
 
-/** "≈ 28,500 SEK" from NOK, or '' when no rate is set. */
+/** "≈ 28 500 SEK" from NOK, or '' when no rate is set. */
 function sek(v) {
   const r = app.state.stats?.sekPerNok;
   return r ? `≈ ${kr((v || 0) * r)} SEK` : '';
 }
 
-/** 20000 -> "20K", 5000 -> "5K" for the small deal slots. */
+/** 20000 -> "20k", 5000 -> "5k" for the small deal slots. */
 function kShort(v) {
   const n = Number(v) || 0;
-  return n >= 1000 ? `${Math.round(n / 100) / 10}K`.replace('.0K', 'K') : String(n);
+  return n >= 1000 ? `${String(Math.round(n / 100) / 10).replace('.', ',')}k` : String(n);
 }
 
 function pct(v) {
-  return v == null ? '—' : `${(v * 100).toFixed(v < 0.1 ? 1 : 0)}%`;
+  return v == null ? '—' : `${(v * 100).toFixed(v < 0.1 ? 1 : 0).replace('.', ',')} %`;
 }
 
 function sparkline(history, color) {
@@ -208,12 +208,13 @@ function metrics() {
   const wkDelta = (arr) => { const a = arr || []; return a.length > 1 ? a[a.length - 1].v - a[a.length - 2].v : 0; };
   const arrow = (d) => (d > 0 ? `▲ ${fmtNum(d)}` : d < 0 ? `▼ ${fmtNum(-d)}` : '· 0');
   const ch = st.channelWeek || {};
-  const split = [ch.email ? `${ch.email} email` : '', ch.phone ? `${ch.phone} phone` : '', ch.other ? `${ch.other} other` : ''].filter(Boolean).join(' · ');
+  const split = [ch.email ? `${ch.email} mejl` : '', ch.phone ? `${ch.phone} samtal` : '', ch.other ? `${ch.other} annat` : ''].filter(Boolean).join(' · ');
+  const payout = st.overdueUnpaid ? `${nok(st.overdueUnpaid)} försenad utbetalning` : st.payoutNextMonth ? `${nok(st.payoutNextMonth)} med nästa lön` : st.unpaid ? `${nok(st.unpaid)} ej utbetalt` : 'inget väntar på utbetalning';
   return [
-    { key: 'contacts', icon: 'i-send', label: 'Contacts this week', short: 'Contacts this week', value: fmtNum(st.contactsWeek), delta: `${arrow(st.contactsWeek - st.contactsPrevWeek)} vs last wk`, up: st.contactsWeek > st.contactsPrevWeek, sub: `today ${st.contactsToday}${st.dailyTarget ? ` / ${st.dailyTarget}` : ''}${split ? ` · ${split}` : ''}`, history: st.contactsHistory },
-    { key: 'booked', icon: 'i-cal', label: 'Meetings booked', short: 'Meetings booked', value: fmtNum(st.bookedMonth), delta: st.contacted30 ? `${pct(st.bookRate30)} of contacts · 30d` : 'no contacts yet', up: false, sub: `this month · ${arrow(wkDelta(st.bookedHistory))} this wk`, history: st.bookedHistory },
-    { key: 'demos', icon: 'i-demo', label: 'Demos held', short: 'Demos held', value: fmtNum(st.demosMonth), delta: `${st.inPlay.count} in play`, up: false, sub: 'this month', history: st.demosHistory },
-    { key: 'commission', icon: 'i-coin', label: 'Commission this month', short: 'Commission (NOK)', value: kr(st.commissionMonth), delta: sek(st.commissionMonth) || `${st.dealsMonth} deals`, up: false, sub: st.unpaid ? `${nok(st.unpaid)} not paid out yet` : 'nothing waiting for payout', history: st.commissionHistory },
+    { key: 'contacts', icon: 'i-send', label: 'Kontakter i veckan', short: 'Kontakter i veckan', value: fmtNum(st.contactsWeek), delta: `${arrow(st.contactsWeek - st.contactsPrevWeek)} mot förra v.`, up: st.contactsWeek > st.contactsPrevWeek, sub: `idag ${st.contactsToday}${st.dailyTarget ? ` / ${st.dailyTarget}` : ''}${split ? ` · ${split}` : ''}`, history: st.contactsHistory },
+    { key: 'booked', icon: 'i-cal', label: 'Bokade möten', short: 'Bokade möten', value: fmtNum(st.bookedMonth), delta: st.contacted30 ? `${pct(st.bookRate30)} av kontakter · 30 d` : 'inga kontakter än', up: false, sub: `denna månad · ${arrow(wkDelta(st.bookedHistory))} denna v.`, history: st.bookedHistory },
+    { key: 'demos', icon: 'i-demo', label: 'Hållna demos', short: 'Hållna demos', value: fmtNum(st.demosMonth), delta: `${st.offersOpen || 0} offert${st.offersOpen === 1 ? '' : 'er'} ute`, up: false, sub: `denna månad · ${st.inPlay.count} pågående`, history: st.demosHistory },
+    { key: 'commission', icon: 'i-coin', label: 'Provision denna månad', short: 'Provision (NOK)', value: kr(st.commissionMonth), delta: sek(st.commissionMonth) || `${st.dealsMonth} affärer`, up: false, sub: payout, history: st.commissionHistory },
   ];
 }
 
@@ -225,8 +226,8 @@ function renderVitals() {
       ${sparkline(m.history, METRIC_COLORS[m.key])}
       <span class="label vital-sub">${esc(m.sub)}</span>
     </div>`);
-  if (app.demo) html.push('<span class="example-chip">Example pipeline · demo</span>');
-  else if (!st.leads) html.push('<p class="empty">Your pipeline is empty, so everything is 0. <button data-run="lead-research">Find companies</button> or <button data-goto="pipeline">add one</button>.</p>');
+  if (app.demo) html.push('<span class="example-chip">Exempelpipeline · demo</span>');
+  else if (!st.leads) html.push('<p class="empty">Pipelinen är tom, så allt är 0. <button data-run="lead-research">Hitta företag</button> eller <button data-goto="pipeline">lägg till ett</button>.</p>');
   $('#vitals').innerHTML = html.join('');
   bindQuickLinks('#vitals');
 }
@@ -248,22 +249,22 @@ function dealSlots(st, big = false) {
   const n = Math.min(8, Math.max(target, won.length, 1));
   const slots = Array.from({ length: n }, (_, i) => {
     const d = won[i];
-    if (!d) return `<span class="slot"><b>${i + 1}</b><small>open</small></span>`;
-    const name = st.packages[d.package]?.name || 'no package';
-    return `<span class="slot on" title="${esc(d.company)} · ${esc(name)} · ${esc(nok(d.commission))}"><b>${esc(d.package || '?')}</b><small>${esc(d.package ? kShort(d.commission) : 'set pkg')}</small></span>`;
+    if (!d) return `<span class="slot"><b>${i + 1}</b><small>ledig</small></span>`;
+    const name = st.packages[d.package]?.name || 'inget paket';
+    return `<span class="slot on" title="${esc(d.company)} · ${esc(name)} · ${esc(nok(d.commission))}"><b>${esc(d.package || '?')}</b><small>${esc(d.package ? kShort(d.commission) : 'välj paket')}</small></span>`;
   }).join('');
-  const extra = won.length > n ? `<span class="label">+ ${won.length - n} more deals</span>` : '';
-  return `<div class="slots${big ? ' big' : ''}" role="img" aria-label="${won.length} of ${target} deals won this month">${slots}</div>${extra}`;
+  const extra = won.length > n ? `<span class="label">+ ${won.length - n} affärer till</span>` : '';
+  return `<div class="slots${big ? ' big' : ''}" role="img" aria-label="${won.length} av ${target} affärer vunna denna månad">${slots}</div>${extra}`;
 }
 
 /** One line on what the rest of the month needs, from goalMath. */
 function paceLine(st) {
   const g = goalMath(st, app.state.business || {});
-  if (!g.target) return 'No deal goal set in business.json';
-  if (!g.left) return 'Goal reached · the rest is extra';
-  if (!g.perDay) return `${g.left} to go · check the rates in Pace`;
+  if (!g.target) return 'Inget affärsmål i business.json';
+  if (!g.left) return 'Målet nått · resten är extra';
+  if (!g.perDay) return `${g.left} kvar · kolla siffrorna i Takt`;
   const guessed = [g.book, g.show, g.close].some((r) => r.source === 'guess');
-  return `${g.left} to go · ~${Math.ceil(g.perDay)} contacts a workday${guessed ? ' at guessed rates' : ''}`;
+  return `${g.left} kvar · ~${Math.ceil(g.perDay)} kontakter per arbetsdag${guessed ? ' (gissade siffror)' : ''}`;
 }
 
 function renderGoal() {
@@ -271,11 +272,12 @@ function renderGoal() {
   const g = st.goal;
   $('#goal-card').innerHTML = `<div class="usage">
     <i class="b1"></i><i class="b2"></i>
-    <div class="label">Deals this month · goal ${g.target || '—'}</div>
+    <div class="label">Affärer denna månad · mål ${g.target || '—'}</div>
     ${dealSlots(st)}
-    <div class="big"><span class="num">${kr(st.commissionMonth)}</span><span class="label">NOK earned</span></div>
-    <div class="foot">${st.sekPerNok ? `${esc(sek(st.commissionMonth))} · ` : ''}${esc(paceLine(st))}${app.demo ? ' · example' : ''}</div>
-    ${st.confirmed ? '' : '<button class="warn-chip" data-goto="pace">Amounts not confirmed in contract</button>'}
+    <div class="big"><span class="num">${kr(st.commissionMonth)}</span><span class="label">NOK intjänat</span></div>
+    <div class="foot">${st.sekPerNok ? `${esc(sek(st.commissionMonth))} · ` : ''}${esc(paceLine(st))}${app.demo ? ' · exempel' : ''}</div>
+    ${st.overdueUnpaid ? `<button class="warn-chip" data-goto="pipeline">${esc(nok(st.overdueUnpaid))} borde ha betalats ut</button>` : ''}
+    ${st.confirmed ? '' : '<button class="warn-chip" data-goto="pace">Beloppen ej bekräftade</button>'}
   </div>`;
   bindQuickLinks('#goal-card');
 }
@@ -285,10 +287,10 @@ function renderFollowups(sel, limit) {
   const el = $(sel);
   if (!el) return;
   el.innerHTML = f.length
-    ? `<ul class="fu-list">${f.slice(0, limit).map((x) => `<li><span class="fu-co">${esc(x.company)}</span><span class="fu-act">${esc(x.action)}</span><span class="chip ${x.overdue ? 'late' : ''}">${x.overdue ? `due ${esc(x.due.slice(5))}` : 'today'}</span></li>`).join('')}</ul>
-       ${f.length > limit ? `<span class="label">+ ${f.length - limit} more</span>` : ''}
-       <button class="ghost-btn" data-run="follow-ups">Draft follow-ups</button>`
-    : '<p class="empty">Nothing due today.</p>';
+    ? `<ul class="fu-list">${f.slice(0, limit).map((x) => `<li><span class="fu-co">${esc(x.company)}</span><span class="fu-act">${esc(x.action)}</span><span class="chip ${x.overdue ? 'late' : ''}">${x.overdue ? `sen ${esc(svDay(x.due))}` : 'idag'}</span></li>`).join('')}</ul>
+       ${f.length > limit ? `<span class="label">+ ${f.length - limit} till</span>` : ''}
+       <button class="ghost-btn" data-run="follow-ups">Skriv uppföljningar</button>`
+    : '<p class="empty">Inget att följa upp idag.</p>';
   bindQuickLinks(sel);
 }
 
@@ -296,7 +298,7 @@ function renderChecks(sel, items, emptyText) {
   const el = $(sel);
   if (!items || !items.length) { el.innerHTML = `<li class="empty">${esc(emptyText)}</li>`; return; }
   el.innerHTML = items.map((it, i) => `<li class="${it.done ? 'done' : ''}">
-    <button class="box" data-i="${i}" aria-label="${it.done ? 'Mark not done' : 'Mark done'}: ${esc(it.text)}" aria-pressed="${it.done}"></button>
+    <button class="box" data-i="${i}" aria-label="${it.done ? 'Markera som ej klar' : 'Markera som klar'}: ${esc(it.text)}" aria-pressed="${it.done}"></button>
     <span>${esc(it.text)}</span></li>`).join('');
   $$('.box', el).forEach((b) => b.addEventListener('click', () => toggleItem(items[Number(b.dataset.i)])));
 }
@@ -311,16 +313,16 @@ async function toggleItem(item) {
 
 function ago(ms) {
   const m = Math.round((Date.now() - ms) / 60000);
-  if (m < 60) return `${Math.max(1, m)}m`;
-  if (m < 1440) return `${Math.round(m / 60)}h`;
-  return `${Math.round(m / 1440)}d`;
+  if (m < 60) return `${Math.max(1, m)} min`;
+  if (m < 1440) return `${Math.round(m / 60)} h`;
+  return `${Math.round(m / 1440)} d`;
 }
 
 function renderDocs() {
   const out = (app.state.outputs || []).slice(0, 3);
   $('#docs').innerHTML = out.length
     ? out.map((o) => `<button class="doc-link" data-path="${esc(o.path)}"><span>${esc(o.folder)}/${esc(o.name)}</span><small>${ago(o.mtime)}</small></button>`).join('')
-    : '<p class="empty">No reports yet. Every skill saves one to outputs/.</p>';
+    : '<p class="empty">Inga rapporter än. Varje skill sparar en i outputs/.</p>';
   $$('#docs .doc-link').forEach((b) => b.addEventListener('click', () => openFile(b.dataset.path)));
 }
 
@@ -345,7 +347,7 @@ function renderSkillList() {
     <span class="cmd">/${esc(s.name)}</span>
     <p>${esc(s.task)} · ${esc(s.does)}</p>
     <span class="label when">${whenIcon(s.when)} ${esc(s.when?.text || '')} · ${esc((s.connectors || []).join(', '))}</span>
-    <button class="ghost-btn run" data-skill="${esc(s.name)}">Run</button>
+    <button class="ghost-btn run" data-skill="${esc(s.name)}">Kör</button>
   </div>`).join('');
   $$('#skill-list .run').forEach((b) => b.addEventListener('click', () => { $('#skills-dlg').close(); runSkill(b.dataset.skill); }));
 }
@@ -362,10 +364,10 @@ function renderCommand() {
   const nowIdx = sched.findIndex((it, i) => it.time <= hhmm && (!sched[i + 1] || sched[i + 1].time > hhmm));
   const timeline = sched.length
     ? sched.map((it, i) => `<div class="${i < nowIdx ? 'past' : i === nowIdx ? 'now' : ''}"><time>${esc(it.time)}</time><span>${esc(it.text)}</span></div>`).join('')
-    : '<p class="empty">No schedule for today. <button data-run="plan-today">Run /plan-today</button></p>';
+    : '<p class="empty">Inget schema för idag. <button data-run="plan-today">Kör /plan-today</button></p>';
   const brief = s.brief && s.brief.bullets?.length
     ? `<ul>${s.brief.bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>`
-    : '<p class="empty">No brief yet. /morning-intel runs on weekdays at 06:30. <button data-run="morning-intel">Run it now</button></p>';
+    : '<p class="empty">Ingen brief än. /morning-intel körs vardagar 06:30. <button data-run="morning-intel">Kör den nu</button></p>';
   const ordered = [...s.skills.filter((x) => x.quick), ...s.skills.filter((x) => !x.quick)];
   const wf = ordered.slice(0, 10).map((sk) => `<button class="wf" data-skill="${esc(sk.name)}" title="/${esc(sk.name)}">${esc(sk.label)}</button>`).join('');
   const cards = metrics().map((m) => `<div class="glass metric">
@@ -373,43 +375,45 @@ function renderCommand() {
       <span class="num">${esc(m.value)}</span>
       <span class="delta ${m.up ? 'up' : ''}">${esc(m.delta)}</span>
       <svg class="glyph" aria-hidden="true" style="color:${METRIC_COLORS[m.key]}"><use href="#${m.icon}"/></svg>
-      <span class="live ${app.demo ? 'example' : ''}" title="${app.demo ? 'Example data' : 'Counted from ops/pipeline.md'}"></span>
+      <span class="live ${app.demo ? 'example' : ''}" title="${app.demo ? 'Exempeldata' : 'Räknat från ops/pipeline.md'}"></span>
     </div>`).join('');
   const mix = packageMix(st.dealsByPackage, st.packages);
 
   $('#tab-overview').innerHTML = `
     <div class="glass goal-wide">
-      <div class="gw-deals"><div class="label">Deals this month</div><div class="num">${g.value}<small> / ${g.target || '—'}</small></div><span class="label">${esc(mix || 'none won yet')}</span></div>
+      <div class="gw-deals"><div class="label">Affärer denna månad</div><div class="num">${g.value}<small> / ${g.target || '—'}</small></div><span class="label">${esc(mix || 'inga vunna än')}</span></div>
       <div class="gw-slots">${dealSlots(st, true)}</div>
-      <div class="gw-money"><div class="label">Commission this month</div><div class="num">${kr(st.commissionMonth)}<small> NOK</small></div><span class="label">${esc(sek(st.commissionMonth))}${st.inPlay.commission ? ` · up to ${esc(nok(st.inPlay.commission))} in play` : ''}</span></div>
-      <div class="gw-pace"><span class="label">Pace</span><span>${esc(paceLine(st))}</span><button class="ghost-btn" data-goto="pace">Open Pace</button></div>
+      <div class="gw-money"><div class="label">Provision denna månad</div><div class="num">${kr(st.commissionMonth)}<small> NOK</small></div><span class="label">${esc(sek(st.commissionMonth))}${st.inPlay.commission ? ` · upp till ${esc(nok(st.inPlay.commission))} pågående` : ''}</span></div>
+      <div class="gw-pace"><span class="label">Takt</span><span>${esc(paceLine(st))}</span><button class="ghost-btn" data-goto="pace">Öppna Takt</button></div>
     </div>
-    ${st.confirmed ? '' : '<p class="warn-note">The commission per package is what you were told at the interview, not yet confirmed in writing. <button data-goto="pace">Open the contract checklist</button></p>'}
-    ${st.missingPackage ? `<p class="warn-note">${st.missingPackage} won deal${st.missingPackage === 1 ? ' has' : 's have'} no package, so no commission is counted for ${st.missingPackage === 1 ? 'it' : 'them'}. <button data-goto="pipeline">Set the package</button></p>` : ''}
+    ${st.confirmed ? '' : '<p class="warn-note">Provisionen per paket är inte bekräftad skriftligt. <button data-goto="pace">Öppna checklistan</button></p>'}
+    ${st.overdueUnpaid ? `<p class="warn-note">${esc(nok(st.overdueUnpaid))} i provision borde ha kommit med lönen (Driv betalar månaden efter signering). <button data-goto="pipeline">Visa vunna affärer</button></p>` : ''}
+    ${st.missingPackage ? `<p class="warn-note">${st.missingPackage} vunn${st.missingPackage === 1 ? 'en affär saknar' : 'a affärer saknar'} paket, så ingen provision räknas för ${st.missingPackage === 1 ? 'den' : 'dem'}. <button data-goto="pipeline">Välj paket</button></p>` : ''}
     <div class="metrics">${cards}</div>
     <div class="today-grid">
-      <div class="glass today"><span class="label">Follow-ups and call-backs due · ${st.followups.length}</span><div id="cmd-followups"></div></div>
-      <div class="glass today"><span class="label">Funnel · all companies${app.demo ? ' · example' : ''}</span>${funnelHtml(st.funnel)}</div>
+      <div class="glass today"><span class="label">Uppföljningar och återuppringningar · ${st.followups.length}</span><div id="cmd-followups"></div></div>
+      <div class="glass today"><span class="label">Tratt · alla företag${app.demo ? ' · exempel' : ''}</span>${funnelHtml(st.funnel)}</div>
     </div>
-    <div class="workflows">${wf}${s.skills.length > 10 ? '<button class="wf" id="more-wf">More workflows…</button>' : ''}</div>
+    <div class="workflows">${wf}${s.skills.length > 10 ? '<button class="wf" id="more-wf">Fler arbetsflöden…</button>' : ''}</div>
     <div class="today-grid">
-      <div class="glass today"><span class="label">Today</span><div class="timeline">${timeline}</div></div>
-      <div class="glass tasks-card"><span class="label">Tasks</span><ul class="checks" id="cmd-tasks"></ul></div>
+      <div class="glass today"><span class="label">Idag</span><div class="timeline">${timeline}</div></div>
+      <div class="glass tasks-card"><span class="label">Uppgifter</span><ul class="checks" id="cmd-tasks"></ul></div>
     </div>
-    <div class="glass brief"><span class="label">Morning brief${s.brief?.title === 'Example brief' ? ' · example' : ''}</span>${brief}</div>`;
+    <div class="glass brief"><span class="label">Morgonbrief${s.brief?.title === 'Example brief' ? ' · exempel' : ''}</span>${brief}</div>`;
   renderFollowups('#cmd-followups', 5);
-  renderChecks('#cmd-tasks', s.tasks, 'No open tasks.');
+  renderChecks('#cmd-tasks', s.tasks, 'Inga öppna uppgifter.');
   $$('#tab-overview .wf[data-skill]').forEach((b) => b.addEventListener('click', () => runSkill(b.dataset.skill)));
   $('#more-wf')?.addEventListener('click', () => $('#skills-dlg').showModal());
   bindQuickLinks('#tab-overview');
 
   renderPipelineTab();
   renderPaceTab();
+  renderPackagesTab();
 
   const outs = s.outputs || [];
-  $('#tab-research').innerHTML = `<div class="glass research-list"><span class="label">Reports and drafts in outputs/</span>${outs.length
-    ? outs.map((o) => `<button class="doc-link" data-path="${esc(o.path)}"><span>${esc(o.folder)} / ${esc(o.name)}</span><small>${ago(o.mtime)} ago</small></button>`).join('')
-    : '<p class="empty">Nothing yet. Run /lead-research or any skill and its report appears here.</p>'}</div>`;
+  $('#tab-research').innerHTML = `<div class="glass research-list"><span class="label">Rapporter och utkast i outputs/</span>${outs.length
+    ? outs.map((o) => `<button class="doc-link" data-path="${esc(o.path)}"><span>${esc(o.folder)} / ${esc(o.name)}</span><small>${ago(o.mtime)} sedan</small></button>`).join('')
+    : '<p class="empty">Inget än. Kör /lead-research eller någon annan skill så hamnar rapporten här.</p>'}</div>`;
   $$('#tab-research .doc-link').forEach((b) => b.addEventListener('click', () => openFile(b.dataset.path)));
 }
 
@@ -417,12 +421,14 @@ function funnelHtml(funnel) {
   const top = Math.max(1, ...funnel.map((f) => f.count));
   return `<div class="funnel">${funnel.map((f, i) => {
     const prev = i ? funnel[i - 1].count : null;
-    const conv = prev ? `${Math.round((f.count / prev) * 100)}%` : '';
+    const conv = prev ? `${Math.round((f.count / prev) * 100)} %` : '';
     return `<div class="fn-row"><span class="fn-label">${esc(f.label)}</span>
       <span class="fn-track"><span class="fn-fill" style="width:${Math.max(f.count ? 2 : 0, (f.count / top) * 100).toFixed(1)}%"></span></span>
-      <span class="fn-count">${f.count}</span><span class="fn-conv">${conv ? `${conv}` : ''}</span></div>`;
+      <span class="fn-count">${f.count}</span><span class="fn-conv">${conv}</span></div>`;
   }).join('')}</div>`;
 }
+
+const FILTER_NAMES = { open: 'öppna', won: 'vunna', lost: 'förlorade', all: 'alla' };
 
 function renderPipelineTab() {
   const s = app.state;
@@ -441,10 +447,10 @@ function renderPipelineTab() {
   const limit = app.leadLimit || 30;
   const leads = groups[filter].slice(0, limit);
   const more = groups[filter].length - leads.length;
-  const pkgSelect = (r) => `<label class="sr" for="pk-${esc(r.id)}">Package</label><select id="pk-${esc(r.id)}" data-f="package"><option value="">—</option>${PACKAGES.map((k) => `<option value="${k}"${packageOf(r) === k ? ' selected' : ''}>${esc(st.packages[k].name)}</option>`).join('')}</select>`;
+  const pkgSelect = (r) => `<label class="sr" for="pk-${esc(r.id)}">Paket</label><select id="pk-${esc(r.id)}" data-f="package"><option value="">—</option>${PACKAGES.map((k) => `<option value="${k}"${packageOf(r) === k ? ' selected' : ''}>${esc(st.packages[k].name)}</option>`).join('')}</select>`;
   const nextCell = (r) => (r.status === 'won'
-    ? `<label class="sr" for="pd-${esc(r.id)}">Commission paid on</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}"><br><span class="muted">${r.paid ? 'commission paid' : `paid out? ${packageOf(r) ? esc(nok(st.packages[packageOf(r)].commission)) : 'set the package'}`}</span>`
-    : `<label class="sr" for="nd-${esc(r.id)}">Next date</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span>`);
+    ? `<label class="sr" for="pd-${esc(r.id)}">Provision utbetald</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}"><br><span class="muted">${r.paid ? 'provision utbetald' : `utbetald? ${packageOf(r) ? esc(nok(st.packages[packageOf(r)].commission)) : 'välj paket'}`}</span>`
+    : `<label class="sr" for="nd-${esc(r.id)}">Nästa datum</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span>`);
   const site = (w) => esc(/^https?:/.test(w) ? w : `https://${w}`);
   const rows = leads.map((r) => `<tr data-id="${esc(r.id)}" class="st-${esc(r.status)}">
       <td><b>${esc(r.company)}</b>${r.website ? `<br><a href="${site(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}${r.industry || r.city ? `<br><span class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}</span>` : ''}</td>
@@ -452,37 +458,37 @@ function renderPipelineTab() {
       <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${STAGES.map((o) => `<option value="${o}"${o === r.status ? ' selected' : ''}>${STAGE_LABELS[o]}</option>`).join('')}</select></td>
       <td>${pkgSelect(r)}</td>
       <td>${nextCell(r)}</td>
-      <td class="muted">${esc(r.contacted || '—')}${r.contacted ? `<br>${esc(channelOf(r))}` : ''}</td>
+      <td class="muted">${esc(r.contacted || '—')}${r.contacted ? `<br>${esc(CHANNEL_LABELS[channelOf(r)])}` : ''}</td>
     </tr>`).join('');
   $('#tab-pipeline').innerHTML = `
     <form class="glass add-lead" id="add-lead" autocomplete="off">
-      <span class="label">Add a company</span>
+      <span class="label">Lägg till ett företag</span>
       <div class="add-grid">
-        <label>Company<input id="al-company" name="company" required placeholder="Fjordline Sport AS"></label>
-        <label>Contact<input id="al-contact" name="contact" placeholder="Ingrid Haugen, daglig leder"></label>
-        <label>Email<input id="al-email" name="email" type="email" placeholder="post@company.no"></label>
-        <label>Phone<input id="al-phone" name="phone" inputmode="tel" placeholder="+47 22 00 00 00"></label>
-        <label>Website<input id="al-website" name="website" placeholder="company.no"></label>
-        <label>Industry<input id="al-industry" name="industry" placeholder="online shop"></label>
-        <label>City<input id="al-city" name="city" placeholder="Bergen"></label>
-        <label>Channel<select id="al-channel" name="channel">${CHANNELS.map((c) => `<option value="${c}">${c}</option>`).join('')}</select></label>
-        <label>Package<select id="al-package" name="package"><option value="">not known</option>${PACKAGES.map((k) => `<option value="${k}">${esc(st.packages[k].name)}</option>`).join('')}</select></label>
-        <button class="dock-btn" type="submit">Add company</button>
+        <label>Företag<input id="al-company" name="company" required placeholder="Fjellsport Nett AS"></label>
+        <label>Kontaktperson<input id="al-contact" name="contact" placeholder="Ingrid Haugen, daglig leder"></label>
+        <label>E-post<input id="al-email" name="email" type="email" placeholder="post@foretag.no"></label>
+        <label>Telefon<input id="al-phone" name="phone" inputmode="tel" placeholder="+47 22 00 00 00"></label>
+        <label>Webbplats<input id="al-website" name="website" placeholder="foretag.no"></label>
+        <label>Bransch<input id="al-industry" name="industry" placeholder="nettbutikk"></label>
+        <label>Ort<input id="al-city" name="city" placeholder="Bergen"></label>
+        <label>Kanal<select id="al-channel" name="channel">${CHANNELS.map((c) => `<option value="${c}">${CHANNEL_LABELS[c]}</option>`).join('')}</select></label>
+        <label>Paket<select id="al-package" name="package"><option value="">vet inte än</option>${PACKAGES.map((k) => `<option value="${k}">${esc(st.packages[k].name)}</option>`).join('')}</select></label>
+        <button class="dock-btn" type="submit">Lägg till</button>
       </div>
     </form>
     <div class="glass table-card">
       <div class="table-head">
-        <span class="label">${all.length} compan${all.length === 1 ? 'y' : 'ies'} · ops/pipeline.md${app.demo ? ' · example' : ''}</span>
-        <div class="tabs" role="tablist" aria-label="Filter companies">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${k} ${groups[k].length}</button>`).join('')}</div>
+        <span class="label">${all.length} företag · ops/pipeline.md${app.demo ? ' · exempel' : ''}</span>
+        <div class="tabs" role="tablist" aria-label="Filtrera företag">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${FILTER_NAMES[k]} ${groups[k].length}</button>`).join('')}</div>
       </div>
       ${leads.length ? `<div class="table-wrap"><table class="leads">
-        <thead><tr><th>Company</th><th>Contact</th><th>Status</th><th>Package</th><th>${filter === 'won' ? 'Paid out' : 'Next'}</th><th>First contact</th></tr></thead>
-        <tbody>${rows}</tbody></table></div>${more > 0 ? `<button class="ghost-btn" id="more-leads">Show ${more} more</button>` : ''}`
-        : all.length ? `<p class="empty">No ${filter} companies.</p>` : '<p class="empty">No companies yet. Add one above, or <button data-run="lead-research">run /lead-research</button> to find 10.</p>'}
+        <thead><tr><th>Företag</th><th>Kontakt</th><th>Status</th><th>Paket</th><th>${filter === 'won' ? 'Utbetald' : 'Nästa'}</th><th>Första kontakt</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>${more > 0 ? `<button class="ghost-btn" id="more-leads">Visa ${more} till</button>` : ''}`
+        : all.length ? `<p class="empty">Inga ${FILTER_NAMES[filter]} företag.</p>` : '<p class="empty">Inga företag än. Lägg till ett ovan, eller <button data-run="lead-research">kör /lead-research</button> för att hitta 10.</p>'}
     </div>
     <div class="chart-grid">
-      <div class="glass chart-card" data-key="contacts"><span class="label">New contacts per week (email + phone)</span>${areaChart({ label: 'New contacts per week', history: st.contactsHistory, value: st.contactsWeek }, METRIC_COLORS.contacts)}</div>
-      <div class="glass chart-card" data-key="booked"><span class="label">Meetings booked per week</span>${areaChart({ label: 'Meetings booked per week', history: st.bookedHistory, value: st.bookedHistory.at(-1)?.v ?? 0 }, METRIC_COLORS.booked)}</div>
+      <div class="glass chart-card" data-key="contacts"><span class="label">Nya kontakter per vecka (mejl + samtal)</span>${areaChart({ label: 'Nya kontakter per vecka', history: st.contactsHistory, value: st.contactsWeek }, METRIC_COLORS.contacts)}</div>
+      <div class="glass chart-card" data-key="booked"><span class="label">Bokade möten per vecka</span>${areaChart({ label: 'Bokade möten per vecka', history: st.bookedHistory, value: st.bookedHistory.at(-1)?.v ?? 0 }, METRIC_COLORS.booked)}</div>
     </div>`;
   $$('#tab-pipeline .chart-card').forEach((card) => wireChart(card, { history: card.dataset.key === 'contacts' ? st.contactsHistory : st.bookedHistory }));
   bindQuickLinks('#tab-pipeline');
@@ -501,11 +507,11 @@ function renderPipelineTab() {
 // ------------------------------------------------------------------ pace tab
 
 const RATE_FIELDS = [
-  ['book', 'Contact → meeting booked'],
-  ['show', 'Meeting → demo held'],
-  ['close', 'Demo → deal won'],
+  ['book', 'Kontakt → bokat möte'],
+  ['show', 'Möte → hållen demo'],
+  ['close', 'Demo → signerat avtal'],
 ];
-const SOURCE_NAMES = { yours: 'your data', guess: 'starting guess', typed: 'typed here' };
+const SOURCE_NAMES = { yours: 'din data', guess: 'startgissning', typed: 'inskrivet här' };
 
 function paceOverrides() { return store.get('pace', {}); }
 
@@ -517,44 +523,45 @@ function renderPaceTab() {
   const o = paceOverrides();
   const sample = st.rates.sample;
   const own = {
-    book: st.rates.book == null ? 'no contacts yet' : `yours: ${pct(st.rates.book)} (${sample.booked} of ${sample.contacted})`,
-    show: st.rates.show == null ? 'no meetings yet' : `yours: ${pct(st.rates.show)} (${sample.demo} of ${sample.booked})`,
-    close: st.rates.close == null ? 'no demos yet' : `yours: ${pct(st.rates.close)} (${st.won} of ${sample.demo})`,
+    book: st.rates.book == null ? 'inga kontakter än' : `din: ${pct(st.rates.book)} (${sample.booked} av ${sample.contacted})`,
+    show: st.rates.show == null ? 'inga möten än' : `din: ${pct(st.rates.show)} (${sample.demo} av ${sample.booked})`,
+    close: st.rates.close == null ? 'inga demos än' : `din: ${pct(st.rates.close)} (${st.won} av ${sample.demo})`,
   };
-  const need = { book: `${MIN_SAMPLE.book} contacts`, show: `${MIN_SAMPLE.show} meetings`, close: `${MIN_SAMPLE.close} demos` };
+  const need = { book: `${MIN_SAMPLE.book} kontakter`, show: `${MIN_SAMPLE.show} möten`, close: `${MIN_SAMPLE.close} demos` };
   const mix = o.mix || {};
+  const typical = b.typical_mix || {};
   $('#tab-pace').innerHTML = `
     <div class="pace-grid">
       <div class="glass pace-card">
-        <span class="label">Goal math · rest of this month</span>
+        <span class="label">Målräkning · resten av månaden</span>
         <div class="pace-inputs">
-          <label class="rate"><span>Deals goal this month</span><input type="number" min="0" step="1" data-pace="goal" value="${esc(o.goal ?? '')}" placeholder="${st.goal.target}"><small>${st.goal.value} won so far</small></label>
-          ${RATE_FIELDS.map(([k, label]) => `<label class="rate"><span>${label} %</span><input type="number" min="0" max="100" step="0.5" data-pace="${k}" value="${esc(o[k] ?? '')}"><small><i class="src" data-src="${k}"></i> · ${esc(own[k])}, used after ${esc(need[k])}</small></label>`).join('')}
+          <label class="rate"><span>Mål, affärer denna månad</span><input type="number" min="0" step="1" data-pace="goal" value="${esc(o.goal ?? '')}" placeholder="${st.goal.target}"><small>${st.goal.value} vunna hittills</small></label>
+          ${RATE_FIELDS.map(([k, label]) => `<label class="rate"><span>${label} %</span><input type="number" min="0" max="100" step="0.5" data-pace="${k}" value="${esc(o[k] ?? '')}"><small><i class="src" data-src="${k}"></i> · ${esc(own[k])}, används efter ${esc(need[k])}</small></label>`).join('')}
         </div>
         <div class="pace-out" id="pace-out" aria-live="polite"></div>
         <p class="pace-say" id="pace-say"></p>
-        <div class="pace-actions"><button class="ghost-btn" id="pace-reset">Back to my data and guesses</button></div>
-        <p class="muted">What you type here stays in this browser and changes only this calculator. The starting guesses live in <code>system/business.json</code> under <code>assumptions</code>. Deals often close weeks after the first contact, so contacts made late in the month mostly pay next month.</p>
+        <div class="pace-actions"><button class="ghost-btn" id="pace-reset">Tillbaka till min data och gissningar</button></div>
+        <p class="muted">Det du skriver här stannar i den här webbläsaren och ändrar bara kalkylen. Startgissningarna ligger i <code>system/business.json</code> under <code>assumptions</code>. Affärer stänger ofta veckor efter första kontakten, så kontakter sent i månaden betalar mest nästa månad.</p>
       </div>
       <div class="col" style="gap:12px">
         <div class="glass pace-card">
-          <span class="label">Commission per deal · ${b.confirmed ? 'confirmed in contract' : 'not confirmed yet'}</span>
+          <span class="label">Provision per affär · ${b.confirmed ? `bekräftad${b.confirmed_by ? `: ${esc(b.confirmed_by)}` : ''}` : 'inte bekräftad än'}</span>
           <div class="pkg-grid">${PACKAGES.map((k) => `<div class="pkg">
             <span class="label">${esc(st.packages[k].name)}</span>
             <b>${kr(st.packages[k].commission)}</b><small>NOK${st.sekPerNok ? ` · ${esc(sek(st.packages[k].commission))}` : ''}</small>
-            <small>${st.dealsByPackage[k]} this month</small>
-            <label>Share of deals %<input type="number" min="0" max="100" step="5" data-mix="${k}" value="${esc(mix[k] ?? '')}" placeholder="${k === st.defaultPackage ? '100' : '0'}"></label>
+            <small>${st.dealsByPackage[k]} denna månad</small>
+            <label>Andel av affärer %<input type="number" min="0" max="100" step="5" data-mix="${k}" value="${esc(mix[k] ?? '')}" placeholder="${typical[k] ?? (k === st.defaultPackage ? 100 : 0)}"></label>
           </div>`).join('')}</div>
           <p class="pace-say" id="pace-money"></p>
-          <p class="muted">Amounts from <code>system/business.json</code>. Change them there when the contract says something else, then set <code>confirmed</code> to true.</p>
+          <p class="muted">Belopp från <code>system/business.json</code>. Andelarna är Drivs "typisk måned" (55 % Small, 35 % Medium, 10 % Large) tills du skriver egna.</p>
         </div>
         <div class="glass pace-card">
-          <span class="label">Before you sign · projects/sales-job.md</span>
+          <span class="label">Innan du skriver på · projects/sales-job.md</span>
           <ul class="checks" id="contract-checks"></ul>
         </div>
       </div>
     </div>`;
-  renderChecks('#contract-checks', s.contract, 'No checklist found under "## Before I sign" in projects/sales-job.md.');
+  renderChecks('#contract-checks', s.contract, 'Ingen checklista under "## Innan jag skriver på" i projects/sales-job.md.');
   $$('#tab-pace [data-pace]').forEach((el) => el.addEventListener('input', () => {
     const cur = paceOverrides();
     if (el.value === '') delete cur[el.dataset.pace]; else cur[el.dataset.pace] = Number(el.value);
@@ -576,32 +583,112 @@ function renderPaceTab() {
 function updatePace() {
   const st = app.state.stats;
   const g = goalMath(st, app.state.business || {}, paceOverrides());
-  const ceil = (v) => (v == null ? '—' : Math.ceil(v).toLocaleString('en-US'));
+  const ceil = (v) => (v == null ? '—' : Math.ceil(v).toLocaleString('sv-SE'));
   for (const [k] of RATE_FIELDS) {
     const el = $(`#tab-pace [data-src="${k}"]`);
-    if (el) { el.textContent = `using ${pct(g[k].v)}, ${SOURCE_NAMES[g[k].source]}`; el.className = `src ${g[k].source}`; }
+    if (el) { el.textContent = `använder ${pct(g[k].v)}, ${SOURCE_NAMES[g[k].source]}`; el.className = `src ${g[k].source}`; }
     const input = $(`#tab-pace [data-pace="${k}"]`);
     if (input) input.placeholder = (g[k].v * 100).toFixed(1).replace(/\.0$/, '');
   }
   $('#pace-out').innerHTML = [
-    ['Deals left', g.left],
-    ['Demos needed', ceil(g.demosNeeded)],
-    ['Meetings needed', ceil(g.meetingsNeeded)],
-    ['Contacts needed', ceil(g.contactsNeeded)],
-    ['Per workday', ceil(g.perDay)],
+    ['Affärer kvar', g.left],
+    ['Demos som behövs', ceil(g.demosNeeded)],
+    ['Möten som behövs', ceil(g.meetingsNeeded)],
+    ['Kontakter som behövs', ceil(g.contactsNeeded)],
+    ['Per arbetsdag', ceil(g.perDay)],
   ].map(([l, v]) => `<div><span class="label">${l}</span><b>${v}</b></div>`).join('');
   const target = st.dailyTarget;
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   let say;
-  if (!g.target) say = 'Set a deal goal to see what it takes.';
-  else if (!g.left) say = `The goal of ${g.target} is reached this month. Everything from here is extra commission.`;
-  else if (!g.perContact) say = 'One of the rates is 0%, so no number of contacts gets you there. Raise it, or check the pipeline.';
+  if (!g.target) say = 'Sätt ett mål för att se vad som krävs.';
+  else if (!g.left) say = `Målet på ${g.target} är nått den här månaden. Allt härifrån är extra provision.`;
+  else if (!g.perContact) say = 'En av konverteringarna är 0 %, så inget antal kontakter tar dig dit. Höj den eller kolla pipelinen.';
   else {
-    say = `At these rates one deal takes about ${ceil(1 / g.perContact)} contacts. ${g.left} more deal${g.left === 1 ? '' : 's'} need about ${ceil(g.contactsNeeded)} new contacts, ${g.workdaysLeft ? `${ceil(g.perDay)} a workday for the ${g.workdaysLeft} workday${g.workdaysLeft === 1 ? '' : 's'} left` : 'and no workdays are left this month'}.`;
-    if (target && g.perDay) say += g.perDay > target ? ` Your daily target is ${target}, so you are about ${ceil(g.perDay - target)} a day short.` : ` Your daily target of ${target} covers it.`;
-    if (g.perDay > 150) say += ' That is more than one person can do well by hand: a better booking rate (sharper targeting, the hiring signal) moves this more than volume.';
+    say = `Med de här siffrorna tar en affär ungefär ${ceil(1 / g.perContact)} kontakter. ${plural(g.left, 'affär till', 'affärer till')} kräver ungefär ${ceil(g.contactsNeeded)} nya kontakter, ${g.workdaysLeft ? `${ceil(g.perDay)} per arbetsdag de ${plural(g.workdaysLeft, 'arbetsdag', 'arbetsdagar')} som är kvar` : 'och inga arbetsdagar är kvar den här månaden'}.`;
+    if (target && g.perDay) say += g.perDay > target ? ` Ditt dagsmål är ${target}, så du ligger ungefär ${ceil(g.perDay - target)} per dag efter.` : ` Ditt dagsmål på ${target} räcker.`;
+    if (g.perDay > 150) say += ' Det är mer än en person hinner göra bra för hand: en bättre bokningsgrad (skarpare urval, rekryteringssignalen) flyttar siffran mer än volym.';
   }
   $('#pace-say').textContent = say;
-  $('#pace-money').textContent = `${g.target} deal${g.target === 1 ? '' : 's'} at about ${nok(g.avgCommission)} each is ${nok(g.commissionAtGoal)} a month${st.sekPerNok ? ` (${sek(g.commissionAtGoal)})` : ''}. Still to earn this month: ${nok(g.commissionLeft)}.`;
+  const mixText = { typical: 'Drivs typiska mix', typed: 'din mix', default: `bara ${st.packages[st.defaultPackage]?.name || 'Medium'}` }[g.mixSource];
+  $('#pace-money').textContent = `${plural(g.target, 'affär', 'affärer')} à ungefär ${nok(g.avgCommission)} (${mixText}) blir ${nok(g.commissionAtGoal)} i månaden${st.sekPerNok ? ` (${sek(g.commissionAtGoal)})` : ''}. Kvar att tjäna denna månad: ${nok(g.commissionLeft)}.`;
+}
+
+// ------------------------------------------------------------------ packages tab
+
+const NEED_FIELDS = [
+  ['agent', 'Agenter', 'personer som svarar'],
+  ['queue', 'Köer', 't.ex. kundtjänst'],
+  ['webchat', 'Webbchattar', 'en per webbplats'],
+  ['ai_agent', 'AI-agenter', 'per kanal'],
+  ['email_channel', 'E-postkanaler', 'en per inkorg'],
+];
+const NEED_PRESETS = {
+  S: { agent: 2, queue: 1, webchat: 1, ai_agent: 1, email_channel: 0 },
+  M: { agent: 8, queue: 2, webchat: 1, ai_agent: 1, email_channel: 1 },
+  L: { agent: 20, queue: 3, webchat: 2, ai_agent: 2, email_channel: 1 },
+};
+
+/** Driv's three packages and a credit calculator for step 3, "Velg pakke". */
+function renderPackagesTab() {
+  const s = app.state;
+  const st = s.stats;
+  const b = s.business || {};
+  const pk = st.packages;
+  const need = { ...NEED_PRESETS.S, ...store.get('credits', {}) };
+  const costs = { ...CREDIT_COSTS, ...(b.credit_costs || {}) };
+  $('#tab-packages').innerHTML = `
+    <div class="pkg-cards">${PACKAGES.map((k) => `<div class="glass pkg-card${k === 'M' ? ' rec' : ''}">
+      <div class="pc-head"><b>${esc(pk[k].name)}</b>${k === 'M' ? '<span class="pill-rec">Anbefalt</span>' : ''}</div>
+      <span class="muted">${esc(pk[k].tagline.replace(' (anbefalt)', ''))}</span>
+      <span class="label">Kunden betalar</span>
+      <div class="pc-price"><b>${kr(pk[k].price)}</b> <small>kr/mån exkl. moms · ${pk[k].credits} krediter</small></div>
+      <p class="pc-ex">${esc(pk[k].example)}</p>
+      <div class="pc-com"><span class="label">Din provision</span><b>${kr(pk[k].commission)} NOK</b><small>per signerat avtal${st.sekPerNok ? ` · ${esc(sek(pk[k].commission))}` : ''}</small></div>
+    </div>`).join('')}</div>
+    <div class="glass pace-card credit-calc">
+      <span class="label">Räkna krediter med kunden · steg 3 "Velg pakke"</span>
+      <div class="presets">${PACKAGES.map((k) => `<button class="ghost-btn" data-preset="${k}">Drivs exempel ${esc(pk[k].name)}</button>`).join('')}</div>
+      <div class="pace-inputs need-inputs">${NEED_FIELDS.map(([k, label, hint]) => `<label class="rate"><span>${label}</span><input type="number" min="0" step="1" data-need="${k}" value="${esc(need[k] ?? 0)}"><small>${hint} · ${costs[k]} kredit${costs[k] === 1 ? '' : 'er'} st.</small></label>`).join('')}</div>
+      <div class="pace-out" id="credit-out" aria-live="polite"></div>
+      <p class="pace-say" id="credit-say"></p>
+      <p class="muted">Chatt-widgeten kostar 0 krediter. Drivs regel: välj det minsta paketet som täcker behovet. Rabatt bestäms med ledningen innan offerten skickas. Bindningstiden är oklar (12 eller 24/36 månader): fråga Driv innan du lovar något.</p>
+    </div>`;
+  $$('#tab-packages [data-need]').forEach((el) => el.addEventListener('input', () => {
+    store.set('credits', { ...need, ...readNeed() });
+    updateCredits();
+  }));
+  $$('#tab-packages [data-preset]').forEach((btn) => btn.addEventListener('click', () => {
+    const p = NEED_PRESETS[btn.dataset.preset];
+    for (const [k] of NEED_FIELDS) $(`#tab-packages [data-need="${k}"]`).value = p[k];
+    store.set('credits', p);
+    updateCredits();
+  }));
+  updateCredits();
+}
+
+function readNeed() {
+  return Object.fromEntries(NEED_FIELDS.map(([k]) => [k, Math.max(0, Number($(`#tab-packages [data-need="${k}"]`)?.value) || 0)]));
+}
+
+function updateCredits() {
+  const b = app.state.business || {};
+  const plan = creditPlan(readNeed(), b);
+  const p = plan.pick;
+  $('#credit-out').innerHTML = [
+    ['Krediter', plan.credits],
+    ['Paket', `${p.name}${p.extraCredits ? ` + ${p.extraCredits}` : ''}`],
+    ['Kunden betalar', `${kr(p.monthly)}`],
+    ['Din provision', `${kr(p.commission)}`],
+  ].map(([l, v]) => `<div><span class="label">${l}</span><b>${esc(v)}</b></div>`).join('');
+  let say = plan.credits === 0
+    ? 'Fyll i vad kunden behöver.'
+    : plan.fits
+      ? `${plan.credits} krediter ryms i ${p.name} (${p.credits} krediter): ${kr(p.monthly)} kr/mån exkl. moms, ${kr(p.monthly * 12)} kr per år. Din provision: ${kr(p.commission)} NOK.`
+      : `${plan.credits} krediter är mer än Large (${p.credits}). Large + ${p.extraCredits} extra krediter à ${kr(plan.extraPrice)} kr = ${kr(p.monthly)} kr/mån, om extra krediter debiteras per månad (fråga Driv).`;
+  // An honest alternative: a smaller package plus a few extra credits can be cheaper for the customer.
+  const alt = plan.options.find((o) => o.key !== p.key && o.extraCredits > 0 && o.extraCredits <= 3 && o.monthly < p.monthly);
+  if (plan.credits && alt) say += ` Alternativ: ${alt.name} + ${alt.extraCredits} extra kredit${alt.extraCredits === 1 ? '' : 'er'} = ${kr(alt.monthly)} kr/mån om extra krediter kostar ${kr(plan.extraPrice)} kr/mån (fråga Driv). Då blir din provision ${kr(alt.commission)} NOK.`;
+  $('#credit-say').textContent = say;
 }
 
 async function saveLead(id, fields) {
@@ -614,7 +701,7 @@ async function saveLead(id, fields) {
         for (const k of ['next_date', 'package', 'paid']) if (fields[k] != null) row[k] = fields[k];
       }
     } else {
-      if (!fields.company) { toast('A company name is needed.'); return; }
+      if (!fields.company) { toast('Skriv in ett företagsnamn.'); return; }
       const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
       Object.assign(row, fields, { id: nextId(app.state.leads), added: today });
       applyStatus(row, 'researched', today);
@@ -622,22 +709,22 @@ async function saveLead(id, fields) {
     }
     app.state.stats = computeStats(app.state.leads, { business: app.state.business });
     renderAll();
-    if (fields.status === 'booked') toast('In the live OS this also runs /demo-prep for that company.');
-    if (fields.status === 'won') toast('Deal won. The slot fills with its package and the commission is counted.');
+    if (fields.status === 'booked') toast('I riktiga Jarvis startar /demo-prep nu för det företaget.');
+    if (fields.status === 'won') toast('Affären vunnen. Rutan fylls med paketet och provisionen räknas.');
     return;
   }
   try {
     const res = await api(id ? `/api/leads/${id}` : '/api/leads', fields);
-    if (res.fired?.length) toast(`Meeting booked: /demo-prep is preparing ${res.lead.company}.`);
-    else if (fields.status === 'won') toast(`${res.lead.company} won${res.lead.package ? '' : ': set the package so the commission counts'}`);
-    else toast(id ? `${res.lead.company} updated` : `${res.lead.company} added to the pipeline`);
+    if (res.fired?.length) toast(`Möte bokat: /demo-prep förbereder ${res.lead.company}.`);
+    else if (fields.status === 'won') toast(`${res.lead.company} vunnen${res.lead.package ? '' : ': välj paket så att provisionen räknas'}`);
+    else toast(id ? `${res.lead.company} uppdaterad` : `${res.lead.company} tillagd i pipelinen`);
     await refresh();
   } catch (err) { toast(err.message); }
 }
 
 function areaChart(m, color) {
   const h = m.history || [];
-  if (h.length < 2) return '<p class="empty">Not enough history yet.</p>';
+  if (h.length < 2) return '<p class="empty">Inte nog med historik än.</p>';
   const W = 300; const H = 150; const L = 34; const B = 20; const T = 8;
   const vals = h.map((p) => p.v);
   const max = Math.max(...vals) || 1;
@@ -647,11 +734,11 @@ function areaChart(m, color) {
   const line = vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
   const ticks = [0, niceMax / 2, niceMax];
   const u = m.unit || '';
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.label)}, latest ${fmtNum(m.value)}${u}">
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.label)}, senast ${fmtNum(m.value)}${u}">
     <g class="grid">${ticks.map((t) => `<line x1="${L}" x2="${W - 4}" y1="${y(t)}" y2="${y(t)}"/>`).join('')}</g>
     <g class="axis">${ticks.map((t) => `<text x="${L - 6}" y="${y(t) + 3}" text-anchor="end">${fmtNum(t)}${u}</text>`).join('')}
-      <text x="${x(0)}" y="${H - 4}" text-anchor="start">${esc(h[0].t.slice(5))}</text>
-      <text x="${x(h.length - 1)}" y="${H - 4}" text-anchor="end">wk of ${esc(h[h.length - 1].t.slice(5))}</text></g>
+      <text x="${x(0)}" y="${H - 4}" text-anchor="start">${esc(svDay(h[0].t))}</text>
+      <text x="${x(h.length - 1)}" y="${H - 4}" text-anchor="end">v. från ${esc(svDay(h[h.length - 1].t))}</text></g>
     <path class="area" d="${line}L${x(h.length - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="${color}"/>
     <path class="ln" d="${line}" stroke="${color}"/>
     <circle cx="${x(h.length - 1)}" cy="${y(vals[vals.length - 1])}" r="4" fill="${color}" stroke="var(--bg)" stroke-width="2"/>
@@ -682,7 +769,7 @@ function wireChart(card, m) {
     hair.setAttribute('x1', cx); hair.setAttribute('x2', cx); hair.setAttribute('visibility', 'visible');
     dot.setAttribute('cx', cx); dot.setAttribute('cy', cy); dot.setAttribute('visibility', 'visible');
     tip.hidden = false;
-    tip.textContent = `week of ${h[i].t} · ${fmtNum(vals[i])}${m.unit || ''}`;
+    tip.textContent = `veckan från ${svDay(h[i].t)} · ${fmtNum(vals[i])}${m.unit || ''}`;
     const cr = card.getBoundingClientRect();
     tip.style.left = `${r.left - cr.left + (cx / W) * r.width}px`;
     tip.style.top = `${r.top - cr.top + (cy / H) * r.height}px`;
@@ -703,41 +790,41 @@ function renderBackbone() {
     byDomain.get(sk.domain).push(sk);
   }
   const label = (id) => s.domains.find((d) => d.id === id)?.label || id;
-  const lastRun = (name) => s.automations?.[name] ? `last auto-run ${new Date(s.automations[name]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : '';
+  const lastRun = (name) => s.automations?.[name] ? `senast körd ${new Date(s.automations[name]).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}` : '';
   const cols = [...byDomain.entries()].filter(([, list]) => list.length).map(([id, list]) => `
     <div class="dcol">
       <div class="node domain"><strong>${esc(label(id))}</strong></div>
       <div class="stack">${list.map((sk) => `
         <div class="chain">
           <div class="node">${esc(sk.task)}</div>
-          <button class="node skill" data-skill="${esc(sk.name)}" title="Run /${esc(sk.name)}">
+          <button class="node skill" data-skill="${esc(sk.name)}" title="Kör /${esc(sk.name)}">
             <span class="cmd">/${esc(sk.name)}</span>${esc(sk.does)}
             <span class="chips">${(sk.connectors || []).map((c) => `<span class="chip">${esc(c)}</span>`).join('')}</span>
           </button>
-          <div class="node auto ${sk.when?.icon === 'hand' ? 'manual' : ''}">${whenIcon(sk.when)} ${esc(sk.when?.text || 'manual')}<span class="last-run">${esc(lastRun(sk.name))}</span></div>
+          <div class="node auto ${sk.when?.icon === 'hand' ? 'manual' : ''}">${whenIcon(sk.when)} ${esc(sk.when?.text || 'manuell')}<span class="last-run">${esc(lastRun(sk.name))}</span></div>
         </div>`).join('')}
       </div>
     </div>`).join('');
 
   $('#view-backbone').innerHTML = `
     <div class="board-h">
-      <h2>SKILL BACKBONE</h2>
-      <p>every domain has tasks → repeat tasks become skills → reliable skills become automations</p>
+      <h2>SKILL-RYGGRAD</h2>
+      <p>varje område har uppgifter → återkommande uppgifter blir skills → pålitliga skills blir automationer</p>
     </div>
     <div class="flow4">
-      <div class="node domain"><strong>Domain</strong>an area of your life or business</div>
-      <div class="node"><strong>Task</strong>something you do again and again</div>
-      <div class="node skill" style="cursor:default"><strong>Skill</strong>the task written down once, Claude runs it</div>
-      <div class="node auto"><strong>Automation</strong>a skill that runs by itself</div>
+      <div class="node domain"><strong>Område</strong>en del av jobbet</div>
+      <div class="node"><strong>Uppgift</strong>något du gör om och om igen</div>
+      <div class="node skill" style="cursor:default"><strong>Skill</strong>uppgiften nedskriven en gång, Claude kör den</div>
+      <div class="node auto"><strong>Automation</strong>en skill som kör av sig själv</div>
     </div>
     <div class="domains">${cols}</div>
     <div class="legend">
-      <span>${whenIcon({ icon: 'clock' })} on a schedule</span>
-      <span>${whenIcon({ icon: 'bolt' })} when something happens</span>
-      <span>${whenIcon({ icon: 'hand' })} stays manual on purpose</span>
-      <span>Tap a skill to run it now</span>
+      <span>${whenIcon({ icon: 'clock' })} enligt schema</span>
+      <span>${whenIcon({ icon: 'bolt' })} när något händer</span>
+      <span>${whenIcon({ icon: 'hand' })} manuell med flit</span>
+      <span>Tryck på en skill för att köra den nu</span>
     </div>
-    <div class="label">Rules of thumb</div>
+    <div class="label">Tumregler</div>
     <div class="rules">${(s.rules || []).map((r) => `<div class="rule">${esc(r.title)}<b>→ ${esc(r.then)}</b></div>`).join('')}</div>`;
   $$('#view-backbone .node.skill[data-skill]').forEach((b) => b.addEventListener('click', () => runSkill(b.dataset.skill)));
 }
@@ -745,11 +832,11 @@ function renderBackbone() {
 // ------------------------------------------------------------------ router view
 
 const EXAMPLES = [
-  'find 10 leads: nettbutikker i Bergen',
-  'who should I call today?',
-  'write cold emails for the new leads',
-  'how many contacts do I need to hit my goal?',
-  'prep for my demo with Fjellsport',
+  'hitta 10 företag: nettbutikker i Bergen',
+  'vem ska jag ringa idag?',
+  'skriv mejl till de nya leadsen',
+  'hur många kontakter behöver jag för att nå målet?',
+  'förbered demon med Havgløtt Hotell',
   'hur går det?',
 ];
 
@@ -757,47 +844,47 @@ function renderRouter() {
   if ($('#router-text')) return; // keep what the user typed
   $('#view-router').innerHTML = `
     <div class="board-h">
-      <h2>AGENTIC OS: HOW IT WORKS</h2>
-      <p>two front doors, one brain, one shared memory</p>
+      <h2>AGENTIC OS: SÅ FUNKAR DET</h2>
+      <p>två ytterdörrar, en hjärna, ett gemensamt minne</p>
     </div>
     <div class="glass" style="padding:18px">
-      <div class="node speech">Speech<br>Web Speech = ears · speechSynthesis = voice</div>
+      <div class="node speech">Tal<br>Web Speech = öron · speechSynthesis = röst</div>
       <div class="arch">
-        <div class="node you"><strong>You</strong>talk or click</div>
+        <div class="node you"><strong>Du</strong>pratar eller klickar</div>
         <div class="doors">
-          <div class="node" style="border-color:rgba(127,208,255,.55)"><strong>Obsidian plugin</strong>lives inside the vault: orb, dashboard, terminal tabs</div>
-          <div class="node switch">Claude ⇄ Codex · switch anytime</div>
-          <div class="node" style="border-color:rgba(127,208,255,.55)"><strong>Jarvis HUD</strong>web app in the browser, same buttons, same voice</div>
+          <div class="node" style="border-color:rgba(127,208,255,.55)"><strong>Obsidian-plugin</strong>bor i valvet: kärna, dashboard, terminalflikar</div>
+          <div class="node switch">Claude ⇄ Codex · byt när du vill</div>
+          <div class="node" style="border-color:rgba(127,208,255,.55)"><strong>Jarvis HUD</strong>webbapp i webbläsaren, samma knappar, samma röst</div>
         </div>
-        <div class="node bridge"><strong>The Bridge</strong>one brain for both apps<br><br>takes every request from both front doors</div>
-        <div class="node router"><strong>Router</strong>sorts each request into the right tier, from predefined choices</div>
+        <div class="node bridge"><strong>Bridge</strong>en hjärna för båda apparna<br><br>tar emot varje förfrågan från båda dörrarna</div>
+        <div class="node router"><strong>Router</strong>sorterar varje förfrågan till rätt nivå, bland förbestämda val</div>
         <div class="tiers">
-          <div class="node t1"><strong>Tier 1</strong>rules + your pipeline, commission and notes, no AI, instant</div>
-          <div class="node t2"><strong>Tier 2</strong>quick answer, Claude Haiku 5.5</div>
-          <div class="node t3"><strong>Tier 3</strong>real work: Claude Code or Codex runs a skill in the background</div>
+          <div class="node t1"><strong>Nivå 1</strong>regler + din pipeline, provision och anteckningar, ingen AI, direkt</div>
+          <div class="node t2"><strong>Nivå 2</strong>snabbt svar, Claude Haiku 5.5</div>
+          <div class="node t3"><strong>Nivå 3</strong>riktigt arbete: Claude Code eller Codex kör en skill i bakgrunden</div>
         </div>
-        <div class="node conn"><strong>Connectors</strong>Gmail · Calendar · Web · brreg.no</div>
+        <div class="node conn"><strong>Kopplingar</strong>Gmail · Kalender · Webb · brreg.no</div>
       </div>
-      <div class="vault-bar"><strong>THE VAULT: SHARED MEMORY</strong><br>daily notes · skills · outputs · logs — the Bridge reads and records every request, Tier 3 saves its reports here</div>
+      <div class="vault-bar"><strong>VALVET: DELAT MINNE</strong><br>dagsanteckningar · skills · rapporter · loggar — Bridge läser och loggar varje förfrågan, nivå 3 sparar sina rapporter här</div>
     </div>
 
     <div class="board-h" style="margin-top:8px">
-      <h2 style="font-size:clamp(24px,3vw,32px)">ONE MESSAGE. ROUTED, NOT GENERATED.</h2>
-      <p>The router never writes text. It scores a fixed list of choices and acts on the winner. Below ${Math.round(0.45 * 100)}% it falls back to the cheapest tier that can still answer.</p>
+      <h2 style="font-size:clamp(24px,3vw,32px)">ETT MEDDELANDE. SORTERAT, INTE GENERERAT.</h2>
+      <p>Routern skriver aldrig text. Den poängsätter en fast lista med val och gör det som vinner. Under ${Math.round(0.45 * 100)} % faller den tillbaka till den billigaste nivån som ändå kan svara.</p>
     </div>
     <div class="tester-input">
-      <label class="label" for="router-text">Message</label>
+      <label class="label" for="router-text">Meddelande</label>
       <textarea id="router-text">${esc(EXAMPLES[0])}</textarea>
       <div class="examples">${EXAMPLES.map((x) => `<button data-ex="${esc(x)}">${esc(x)}</button>`).join('')}</div>
     </div>
     <div class="tester">
       <div class="glass box">
-        <span class="label">01 · LLM · generated text</span>
-        <div class="gen">"Sounds like you want to reach some new companies. I could write a few emails, or maybe a call script? Let me know which industry and I can…"</div>
-        <span class="label" style="text-transform:none;letter-spacing:0">Free text you would still have to parse before anything can happen.</span>
+        <span class="label">01 · LLM · genererad text</span>
+        <div class="gen">"Det låter som att du vill nå nya företag. Jag kan skriva några mejl, eller kanske ett samtalsmanus? Säg vilken bransch så kan jag…"</div>
+        <span class="label" style="text-transform:none;letter-spacing:0">Fri text som någon ändå måste tolka innan något kan hända.</span>
       </div>
       <div class="glass box">
-        <span class="label">02 · Router · predefined choices <b id="router-clf"></b></span>
+        <span class="label">02 · Router · förbestämda val <b id="router-clf"></b></span>
         <div class="bars" id="router-bars"></div>
         <div id="router-result"></div>
       </div>
@@ -816,7 +903,14 @@ function barsHtml(route, limit = 5) {
     <span class="pct">${Math.round(c.p * 100)}%</span></div>`).join('');
 }
 
-const TIER_NAMES = { 1: 'Tier 1 · rules', 2: 'Tier 2 · quick', 3: 'Tier 3 · skill' };
+const TIER_NAMES = { 1: 'Nivå 1 · regler', 2: 'Nivå 2 · snabbt', 3: 'Nivå 3 · skill' };
+const STATE_NAMES = { idle: 'vila', listening: 'lyssnar', working: 'arbetar', speaking: 'talar', error: 'fel' };
+
+/** "2026-10-26" -> "26 okt" */
+function svDay(iso) {
+  const d = new Date(`${String(iso).slice(0, 10)}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? String(iso) : d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' }).replace('.', '');
+}
 
 async function routeTest(text) {
   if (!text.trim()) { $('#router-bars').innerHTML = ''; $('#router-result').innerHTML = ''; return; }
@@ -826,9 +920,9 @@ async function routeTest(text) {
   } catch (err) { toast(err.message); return; }
   $('#router-clf').textContent = r.classifier ? `· ${r.classifier}` : '';
   $('#router-bars').innerHTML = barsHtml(r, 5);
-  const target = r.pick.tier === 3 ? `${r.pick.label} in ${engineInfo().label}` : r.pick.tier === 2 ? 'Claude Haiku 5.5' : 'answer from the vault';
-  $('#router-result').innerHTML = `<span class="result-chip"><span class="tier" data-t="${r.pick.tier}">${TIER_NAMES[r.pick.tier]}</span> Send → ${esc(target)}</span>
-    ${r.unsure ? '<p class="unsure" style="margin:8px 0 0">Unsure · fell back to the cheapest tier</p>' : ''}
+  const target = r.pick.tier === 3 ? `${r.pick.label} i ${engineInfo().label}` : r.pick.tier === 2 ? 'Claude Haiku 5.5' : 'svar från valvet';
+  $('#router-result').innerHTML = `<span class="result-chip"><span class="tier" data-t="${r.pick.tier}">${TIER_NAMES[r.pick.tier]}</span> Skicka → ${esc(target)}</span>
+    ${r.unsure ? '<p class="unsure" style="margin:8px 0 0">Osäker · föll tillbaka till billigaste nivån</p>' : ''}
     <p class="label" style="text-transform:none;letter-spacing:0;margin:8px 0 0">${esc(r.reason)}</p>`;
 }
 
@@ -865,7 +959,7 @@ async function ask(text, { voice = false, force = null } = {}) {
 function renderAnswer({ pending, q, res, error }) {
   const el = $('#answer');
   if (pending) {
-    el.innerHTML = `<div class="answer"><div class="q">“${esc(q)}”</div><div class="a" style="color:var(--mute)">Routing…</div></div>`;
+    el.innerHTML = `<div class="answer"><div class="q">“${esc(q)}”</div><div class="a" style="color:var(--mute)">Sorterar…</div></div>`;
     return;
   }
   if (error) {
@@ -876,11 +970,11 @@ function renderAnswer({ pending, q, res, error }) {
   const alts = r.choices.filter((c) => c.id !== r.pick.id).slice(0, 2);
   el.innerHTML = `<div class="answer">
     <div class="q">“${esc(q)}”</div>
-    <div class="meta"><span class="tier" data-t="${res.tier}">${TIER_NAMES[res.tier]}</span><span class="label">${esc(r.pick.label)} · ${Math.round(r.pick.p * 100)}%</span>${r.unsure ? '<span class="unsure">unsure</span>' : ''}</div>
+    <div class="meta"><span class="tier" data-t="${res.tier}">${TIER_NAMES[res.tier]}</span><span class="label">${esc(r.pick.label)} · ${Math.round(r.pick.p * 100)}%</span>${r.unsure ? '<span class="unsure">osäker</span>' : ''}</div>
     <div class="bars">${barsHtml(r, 3)}</div>
     <div class="a">${esc(res.answer)}</div>
     ${res.backend ? `<span class="label" style="font-size:9.5px">via ${esc(res.backend)}</span>` : ''}
-    <div class="route-alt"><span class="label" style="align-self:center">Route instead</span>${alts.map((c) => `<button data-force="${esc(c.id)}">${esc(c.label)}</button>`).join('')}</div>
+    <div class="route-alt"><span class="label" style="align-self:center">Skicka i stället till</span>${alts.map((c) => `<button data-force="${esc(c.id)}">${esc(c.label)}</button>`).join('')}</div>
   </div>`;
   $$('#answer [data-force]').forEach((b) => b.addEventListener('click', () => ask(q, { force: b.dataset.force })));
 }
@@ -905,7 +999,7 @@ function onJobEvent(ev) {
     if (ev.type === 'end') {
       if (ev.job.status === 'failed') app.lastError = Date.now();
       softRefresh();
-      toast(`${ev.job.title} ${ev.job.status === 'done' ? 'finished' : ev.job.status}`);
+      toast(`${ev.job.title} ${{ done: 'klar', failed: 'misslyckades', stopped: 'stoppad' }[ev.job.status] || ev.job.status}`);
     }
     renderDock();
   }
@@ -944,7 +1038,7 @@ function setDock(open) {
 function renderDock() {
   const jobs = [...app.jobs.values()].sort((a, b) => b.startedAt - a.startedAt).slice(0, 12);
   const running = jobs.filter((j) => j.status === 'running' || j.status === 'queued').length;
-  $('#term-count').textContent = running ? `${running} running` : `${jobs.length} open`;
+  $('#term-count').textContent = running ? `${running} körs` : `${jobs.length} öppna`;
   $('#term-tabs').innerHTML = jobs.map((j) => `<button class="term-tab" role="tab" data-id="${esc(j.id)}" aria-selected="${j.id === app.activeJob}"><span class="sdot ${esc(j.status)}"></span>${esc(j.title)}</button>`).join('');
   $$('#term-tabs .term-tab').forEach((b) => b.addEventListener('click', () => selectJob(b.dataset.id)));
   if (app.composing || !app.activeJob || !app.jobs.get(app.activeJob)) {
@@ -955,10 +1049,10 @@ function renderDock() {
   const eng = app.state.engines[j.engine]?.label || j.engine;
   $('#term-body').innerHTML = `
     <div class="term-head">
-      <span class="label"><b>${esc(j.title)}</b> · ${esc(eng)} · ${esc(j.status)}${j.costUsd != null ? ` · $${Number(j.costUsd).toFixed(3)}` : ''}${app.demo ? ' · demo' : ''}</span>
+      <span class="label"><b>${esc(j.title)}</b> · ${esc(eng)} · ${esc(JOB_STATUS[j.status] || j.status)}${j.costUsd != null ? ` · $${Number(j.costUsd).toFixed(3)}` : ''}${app.demo ? ' · demo' : ''}</span>
       <span class="actions">
-        ${j.status === 'running' || j.status === 'queued' ? '<button class="ghost-btn" id="job-stop">Stop</button>' : ''}
-        ${j.savedTo ? `<button class="ghost-btn" id="job-open">Open report</button>` : ''}
+        ${j.status === 'running' || j.status === 'queued' ? '<button class="ghost-btn" id="job-stop">Stoppa</button>' : ''}
+        ${j.savedTo ? `<button class="ghost-btn" id="job-open">Öppna rapporten</button>` : ''}
       </span>
     </div>
     <pre class="term-log" id="term-log"></pre>`;
@@ -968,6 +1062,8 @@ function renderDock() {
   $('#job-stop')?.addEventListener('click', () => stopJob(j.id));
   $('#job-open')?.addEventListener('click', () => openFile(j.savedTo));
 }
+
+const JOB_STATUS = { running: 'körs', queued: 'i kö', done: 'klar', failed: 'misslyckades', stopped: 'stoppad' };
 
 function logLine(e) { return `<span class="${esc(e.kind)}">${esc(e.text)}</span>\n`; }
 
@@ -997,14 +1093,14 @@ async function stopJob(id) {
 function renderNewTerminal() {
   const eng = engineInfo().label;
   $('#term-body').innerHTML = `
-    <div class="term-head"><span class="label"><b>New terminal</b> · ${esc(eng)} · runs headless in the vault</span></div>
+    <div class="term-head"><span class="label"><b>Ny terminal</b> · ${esc(eng)} · körs i bakgrunden i valvet</span></div>
     <form class="term-new" id="term-form" autocomplete="off">
-      <label for="term-input" hidden>Task</label>
-      <input id="term-input" placeholder="Task for ${esc(eng)}, e.g. summarise inbox/ into content ideas">
-      <button class="dock-btn" type="submit">Run</button>
+      <label for="term-input" hidden>Uppgift</label>
+      <input id="term-input" placeholder="Uppgift till ${esc(eng)}, t.ex. sammanfatta inbox/ till uppgifter">
+      <button class="dock-btn" type="submit">Kör</button>
     </form>
-    <pre class="term-log" style="color:var(--mute)">Each terminal is a headless ${esc(eng)} run inside your vault. It can read and edit notes and search the web.
-It cannot send, post or buy anything: those tools are not allowed in .claude/settings.json.</pre>`;
+    <pre class="term-log" style="color:var(--mute)">Varje terminal är en ${esc(eng)}-körning i bakgrunden i ditt valv. Den kan läsa och ändra anteckningar och söka på webben.
+Den kan inte skicka, publicera eller köpa något: de verktygen är inte tillåtna i .claude/settings.json.</pre>`;
   $('#term-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const prompt = $('#term-input').value.trim();
@@ -1033,21 +1129,21 @@ let levelTimer = null;
  */
 function voiceBlockedReason() {
   const ua = navigator.userAgent;
-  if (!Recognition) return 'This browser has no voice input.';
-  if (/OPR\/|Opera|OPX\//.test(ua)) return 'Opera and Opera GX cannot use voice input: they have no access to the speech service it needs.';
-  if (navigator.brave) return 'Brave blocks the speech service that voice input needs.';
-  if (/Vivaldi|YaBrowser|SamsungBrowser/.test(ua)) return 'This browser cannot reach the speech service that voice input needs.';
+  if (!Recognition) return 'Den här webbläsaren har ingen röstinmatning.';
+  if (/OPR\/|Opera|OPX\//.test(ua)) return 'Opera och Opera GX kan inte ta röst: de når inte taltjänsten som behövs.';
+  if (navigator.brave) return 'Brave blockerar taltjänsten som röstinmatning behöver.';
+  if (/Vivaldi|YaBrowser|SamsungBrowser/.test(ua)) return 'Den här webbläsaren når inte taltjänsten som röstinmatning behöver.';
   return null;
 }
 
-const VOICE_FIX = 'Open Jarvis in Chrome or Edge (Start Jarvis.bat does this for you), or type instead.';
+const VOICE_FIX = 'Öppna Jarvis i Chrome eller Edge (Start Jarvis.bat gör det åt dig), eller skriv i stället.';
 
 function renderVoiceSupport() {
   const reason = voiceBlockedReason();
   const label = $('#voice-engine');
   if (!label) return;
   if (reason) {
-    label.textContent = 'Voice needs Chrome or Edge';
+    label.textContent = 'Röst kräver Chrome eller Edge';
     label.style.color = 'var(--warm)';
     label.title = `${reason} ${VOICE_FIX}`;
   }
@@ -1060,7 +1156,7 @@ function startListening() {
   try {
     rec = new Recognition();
   } catch {
-    toast(`Voice input is blocked here. ${VOICE_FIX}`);
+    toast(`Röstinmatning är blockerad här. ${VOICE_FIX}`);
     return;
   }
   const lang = voiceSettings().lang;
@@ -1082,18 +1178,18 @@ function startListening() {
   };
   rec.onerror = (e) => {
     failed = true;
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Microphone access was refused. Click the lock icon next to the address, allow the microphone, and try again.');
-    else if (e.error === 'network') toast(`Voice could not reach the speech service. ${VOICE_FIX}`);
-    else if (e.error === 'audio-capture') toast('No microphone found. Check that one is plugged in and selected in Windows sound settings.');
-    else if (e.error === 'no-speech') toast('I did not hear anything. Speak right after tapping, or check the microphone.');
-    else if (e.error !== 'aborted') toast(`Voice error: ${e.error}. ${VOICE_FIX}`);
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Mikrofonen nekades. Klicka på låset bredvid adressen, tillåt mikrofonen och försök igen.');
+    else if (e.error === 'network') toast(`Rösten nådde inte taltjänsten. ${VOICE_FIX}`);
+    else if (e.error === 'audio-capture') toast('Ingen mikrofon hittades. Kolla att en är inkopplad och vald i Windows ljudinställningar.');
+    else if (e.error === 'no-speech') toast('Jag hörde ingenting. Prata direkt efter att du tryckt, eller kolla mikrofonen.');
+    else if (e.error !== 'aborted') toast(`Röstfel: ${e.error}. ${VOICE_FIX}`);
   };
   rec.onend = () => {
     const text = finalText.trim();
     setListening(false);
     if (text) { $('#ask-input').value = ''; ask(text, { voice: true }); return; }
     // Ended almost at once with nothing heard and no error: the speech service never answered.
-    if (!heard && !failed && Date.now() - startedAt < 1500) toast(`Voice stopped before hearing you. ${VOICE_FIX}`);
+    if (!heard && !failed && Date.now() - startedAt < 1500) toast(`Rösten slutade innan den hörde dig. ${VOICE_FIX}`);
   };
   try { rec.start(); setListening(true); } catch (err) { toast(err.message); }
 }
@@ -1106,7 +1202,7 @@ function stopListening(cancel = false) {
 function setListening(on) {
   app.listening = on;
   $('#talk').setAttribute('aria-pressed', String(on));
-  $('#talk-label').textContent = on ? 'Listening… tap to cancel' : 'Tap to talk';
+  $('#talk-label').textContent = on ? 'Lyssnar… tryck för att avbryta' : 'Tryck och prata';
   clearInterval(levelTimer);
   if (on) {
     levelTimer = setInterval(() => {
@@ -1121,15 +1217,19 @@ function setListening(on) {
   syncCore();
 }
 
-// Jarvis's spoken voice: the browser's own voices. Edge has the most natural ones
-// ("… Online (Natural)"); a British male voice is the closest to the films.
+// Jarvis's spoken voice: the browser's own voices. Jarvis answers in Swedish, so a Swedish
+// voice comes first; Edge has the most natural ones ("… Online (Natural)").
 const JARVIS_LIKE = [
-  /Ryan.*United Kingdom/i, /Thomas.*United Kingdom/i, /Google UK English Male/i,
-  /George.*United Kingdom/i, /Oliver.*United Kingdom/i, /\bDaniel\b/i, /\bArthur\b/i,
+  /Mattias.*Swedish/i, /Sofie.*Swedish/i, /Hillevi.*Swedish/i, /Google svenska/i, /\bsv[-_]SE\b/i,
 ];
-const VOICE_DEFAULTS = { name: '', rate: 1, pitch: 0.95, speakAll: false, lang: 'auto' };
+const VOICE_DEFAULTS = { v: 2, name: '', rate: 1, pitch: 0.95, speakAll: false, lang: 'sv-SE' };
 
-function voiceSettings() { return { ...VOICE_DEFAULTS, ...store.get('voice', {}) }; }
+function voiceSettings() {
+  const saved = store.get('voice', {});
+  // Settings from the English version picked an English voice; Swedish answers need a Swedish one.
+  if (saved.v !== 2) return { ...VOICE_DEFAULTS, rate: saved.rate ?? 1, pitch: saved.pitch ?? 0.95, speakAll: Boolean(saved.speakAll) };
+  return { ...VOICE_DEFAULTS, ...saved };
+}
 function saveVoice(patch) { store.set('voice', { ...voiceSettings(), ...patch }); }
 
 function allVoices() {
@@ -1141,7 +1241,7 @@ function jarvisDefault(voices) {
     const v = voices.find((x) => re.test(x.name));
     if (v) return v;
   }
-  return voices.find((v) => /^en-GB/i.test(v.lang)) || voices.find((v) => /^en/i.test(v.lang)) || voices[0] || null;
+  return voices.find((v) => /^sv/i.test(v.lang)) || voices.find((v) => /^nb|^no/i.test(v.lang)) || voices.find((v) => /^en-GB/i.test(v.lang)) || voices[0] || null;
 }
 
 function currentVoice() {
@@ -1155,8 +1255,8 @@ function speak(text) {
   try {
     speechSynthesis.cancel();
     const s = voiceSettings();
-    // FIX lines and file paths are for reading, not for hearing.
-    const spoken = String(text).split(/\n\nFIX:/)[0].slice(0, 600);
+    // Fix lines and file paths are for reading, not for hearing.
+    const spoken = String(text).split(/\n\n(?:FIX|ÅTGÄRD):/)[0].slice(0, 600);
     const u = new SpeechSynthesisUtterance(spoken);
     const v = currentVoice();
     if (v) { u.voice = v; u.lang = v.lang; }
@@ -1176,24 +1276,26 @@ function renderVoiceDialog() {
   const chosen = currentVoice();
   const opt = (v) => `<option value="${esc(v.name)}"${chosen && v.name === chosen.name ? ' selected' : ''}>${esc(v.name.replace(/^Microsoft\s+/, ''))} · ${esc(v.lang)}</option>`;
   if (!voices.length) {
-    sel.innerHTML = '<option value="">No voices in this browser</option>';
+    sel.innerHTML = '<option value="">Inga röster i den här webbläsaren</option>';
     sel.disabled = true;
   } else {
     sel.disabled = false;
+    const swedish = voices.filter((v) => /^(sv|nb|no|da)/i.test(v.lang) && v !== best);
     const english = voices.filter((v) => /^en/i.test(v.lang) && v !== best);
-    const other = voices.filter((v) => !/^en/i.test(v.lang) && v !== best);
+    const other = voices.filter((v) => !/^(sv|nb|no|da|en)/i.test(v.lang) && v !== best);
     sel.innerHTML = [
-      best ? `<optgroup label="Closest to Jarvis">${opt(best)}</optgroup>` : '',
-      english.length ? `<optgroup label="English">${english.map(opt).join('')}</optgroup>` : '',
-      other.length ? `<optgroup label="Other languages">${other.map(opt).join('')}</optgroup>` : '',
+      best ? `<optgroup label="Bäst för Jarvis på svenska">${opt(best)}</optgroup>` : '',
+      swedish.length ? `<optgroup label="Svenska och nordiska">${swedish.map(opt).join('')}</optgroup>` : '',
+      english.length ? `<optgroup label="Engelska (läser svenska dåligt)">${english.map(opt).join('')}</optgroup>` : '',
+      other.length ? `<optgroup label="Andra språk">${other.map(opt).join('')}</optgroup>` : '',
     ].join('');
   }
   const natural = voices.some((v) => /Natural/i.test(v.name));
   $('#voice-note').textContent = !voices.length
-    ? 'This browser offers no voices. Open Jarvis in Edge or Chrome.'
+    ? 'Den här webbläsaren har inga röster. Öppna Jarvis i Edge eller Chrome.'
     : natural
-      ? 'Voices marked "Online (Natural)" sound the most human. They need an internet connection.'
-      : 'For more natural voices, open Jarvis in Microsoft Edge and pick a "Natural" voice (try Ryan, British).';
+      ? 'Röster märkta "Online (Natural)" låter mest mänskliga. De kräver internet. Prova Mattias eller Sofie (svenska).'
+      : 'För naturligare röster: öppna Jarvis i Microsoft Edge och välj en "Natural"-röst, till exempel Mattias (svenska).';
   $('#voice-rate').value = s.rate;
   $('#voice-pitch').value = s.pitch;
   $('#voice-rate-out').textContent = Number(s.rate).toFixed(2);
@@ -1204,11 +1306,11 @@ function renderVoiceDialog() {
 
 function voiceSample() {
   const h = new Date().getHours();
-  const part = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
+  const part = h < 10 ? 'God morgon' : h < 18 ? 'Hej' : 'God kväll';
   const st = app.state?.stats;
   const due = st?.followups?.length ?? 0;
-  const deals = st?.goal?.target ? `${st.goal.value} of ${st.goal.target} deals this month, and ` : '';
-  return `Good ${part}, ${app.state?.owner || 'sir'}. You have ${deals}${due} follow-up${due === 1 ? '' : 's'} due today.`;
+  const deals = st?.goal?.target ? `${st.goal.value} av ${st.goal.target} affärer den här månaden och ` : '';
+  return `${part}, ${app.state?.owner || 'chefen'}. Du har ${deals}${due} ${due === 1 ? 'uppföljning' : 'uppföljningar'} idag.`;
 }
 
 function bindVoiceDialog() {
@@ -1251,10 +1353,10 @@ function syncCore() {
     b.setAttribute('aria-pressed', String(isAuto ? !app.manualState : app.manualState ? b.dataset.state === st : b.dataset.state === st));
   });
   const running = [...app.jobs.values()].filter((j) => j.status === 'running' || j.status === 'queued').length;
-  const text = { idle: 'Ready · idle', listening: 'Listening…', working: running ? `Working · ${running} run${running > 1 ? 's' : ''}` : 'Working…', speaking: 'Speaking', error: 'Something failed · check the terminal' }[st];
+  const text = { idle: 'Redo · vila', listening: 'Lyssnar…', working: running ? `Arbetar · ${running} ${running > 1 ? 'körningar' : 'körning'}` : 'Arbetar…', speaking: 'Talar', error: 'Något gick fel · kolla terminalen' }[st];
   $('#ready-text').textContent = text;
   const sl = $('#status-line .dot');
-  if (sl) sl.textContent = `Core · ${st}`;
+  if (sl) sl.textContent = `Kärna · ${STATE_NAMES[st] || st}`;
 }
 
 function setEngine(id, { silent = false } = {}) {
@@ -1265,7 +1367,7 @@ function setEngine(id, { silent = false } = {}) {
   $$('.engine button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.engine === id)));
   const e = app.state.engines[id];
   $('#core-name').textContent = e.core;
-  $('#core-sub').textContent = `${e.label} mode · Tier 3 engine${e.available === false ? ' · not installed' : ''}`;
+  $('#core-sub').textContent = `${e.label}-läge · motor för nivå 3${e.available === false ? ' · inte installerat' : ''}`;
   renderGoal();
   renderCommand();
   if (!app.composing) renderDock();
@@ -1284,7 +1386,7 @@ function setView(view) {
 
 function setTab(tab) {
   app.tab = tab;
-  for (const t of ['overview', 'pipeline', 'pace', 'research']) $(`#tab-${t}`).hidden = t !== tab;
+  for (const t of ['overview', 'pipeline', 'pace', 'packages', 'research']) $(`#tab-${t}`).hidden = t !== tab;
   $$('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
 }
 
@@ -1292,7 +1394,7 @@ function setTab(tab) {
 
 async function openFile(path) {
   $('#reader-title').textContent = path;
-  $('#reader-text').textContent = 'Loading…';
+  $('#reader-text').textContent = 'Laddar…';
   $('#reader').showModal();
   if (app.demo || path.startsWith('demo')) { $('#reader-text').textContent = demoFile(path); return; }
   try { $('#reader-text').textContent = (await api(`/api/file?path=${encodeURIComponent(path)}`)).text; } catch (err) { $('#reader-text').textContent = err.message; }
@@ -1300,9 +1402,9 @@ async function openFile(path) {
 
 function renderTranscript() {
   $('#transcript').innerHTML = app.transcript.length
-    ? app.transcript.slice().reverse().map((t) => `<div><span class="label">You · ${new Date(t.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span><span>${esc(t.q)}</span>
+    ? app.transcript.slice().reverse().map((t) => `<div><span class="label">Du · ${new Date(t.at).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span><span>${esc(t.q)}</span>
       ${t.a ? `<span class="label">${esc(app.state.name)}${t.tier ? ` · ${TIER_NAMES[t.tier]}` : ''}</span><span style="color:var(--ink-2)">${esc(t.a)}</span>` : ''}</div>`).join('')
-    : '<p class="empty">Nothing said yet this session. Everything you ask is also logged in system/log/ in the vault.</p>';
+    : '<p class="empty">Inget sagt än den här gången. Allt du frågar loggas också i system/log/ i valvet.</p>';
 }
 
 let toastTimer = null;
@@ -1326,7 +1428,7 @@ function clock() {
   const p = (n) => String(n).padStart(2, '0');
   $('#hhmm').textContent = `${p(d.getHours())}:${p(d.getMinutes())}`;
   $('#ss').textContent = `:${p(d.getSeconds())}`;
-  $('#date').textContent = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).replace(',', ' ·').toUpperCase();
+  $('#date').textContent = `${d.toLocaleDateString('sv-SE', { weekday: 'short' })} · ${d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}`.replace(/\./g, '').toUpperCase();
 }
 
 function bind() {
@@ -1338,7 +1440,7 @@ function bind() {
     if (app.manualState === 'speaking') core.pulse();
     syncCore();
   }));
-  $('#pause').addEventListener('click', (e) => { e.currentTarget.textContent = core.togglePause() ? 'Resume motion' : 'Pause motion'; });
+  $('#pause').addEventListener('click', (e) => { e.currentTarget.textContent = core.togglePause() ? 'Starta rörelse' : 'Pausa rörelse'; });
   $('#ask-form').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#ask-input').value; $('#ask-input').value = ''; ask(v); });
   $('#talk').addEventListener('click', startListening);
   $('#dock-talk').addEventListener('click', () => { if (app.view !== 'hud') setView('hud'); startListening(); });

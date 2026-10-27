@@ -18,6 +18,17 @@ export function slugify(text, max = 48) {
   return String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, max) || 'run';
 }
 
+/** Note headings, Swedish first. English names from older notes still work. */
+export const H = {
+  directives: ['fokus', 'directives'],
+  schedule: ['schema', 'schedule'],
+  tasks: ['uppgifter', 'tasks'],
+  week: ['den här veckan', 'this week'],
+  open: ['öppna', 'open'],
+  routine: ['varje dag', 'every day'],
+  contract: ['innan jag skriver på', 'before i sign'],
+};
+
 export class Vault {
   constructor(root) {
     this.root = path.resolve(root);
@@ -71,16 +82,20 @@ export class Vault {
     return out;
   }
 
-  /** List items with their line numbers so the HUD can tick them off in place. */
+  /**
+   * List items with their line numbers so the HUD can tick them off in place.
+   * heading can be one name or several (Swedish and English notes both work).
+   */
   listItems(file, heading) {
     const md = this.read(file);
     if (!md) return null;
     const lines = md.split('\n');
+    const names = heading ? [].concat(heading).map((h) => h.toLowerCase()) : null;
     let inSection = !heading;
     const items = [];
     lines.forEach((raw, i) => {
       const h = raw.match(/^##\s+(.+?)\s*$/);
-      if (h) { inSection = heading ? h[1].toLowerCase() === heading : true; return; }
+      if (h) { inSection = names ? names.includes(h[1].toLowerCase()) : true; return; }
       if (!inSection) return;
       const box = raw.match(/^\s*[-*]\s+\[( |x|X)\]\s+(.+)$/);
       const plain = raw.match(/^\s*(?:[-*]|\d+[.)])\s+(.+)$/);
@@ -99,24 +114,24 @@ export class Vault {
     if (this.read(rel)) return false;
     const template = this.read('system/templates/daily.md');
     if (!template) return false;
-    const week = (this.listItems('ops/directives.md', 'this week') || []).filter((x) => !x.done).map((x) => x.text);
-    const routine = (this.listItems('system/routine.md', 'every day') || []).map((x) => `- ${x.text}`);
+    const week = (this.listItems('ops/directives.md', H.week) || []).filter((x) => !x.done).map((x) => x.text);
+    const routine = (this.listItems('system/routine.md', H.routine) || []).map((x) => `- ${x.text}`);
     let note = template
       .replace('{{date}}', localDate(d))
-      .replace('{{schedule}}', routine.join('\n') || '- 09:00 Deep work');
-    for (let i = 1; i <= 3; i += 1) note = note.replace(`{{directive${i}}}`, week[i - 1] || 'Set a directive');
+      .replace('{{schedule}}', routine.join('\n') || '- 09:00 Ringpass');
+    for (let i = 1; i <= 3; i += 1) note = note.replace(`{{directive${i}}}`, week[i - 1] || 'Sätt ett fokus');
     this.write(rel, note);
     return true;
   }
 
   directives() {
-    const today = this.listItems(this.todayNotePath(), 'directives');
+    const today = this.listItems(this.todayNotePath(), H.directives);
     if (today && today.length) return today.slice(0, 3);
-    return (this.listItems('ops/directives.md', 'this week') || this.listItems('ops/directives.md') || []).slice(0, 3);
+    return (this.listItems('ops/directives.md', H.week) || this.listItems('ops/directives.md') || []).slice(0, 3);
   }
 
   schedule() {
-    const items = this.listItems(this.todayNotePath(), 'schedule') || [];
+    const items = this.listItems(this.todayNotePath(), H.schedule) || [];
     return items
       .map((it) => {
         const m = it.text.match(/^(\d{1,2}:\d{2})\s*[-–]?\s*(.+)$/);
@@ -127,8 +142,8 @@ export class Vault {
   }
 
   tasks() {
-    const today = this.listItems(this.todayNotePath(), 'tasks');
-    const base = this.listItems('ops/tasks.md', 'open') || this.listItems('ops/tasks.md') || [];
+    const today = this.listItems(this.todayNotePath(), H.tasks);
+    const base = this.listItems('ops/tasks.md', H.open) || this.listItems('ops/tasks.md') || [];
     return [...(today || []), ...base];
   }
 
@@ -136,10 +151,10 @@ export class Vault {
     const md = this.read(file);
     const lines = md.split('\n');
     const raw = lines[line];
-    if (raw == null) throw new Error('That line no longer exists. Refresh and try again.');
+    if (raw == null) throw new Error('Raden finns inte längre. Ladda om och försök igen.');
     if (/\[ \]/.test(raw)) lines[line] = raw.replace('[ ]', '[x]');
     else if (/\[(x|X)\]/.test(raw)) lines[line] = raw.replace(/\[(x|X)\]/, '[ ]');
-    else throw new Error('That line is not a checkbox.');
+    else throw new Error('Raden är ingen kryssruta.');
     this.write(file, lines.join('\n'));
     return !/\[ \]/.test(lines[line]);
   }
@@ -159,10 +174,10 @@ export class Vault {
   addLead(fields) {
     const doc = this.pipeline();
     const company = String(fields.company || '').trim();
-    if (!company) throw Object.assign(new Error('A company name is needed.'), { status: 400 });
+    if (!company) throw Object.assign(new Error('Skriv in ett företagsnamn.'), { status: 400 });
     const email = String(fields.email || '').trim().toLowerCase();
     if (doc.rows.some((r) => r.company.toLowerCase() === company.toLowerCase() || (email && r.email.toLowerCase() === email))) {
-      throw Object.assign(new Error(`${company} is already in the pipeline.`), { status: 409 });
+      throw Object.assign(new Error(`${company} finns redan i pipelinen.`), { status: 409 });
     }
     const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
     for (const c of COLUMNS) if (fields[c] != null && c !== 'id') row[c] = String(fields[c]).trim();
@@ -182,11 +197,11 @@ export class Vault {
   updateLead(id, fields) {
     const doc = this.pipeline();
     const row = doc.rows.find((r) => r.id === id);
-    if (!row) throw Object.assign(new Error(`No company with id ${id}. Refresh and try again.`), { status: 404 });
+    if (!row) throw Object.assign(new Error(`Inget företag med id ${id}. Ladda om och försök igen.`), { status: 404 });
     const before = row.status;
     // Status first (it sets a default next step), then anything typed explicitly wins.
     if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, localDate());
-    for (const c of ['company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'paid', 'next_date', 'next_action', 'notes']) {
+    for (const c of ['company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'paid', 'offer', 'next_date', 'next_action', 'notes']) {
       if (fields[c] != null) row[c] = String(fields[c]).trim();
     }
     if (fields.package != null) row.package = packageOf(row);

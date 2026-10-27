@@ -15,17 +15,24 @@ description: Write personalised first emails in Norwegian for researched compani
    /lead-research. Stop.
 2. Read each row and its briefing in `outputs/lead-research/` if one exists.
 3. Write the email as the playbook says, in Norwegian bokmål (or the language in
-   `email_language`): short lowercase subject, the observation, their problem, one sentence on
-   what we do, a soft ask for a 20-minute demo, under 90 words, the opt-out line.
+   `email_language`): short lowercase subject, the observation, their problem in Driv's words
+   (customers waiting after closing time, the same questions every day, a messy shared inbox),
+   one sentence on Driv Kundesenter, a soft ask for a 20-minute demo, under 90 words, signed
+   "Naim, Driv Mobil" with his phone number, and the opt-out line. Sell the benefit, not features.
 4. If a Gmail tool is available, create a Gmail **draft**. Never send. If not, collect the
    emails in the output file.
 5. In `ops/pipeline.md` set `status` = `drafted`, `channel` = `email`, `next_date` = today,
-   `next_action` = `Send first email`.
+   `next_action` = `Skicka första mejlet`.
 
 ## Never
 - Never send, schedule or forward an email.
 - Never claim a feature, price, customer or result that is not in `projects/product.md`.
+- Never mention prices, discounts or binding period in a first email.
 - Skip a company with no real observation and say why.
+
+
+## Language
+Write everything for Naim (the output file and your final reply) in Swedish. Anything for a customer is Norwegian bokmål.
 
 ## Output
 `outputs/outreach-drafts/YYYY-MM-DD.md` with every email (to, subject, body). Reply with the

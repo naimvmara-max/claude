@@ -1,9 +1,14 @@
 # Jarvis · Agentic OS v2
 
-A personal operating system for Naim's **sales job**: selling an AI customer service platform
-to companies in Norway, paid per deal. One HUD and one brain on top of an Obsidian vault,
-driving Claude Code (or Codex) to find companies, draft emails in Norwegian, build call lists,
-prepare demos and keep the pipeline and commission current.
+A personal operating system for Naim's **sales job**: selling **Driv Kundesenter** (Driv Mobil AS)
+to companies in Norway, paid per signed agreement. One HUD and one brain on top of an Obsidian
+vault, driving Claude Code (or Codex) to find companies, draft emails in Norwegian, build call
+lists, prepare demos, count credits for the offer and keep the pipeline and commission current.
+
+The HUD, Jarvis's answers and every note written for Naim are in **Swedish**; anything written
+for a customer is in Norwegian bokmål. Product facts, prices and commission come from Driv's
+seller guide and commission sheet (October 2026), copied into `vault/projects/product.md` and
+`vault/system/business.json`.
 
 Preview on example data (no install): https://claude.ai/artifact/1CYR9f65iAVeMkjkibuJ4m
 
@@ -25,20 +30,23 @@ shows zeros.
 | --- | --- |
 | Contacts this week | companies whose `contacted` date is this week (Monday to Sunday), email and phone; today vs `daily_contacts` |
 | Meetings booked | companies with a `booked` date this month; the share of the last 30 days' contacts that booked |
-| Demos held | companies with a `demo` date this month; how many booked or held demos are still open ("in play") |
+| Demos held | companies with a `demo` date this month; offers out; how many booked, demoed or offered deals are still open ("in play") |
 | Deals this month | won companies with a `closed` date this month, one slot per deal in `goal_deals_month` (4), filled with the package |
 | Commission | the `package` of each deal won this month × the commission for that package; ≈ SEK with `sek_per_nok` |
-| Not paid out | won deals with no `paid` date |
-| Pace (Command → Pace) | works back from the deal goal: deals → demos → meetings → contacts, a workday for the rest of the month. Uses your own conversion rates once you have 100 contacts, 5 meetings and 5 demos, and the starting guesses in `assumptions` until then |
+| Payout | Driv pays commission with the salary the month after signing: this month's deals are "next salary"; unpaid deals two months on are flagged as late |
+| Pace (Kommando → Takt) | works back from the deal goal: deals → demos → meetings → contacts, a workday for the rest of the month. Uses your own conversion rates once you have 100 contacts, 5 meetings and 5 demos, and the starting guesses in `assumptions` until then. Commission at goal uses Driv's typical mix (55 % S, 35 % M, 10 % L) |
+| Packages (Kommando → Paket) | Driv's three packages with price, credits and commission, and a credit calculator for step 3 of Driv's process: count credits with the customer and pick the smallest package that covers them |
 | Follow-ups due | open companies whose `next_date` is today or earlier, plus contacted ones with no answer after 3 days (2 for phone) |
 | Funnel | how many companies reached each stage, with the conversion from the stage above |
 
-The commission per package (Small 5 000, Medium 10 000, Large 20 000 NOK) is what was said at the
-interview. The HUD says so until you set `"confirmed": true` in `business.json`. The contract
-checklist is in `vault/projects/sales-job.md` and in Command → Pace.
+Driv's numbers: Small 4 695, Medium 7 595, Large 13 595 NOK per month excl. VAT (5, 15, 30
+credits); commission 5 000, 10 000, 20 000 NOK per signed agreement. Open questions (binding
+period 12 vs 24/36 months, extra-credit price, clawback) and the contract checklist are in
+`vault/projects/sales-job.md` and in Kommando → Takt.
 
-You can add companies and move them through the stages in **Command → Pipeline**, edit the table
-in Obsidian, or let the skills do it. Moving a company to **Meeting booked** starts /demo-prep.
+You can add companies and move them through the stages in **Kommando → Pipeline**, edit the table
+in Obsidian, or let the skills do it. Stages: researched → drafted → contacted → replied →
+booked → demo → offer → won/lost. Moving a company to **Möte bokat** starts /demo-prep.
 
 ## Skills
 
@@ -50,8 +58,8 @@ in Obsidian, or let the skills do it. Moving a company to **Meeting booked** sta
 | Outreach | /follow-ups: day 3, 7 and 14 emails, call-backs, after-demo follow-ups | weekdays 08:45 |
 | Outreach | /inbox-brief: pipeline replies first, draft answers with demo times | daily 08:00 |
 | Outreach | /sync-pipeline: Gmail and Calendar → who was emailed, replied, booked, demoed | daily 12:00 |
-| Sales | /demo-prep: their customer service, questions, which package and why | when a company moves to "Meeting booked" |
-| Sales | /offer: demo notes → offer email draft | manual |
+| Sales | /demo-prep: their customer service, questions, which package and why | when a company moves to "Möte bokat" |
+| Sales | /offer: demo notes → credit count, package and the covering email for the CRM offer | manual |
 | Sales | /objections: collect objections, true answers into `wiki/objections.md` | manual |
 | Productivity | /plan-today (with the pace), /close-day, /weekly-review | weekdays 07:00, 21:30, Sundays 19:00 |
 | Research | /morning-intel (buying signals, competitors, one idea), /deep-research | weekdays 06:30, manual |
@@ -63,7 +71,9 @@ make the calls. Product claims come only from `vault/projects/product.md`, and p
 unconfirmed there are never quoted. The old outreach-business setup is in
 `vault/_archive-vault/outreach-business/`.
 
-Jarvis understands Swedish too: "hur går det?", "hur många samtal behöver jag?", "ringlistan".
+Jarvis understands Swedish and English: "hur går det?", "ligger jag i fas?", "vem ska jag ringa idag?",
+"förbered demon med …". It answers in Swedish and picks a Swedish voice by default (Edge:
+Mattias or Sofie, "Natural").
 
 ## Setup (about 10 minutes)
 
@@ -96,7 +106,7 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
 6. **Obsidian (optional):** open `agentic-os/vault` as a vault, Settings → Community plugins →
    turn off Restricted mode → enable *Agentic OS HUD*.
 
-`npm run check` runs 41 offline checks (routing, schedules, pipeline, commission and pace maths).
+`npm run check` runs 47 offline checks (Swedish and English routing, schedules, pipeline, commission, credits and pace maths).
 `npm run demo` builds `dist/jarvis-demo.html`, a single-file demo that needs no server.
 
 ## Troubleshooting
@@ -124,11 +134,10 @@ They show the microphone button but cannot reach the speech service voice input 
 Chrome or Edge: `Start Jarvis.bat` opens Jarvis in Chrome (or Edge) as its own window. Then
 allow the microphone when asked.
 
-**Changing Jarvis's voice.** Click **Voice** next to Tap to talk. Pick a voice, set speed and
-pitch, and choose whether every answer is read aloud. The list is the voices your browser and
-Windows have installed; in Edge the "Natural" (online) voices sound best, and British male voices
-such as Ryan are closest to the film Jarvis. More voices: Windows Settings → Time & language →
-Speech → Add voices. The choice is saved in that browser.
+**Changing Jarvis's voice.** Click **Röst** next to Tryck och prata. Pick a voice, set speed and
+pitch, and choose whether every answer is read aloud. Jarvis answers in Swedish, so a Swedish
+voice is the default; in Edge the "Natural" voices (Mattias, Sofie) sound best. An English voice
+reads Swedish badly. More voices: Windows Settings → Time & language → Speech → Add voices.
 
 **`npm start` says it cannot find package.json.** The terminal is in the wrong folder. Open the
 `agentic-os` folder in File Explorer, type `cmd` in the address bar, press Enter, run `npm start`.

@@ -11,60 +11,72 @@ const BACKBONE = /*__BACKBONE__*/ null;
 
 const FALLBACK = {
   rules: [
-    { title: 'Done it by hand twice', then: 'make it a skill' },
-    { title: 'Skill works 5 times in a row', then: 'automate it' },
-    { title: 'It sends, calls or spends', then: 'keep it manual' },
+    { title: 'Gjort det för hand två gånger', then: 'gör det till en skill' },
+    { title: 'Skillen fungerar 5 gånger i rad', then: 'automatisera den' },
+    { title: 'Den skickar, ringer eller kostar', then: 'behåll den manuell' },
   ],
-  domains: [{ id: 'productivity', label: 'Productivity' }],
-  skills: [{ name: 'plan-today', domain: 'productivity', task: 'Plan my day', does: 'pace + plan', connectors: ['Calendar'], schedule: 'weekdays 07:00', quick: true, label: 'Plan Today', triggers: ['plan my day'] }],
+  domains: [{ id: 'productivity', label: 'Dagen' }],
+  skills: [{ name: 'plan-today', domain: 'productivity', task: 'Planera dagen', does: 'takt + plan', connectors: ['Kalender'], schedule: 'weekdays 07:00', quick: true, label: 'Planera dagen', triggers: ['planera dagen'] }],
 };
 
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const SV_DAYS = ['söndagar', 'måndagar', 'tisdagar', 'onsdagar', 'torsdagar', 'fredagar', 'lördagar'];
+const SV_EVENTS = { 'meeting-booked': 'när ett möte bokas' };
 function when(spec) {
   const s = String(spec || 'manual');
   let m;
-  if ((m = s.match(/^daily (\d{1,2}:\d{2})$/))) return { icon: 'clock', text: `daily ${m[1]}` };
-  if ((m = s.match(/^weekdays (\d{1,2}:\d{2})$/))) return { icon: 'clock', text: `weekdays ${m[1]}` };
-  if ((m = s.match(/^weekly (\w{3}) (\d{1,2}:\d{2})$/))) { const d = DAYS.indexOf(m[1]); return { icon: 'clock', text: `${DAYS[d][0].toUpperCase()}${DAYS[d].slice(1)}days ${m[2]}` }; }
-  if ((m = s.match(/^monthly (\d{1,2})/))) return { icon: 'clock', text: m[1] === '1' ? '1st of the month' : `day ${m[1]} of the month` };
-  if ((m = s.match(/^event (.+)$/))) return { icon: 'bolt', text: m[1].replace(/-/g, ' ') };
-  return { icon: 'hand', text: 'manual, you check it' };
+  if ((m = s.match(/^daily (\d{1,2}:\d{2})$/))) return { icon: 'clock', text: `dagligen ${m[1]}` };
+  if ((m = s.match(/^weekdays (\d{1,2}:\d{2})$/))) return { icon: 'clock', text: `vardagar ${m[1]}` };
+  if ((m = s.match(/^weekly (\w{3}) (\d{1,2}:\d{2})$/))) return { icon: 'clock', text: `${SV_DAYS[DAYS.indexOf(m[1])]} ${m[2]}` };
+  if ((m = s.match(/^monthly (\d{1,2})/))) return { icon: 'clock', text: `den ${m[1]} varje månad` };
+  if ((m = s.match(/^event (.+)$/))) return { icon: 'bolt', text: SV_EVENTS[m[1]] || m[1].replace(/-/g, ' ') };
+  return { icon: 'hand', text: 'manuell, du bestämmer' };
 }
 
-// The same targets as vault/system/business.json.
+// The same targets as vault/system/business.json (Driv Kundesenter, October 2026).
 const BUSINESS = {
-  role: 'Sales rep, AI customer service for companies in Norway, commission only',
+  role: 'Säljare, Driv Kundesenter (AI-kundtjänst) till företag i Norge',
+  employer: 'Driv Mobil AS',
+  product: 'Driv Kundesenter',
   currency: 'NOK',
   sek_per_nok: 0.95,
   goal_deals_month: 4,
   daily_contacts: 60,
-  packages: { S: { name: 'Small', commission: 5000 }, M: { name: 'Medium', commission: 10000 }, L: { name: 'Large', commission: 20000 } },
+  packages: {
+    S: { name: 'Small', price: 4695, credits: 5, commission: 5000, tagline: 'For de første agentene', example: 'f.eks. 2 agenter, 1 kø, 1 webchat og 1 AI-agent' },
+    M: { name: 'Medium', price: 7595, credits: 15, commission: 10000, tagline: 'For et etablert kundeserviceteam (anbefalt)', example: 'f.eks. 8 agenter, 2 køer, 1 webchat, 1 e-post og 1 AI-agent' },
+    L: { name: 'Large', price: 13595, credits: 30, commission: 20000, tagline: 'For større team og flere kanaler', example: 'f.eks. 20 agenter, 3 køer, 2 webchatter, 1 e-post og 2 AI-agenter' },
+  },
+  credit_costs: { agent: 1, queue: 1, webchat: 1, ai_agent: 1, email_channel: 2 },
+  extra_credit_price: 299,
   default_package: 'M',
+  typical_mix: { S: 55, M: 35, L: 10 },
   assumptions: { book_rate: 2, show_rate: 80, close_rate: 10 },
-  confirmed: false,
+  confirmed: true,
+  confirmed_by: 'provisionsbladet från Driv, okt 2026',
   email_language: 'nb',
 };
 
 // Example companies, spread over the last 8 weeks so every chart has a shape. Fictional.
 const EXAMPLE_LEADS = [
-  // [company, contact, industry, city, channel, package, status, addedAgo, contactedAgo, repliedAgo, bookedAgo, demoAgo, closedAgo, paidAgo, nextIn, nextAction, note]
-  ['Fjellsport Nett AS', 'Ingrid Haugen', 'online shop', 'Bergen', 'email', 'L', 'won', 30, 28, 26, 25, 20, 6, null, null, 'Hand over to onboarding', 'Was hiring 2 for kundeservice; about 400 order questions a week'],
-  ['Solheim Tannklinikk', 'Marte Solheim', 'dental clinic', 'Oslo', 'phone', 'M', 'won', 26, 24, null, 24, 15, 3, null, null, 'Hand over to onboarding', 'Phone only open 08:00 to 15:00'],
-  ['Elvebakken Optikk', 'Rune Solberg', 'optician', 'Oslo', 'phone', 'S', 'won', 52, 50, null, 49, 44, 36, 5, null, '', 'First deal; commission paid'],
-  ['Nordlys Sykkel', 'Eirik Dahl', 'bike shop', 'Tromsø', 'email', 'M', 'demo', 18, 16, 13, 12, 2, null, null, 0, 'Follow up after the demo', 'Asked whether it works with Shopify'],
-  ['Havgløtt Hotell', 'Silje Lunde', 'hotel', 'Ålesund', 'email', 'L', 'booked', 12, 10, 6, 5, null, null, null, 1, 'Demo meeting', 'Booking questions in Norwegian, English and German'],
-  ['Kvikk Rør AS', 'Henrik Moe', 'plumbing', 'Stavanger', 'phone', 'S', 'booked', 8, 7, null, 2, null, null, null, 2, 'Demo meeting', 'Misses calls while out on jobs'],
-  ['Bryggen Interiør', 'Nora Bakke', 'online shop', 'Bergen', 'email', 'M', 'replied', 9, 7, 1, null, null, null, null, 0, 'Reply and offer demo times', 'positive'],
-  ['Frisk Fysioterapi', 'Ola Strand', 'physiotherapy', 'Trondheim', 'email', '', 'replied', 6, 5, 0, null, null, null, null, 0, 'Reply and offer demo times', 'question: what does it cost?'],
-  ['Lunde Bilverksted', 'Jonas Vik', 'car workshop', 'Drammen', 'phone', '', 'contacted', 4, 2, null, null, null, null, null, 0, 'Call again', 'No answer twice'],
-  ['Polar Kaffebrenneri', 'Ida Hansen', 'online shop', 'Tromsø', 'email', '', 'contacted', 6, 4, null, null, null, null, null, -1, 'Send follow-up 1', ''],
-  ['Vestland Eiendom', 'Kari Nilsen', 'property management', 'Bergen', 'email', '', 'contacted', 3, 1, null, null, null, null, null, 2, 'Follow-up 1', ''],
-  ['Aker Treningssenter', 'Sander Berg', 'gym', 'Oslo', 'phone', '', 'contacted', 2, 0, null, null, null, null, null, 2, 'Call again', 'Call back after 14:00'],
-  ['Mjøsa Dyreklinikk', 'Hanne Lie', 'vet clinic', 'Hamar', 'email', '', 'drafted', 1, null, null, null, null, null, null, 0, 'Send first email', 'FAQ page with 35 questions'],
-  ['Sørlandet Fliser', 'Martin Aas', 'online shop', 'Kristiansand', 'email', '', 'drafted', 1, null, null, null, null, null, null, 0, 'Send first email', 'Reviews mention slow replies'],
-  ['Byåsen Legesenter', 'Tone Moen', 'medical centre', 'Trondheim', '', '', 'researched', 0, null, null, null, null, null, null, null, 'Draft first email or call', 'Phone queue complaints on Google'],
-  ['Røros Ull AS', 'Per Eriksen', 'online shop', 'Røros', '', 'M', 'researched', 0, null, null, null, null, null, null, null, 'Draft first email or call', 'Hiring a kundeservicemedarbeider (FINN)'],
-  ['Tidevann Restaurant', 'Lise Holm', 'restaurant', 'Bodø', 'email', '', 'lost', 20, 18, 15, null, null, 15, null, null, '', 'not interested: already has a chatbot'],
+  // [company, contact, industry, city, channel, package, status, addedAgo, contactedAgo, repliedAgo, bookedAgo, demoAgo, offerAgo, closedAgo, paidAgo, nextIn, nextAction, note]
+  ['Fjellsport Nett AS', 'Ingrid Haugen', 'nettbutikk', 'Bergen', 'email', 'L', 'won', 30, 28, 26, 25, 20, 18, 6, null, null, 'Lämna över till onboarding', 'Sökte 2 till kundtjänst; ca 400 orderfrågor i veckan'],
+  ['Solheim Tannklinikk', 'Marte Solheim', 'tannklinikk', 'Oslo', 'phone', 'M', 'won', 26, 24, null, 24, 15, 13, 3, null, null, 'Lämna över till onboarding', 'Telefonen öppen bara 08–15'],
+  ['Elvebakken Optikk', 'Rune Solberg', 'optiker', 'Oslo', 'phone', 'S', 'won', 52, 50, null, 49, 44, 42, 36, 5, null, '', 'Första affären; provisionen utbetald'],
+  ['Nordlys Sykkel', 'Eirik Dahl', 'sykkelbutikk', 'Tromsø', 'email', 'M', 'offer', 18, 16, 13, 12, 3, 2, null, null, 0, 'Följ upp offerten', 'Undrade om Shopify (fråga Driv)'],
+  ['Havgløtt Hotell', 'Silje Lunde', 'hotell', 'Ålesund', 'email', 'L', 'booked', 12, 10, 6, 5, null, null, null, null, 1, 'Demomöte', 'Bokningsfrågor på norska, engelska och tyska'],
+  ['Kvikk Rør AS', 'Henrik Moe', 'rørlegger', 'Stavanger', 'phone', 'S', 'booked', 8, 7, null, 2, null, null, null, null, 2, 'Demomöte', 'Missar samtal när de är ute på jobb'],
+  ['Bryggen Interiør', 'Nora Bakke', 'nettbutikk', 'Bergen', 'email', 'M', 'replied', 9, 7, 1, null, null, null, null, null, 0, 'Svara och föreslå demotider', 'positivt'],
+  ['Frisk Fysioterapi', 'Ola Strand', 'fysioterapi', 'Trondheim', 'email', '', 'replied', 6, 5, 0, null, null, null, null, null, 0, 'Svara och föreslå demotider', 'fråga: vad kostar det?'],
+  ['Lunde Bilverksted', 'Jonas Vik', 'bilverksted', 'Drammen', 'phone', '', 'contacted', 4, 2, null, null, null, null, null, null, 0, 'Ring igen', 'Inget svar två gånger'],
+  ['Polar Kaffebrenneri', 'Ida Hansen', 'nettbutikk', 'Tromsø', 'email', '', 'contacted', 6, 4, null, null, null, null, null, null, -1, 'Skicka uppföljning 1', ''],
+  ['Vestland Eiendom', 'Kari Nilsen', 'eiendomsforvaltning', 'Bergen', 'email', '', 'contacted', 3, 1, null, null, null, null, null, null, 2, 'Uppföljning 1', ''],
+  ['Aker Treningssenter', 'Sander Berg', 'treningssenter', 'Oslo', 'phone', '', 'contacted', 2, 0, null, null, null, null, null, null, 2, 'Ring igen', 'Ring tillbaka efter 14:00'],
+  ['Mjøsa Dyreklinikk', 'Hanne Lie', 'dyreklinikk', 'Hamar', 'email', '', 'drafted', 1, null, null, null, null, null, null, null, 0, 'Skicka första mejlet', 'FAQ med 35 frågor, bara kontaktformulär'],
+  ['Sørlandet Fliser', 'Martin Aas', 'nettbutikk', 'Kristiansand', 'email', '', 'drafted', 1, null, null, null, null, null, null, null, 0, 'Skicka första mejlet', 'Recensioner om långsamma svar'],
+  ['Byåsen Legesenter', 'Tone Moen', 'legesenter', 'Trondheim', '', '', 'researched', 0, null, null, null, null, null, null, null, null, 'Skriv första mejlet eller ring', 'Klagomål på telefonkön på Google'],
+  ['Røros Ull AS', 'Per Eriksen', 'nettbutikk', 'Røros', '', 'M', 'researched', 0, null, null, null, null, null, null, null, null, 'Skriv första mejlet eller ring', 'Söker kundeservicemedarbeider (FINN)'],
+  ['Tidevann Restaurant', 'Lise Holm', 'restaurant', 'Bodø', 'email', '', 'lost', 20, 18, 15, null, null, null, 15, null, null, '', 'inte intresserade: har redan en chatbot'],
 ];
 
 function exampleLeads(now) {
@@ -78,7 +90,7 @@ function exampleLeads(now) {
   // Deals marked as won "this month" stay inside the current month whatever today's date is.
   const inMonth = (offset) => Math.min(offset, now.getDate() - 1);
   const leads = EXAMPLE_LEADS.map((l, i) => {
-    const [company, contact, industry, city, channel, pkg, status, added, contacted, replied, booked, demo, closed, paid, nextIn, nextAction, notes] = l;
+    const [company, contact, industry, city, channel, pkg, status, added, contacted, replied, booked, demo, offer, closed, paid, nextIn, nextAction, notes] = l;
     const thisMonth = status === 'won' && closed != null && closed < 30;
     const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
     const slug = company.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/å/g, 'a').replace(/[^a-z]+/g, '');
@@ -86,7 +98,7 @@ function exampleLeads(now) {
       id: `L${String(i + 1).padStart(3, '0')}`, company, contact, industry, city, channel, package: pkg, status,
       email: `post@${slug.slice(0, 18)}.example`, phone: channel === 'phone' ? `+47 ${String(40000000 + i * 1234567).replace(/(\d{3})(\d{2})(\d{3})/, '$1 $2 $3')}` : '',
       website: `${slug.slice(0, 18)}.example`,
-      added: day(added), contacted: day(contacted), replied: day(replied), booked: day(booked), demo: day(demo),
+      added: day(added), contacted: day(contacted), replied: day(replied), booked: day(booked), demo: day(demo), offer: day(offer),
       closed: day(thisMonth ? inMonth(closed) : closed), paid: day(paid),
       next_date: nextIn == null ? '' : day(-nextIn), next_action: nextAction, notes,
     });
@@ -114,21 +126,22 @@ function exampleLeads(now) {
       const done = ago >= 14;
       const meeting = done && (k === 0 || k === 35);
       const held = done && k === 0;
+      const offered = held && w % 2 === 0;
       const replied = done && !phone && !meeting && k % 13 === 1;
       const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
       Object.assign(row, {
-        id: `L${String(n).padStart(3, '0')}`, company: `Example company ${n}`, channel: phone ? 'phone' : 'email',
+        id: `L${String(n).padStart(3, '0')}`, company: `Exempelföretag ${n}`, channel: phone ? 'phone' : 'email',
         added: day(ago + 2), contacted: iso(d), replied: replied ? day(ago - 3) : '',
-        booked: meeting ? day(ago - 1) : '', demo: held ? day(ago - 6) : '',
+        booked: meeting ? day(ago - 1) : '', demo: held ? day(ago - 6) : '', offer: offered ? day(ago - 7) : '',
       });
       if (done) {
         Object.assign(row, {
           status: 'lost',
           closed: day(Math.max(0, ago - (meeting ? 10 : replied ? 3 : 12))),
-          notes: held ? 'went quiet after the demo' : meeting ? 'no-show' : replied ? 'not now' : 'no answer after 3 tries',
+          notes: offered ? 'tackade nej till offerten' : held ? 'tystnade efter demon' : meeting ? 'dök inte upp' : replied ? 'inte nu' : 'inget svar efter 3 försök',
         });
       } else {
-        Object.assign(row, { status: 'contacted', next_date: day(-(5 + (k % 4))), next_action: phone ? 'Call again' : 'Follow-up 2' });
+        Object.assign(row, { status: 'contacted', next_date: day(-(5 + (k % 4))), next_action: phone ? 'Ring igen' : 'Uppföljning 2' });
       }
       leads.push(row);
     }
@@ -150,7 +163,7 @@ export function demoState() {
   return {
     name: 'JARVIS',
     owner: 'Naim',
-    tagline: 'Your sales command center · Norway',
+    tagline: 'Din säljcentral · Driv Kundesenter',
     now: now.toISOString(),
     mode: 'demo',
     engine: 'claude',
@@ -162,46 +175,47 @@ export function demoState() {
     leads,
     stats: computeStats(leads, { business }),
     directives: [
-      { text: 'Call 30 online shops in Bergen from the hiring-signal list', done: false, file: 'demo', line: 1 },
-      { text: 'Prep the Havgløtt Hotell demo and follow up Nordlys Sykkel', done: false, file: 'demo', line: 2 },
-      { text: 'Get the commission terms in writing', done: true, file: 'demo', line: 3 },
+      { text: 'Ring 30 nätbutiker i Bergen från listan med rekryteringssignaler', done: false, file: 'demo', line: 1 },
+      { text: 'Förbered demon med Havgløtt Hotell och följ upp offerten till Nordlys Sykkel', done: false, file: 'demo', line: 2 },
+      { text: 'Fråga chefen om bindningstiden (12 eller 24/36 månader)', done: true, file: 'demo', line: 3 },
     ],
     schedule: [
-      { time: '07:00', text: 'Plan the day: pace, follow-ups, demos' },
+      { time: '07:00', text: 'Planera dagen: takt, uppföljningar, demos' },
       { time: '08:00', text: 'Gym' },
-      { time: '09:00', text: 'Calls: 30 online shops in Bergen' },
-      { time: '11:30', text: 'Emails: send 25 drafted first emails + follow-ups' },
-      { time: '13:00', text: 'Call-backs: Lunde Bilverksted, Aker Treningssenter' },
-      { time: '14:00', text: 'Follow up the Nordlys Sykkel demo' },
-      { time: '15:00', text: 'Demo prep: Havgløtt Hotell (tomorrow 10:00)' },
-      { time: '16:00', text: 'Prospecting: companies hiring kundeservice on FINN' },
+      { time: '09:00', text: 'Samtal: 30 nätbutiker i Bergen' },
+      { time: '11:30', text: 'Mejl: skicka 25 utkast + uppföljningar' },
+      { time: '13:00', text: 'Återuppringningar: Lunde Bilverksted, Aker Treningssenter' },
+      { time: '14:00', text: 'Följ upp offerten till Nordlys Sykkel' },
+      { time: '15:00', text: 'Demoförberedelse: Havgløtt Hotell (i morgon 10:00)' },
+      { time: '16:00', text: 'Prospektering: företag som söker kundtjänstpersonal på FINN' },
       { time: '21:30', text: '/close-day' },
     ],
     tasks: [
-      { text: 'Ask the manager for the price list and a demo account', done: false, file: 'demo', line: 4 },
-      { text: 'Fill in projects/product.md: languages, integrations, prices', done: false, file: 'demo', line: 5 },
-      { text: 'Mark Fjellsport and Solheim paid when the payout arrives', done: false, file: 'demo', line: 6 },
-      { text: 'Connect Gmail to Claude Code', done: true, file: 'demo', line: 7 },
+      { text: 'Fråga chefen vilket CRM vi använder och be om en demo-miljö', done: false, file: 'demo', line: 4 },
+      { text: 'Fråga vad en extra kredit kostar: 299 kr per månad eller en gång?', done: false, file: 'demo', line: 5 },
+      { text: 'Markera Fjellsport och Solheim som utbetalda när lönen kommer', done: false, file: 'demo', line: 6 },
+      { text: 'Koppla Gmail till Claude Code', done: true, file: 'demo', line: 7 },
     ],
     contract: [
-      { text: 'Exact commission per package (Small, Medium, Large) in NOK', done: false, file: 'demo', line: 20 },
-      { text: 'When commission is paid: when the customer signs, or when the customer has paid', done: false, file: 'demo', line: 21 },
-      { text: 'What happens to my commission if a customer cancels early (clawback)', done: false, file: 'demo', line: 22 },
-      { text: 'Employment or freelance (in Sweden: F-skatt, holiday pay, pension, who pays social fees)', done: false, file: 'demo', line: 23 },
-      { text: 'Base salary after two months: the amount, and how much the commission drops', done: false, file: 'demo', line: 24 },
-      { text: 'Written OK to use my own outreach tools and lead lists', done: true, file: 'demo', line: 25 },
+      { text: 'Provision per paket i kronor (står i provisionsbladet)', done: true, file: 'demo', line: 20 },
+      { text: 'När provisionen betalas ut (med lönen månaden efter signering)', done: true, file: 'demo', line: 21 },
+      { text: 'Vad som händer med provisionen om kunden säger upp avtalet tidigt eller inte betalar', done: false, file: 'demo', line: 22 },
+      { text: 'Bindningstiden: 12 månader (provisionsbladet) eller 24/36 månader (säljguiden)?', done: false, file: 'demo', line: 23 },
+      { text: 'Anställning eller frilans, och i vilket land (skatt, semesterersättning, pension)', done: false, file: 'demo', line: 24 },
+      { text: 'Grundlön efter två månader: belopp och om provisionen ändras', done: false, file: 'demo', line: 25 },
+      { text: 'Skriftligt OK på att använda egna outreach-verktyg och egna leadlistor', done: false, file: 'demo', line: 26 },
     ],
     brief: {
       path: 'demo',
       title: 'Example brief',
       bullets: [
-        'Example: 3 online shops in Bergen posted customer service jobs on FINN this week → added to inbox/leads.md for /lead-research. Source: finn.no/job',
-        'Example: a Nordic competitor launched Norwegian-language voice answering → ask your manager how ours compares before a prospect asks you.',
-        'Idea for today: open calls with the hiring signal: «Jeg så at dere søker en kundeservicemedarbeider. Hvor mange av henvendelsene er spørsmål om ordrestatus?»',
+        'Exempel: 3 nätbutiker i Bergen har lagt ut kundtjänstjobb på FINN den här veckan → tillagda i inbox/leads.md för /lead-research. Källa: finn.no/job',
+        'Exempel: en nordisk konkurrent lanserade AI-svar på norska i telefon → fråga chefen hur Driv står sig innan en kund frågar dig.',
+        'Idé för idag: öppna samtalen med Drivs fråga «Hva skjer med spørsmål som kommer etter stengetid?» och lyssna efter «de besvares neste dag».',
       ],
     },
     outputs: [
-      { path: 'demo/call-list', name: 'today', folder: 'call-list', mtime: Date.now() - 2 * 36e5 },
+      { path: 'demo/call-list', name: 'idag', folder: 'call-list', mtime: Date.now() - 2 * 36e5 },
       { path: 'demo/demo-prep', name: 'havglott-hotell', folder: 'demo-prep', mtime: Date.now() - 5 * 36e5 },
       { path: 'demo/lead-research', name: 'nettbutikker-bergen', folder: 'lead-research', mtime: Date.now() - 864e5 },
     ],
@@ -215,36 +229,39 @@ export function demoState() {
 }
 
 const DEMO_FILES = {
-  'demo/call-list': '# Call list (example)\n\nWhat /call-list writes into outputs/call-list/ every weekday at 08:15. Fictional companies.\n\n## 1. Lunde Bilverksted · Jonas Vik · call-back (try 3)\n- Why now: no answer twice; workshops pick up before 09:30\n- Opener: «Hei Jonas, dette er Naim. Jeg ringer om telefonene deres, har du et halvt minutt?»\n- Ask: «Hvor mange samtaler mister dere mens dere står i verkstedet?»\n- Likely objection: «Vi har ikke tid til noe nytt.» → «Derfor ringer jeg: oppsettet tar dere ikke tid, og det svarer når dere ikke kan.»\n\n## 2. Aker Treningssenter · Sander Berg · call back after 14:00\n- Opener: about questions on opening hours and memberships\n\n## 3. Byåsen Legesenter · Tone Moen · first call\n- Observation: Google reviews about long phone queues',
-  'demo/demo-prep': '# Demo prep: Havgløtt Hotell (example)\n\n## Their situation\n- 40-room hotel in Ålesund, guests from Norway, Germany and the UK\n- Questions by email and phone: check-in times, parking, breakfast, booking changes\n- Reception is staffed 07:00 to 23:00\n\n## Questions they probably get most\n1. When is check-in and check-out?\n2. Is there parking, and what does it cost?\n3. Can I change my booking?\n\n## Discovery questions\n1. How many emails and calls a day, and how many are the same five questions?\n2. Who answers them today, and what else should that person be doing?\n3. What happens to questions that come in at night?\n\n## Package\n- Large: three languages and a booking system to connect (confirm the integration in projects/product.md)\n\n## Next step to agree\n- An offer by email and a decision date before the summer season',
-  'demo/lead-research': '# Leads: online shops in Bergen (example)\n\n## Røros Ull AS\n- Hiring a kundeservicemedarbeider (FINN, posted this week)\n- 25 employees (brreg.no), daglig leder Per Eriksen (proff.no)\n- Opener: the job ad, and how many of the questions are order status\n- Fit 5/5 · package guess: Medium',
+  'demo/call-list': '# Ringlista (exempel)\n\nSå här ser /call-list ut i outputs/call-list/ varje vardag 08:15. Påhittade företag.\n\n## 1. Lunde Bilverksted · Jonas Vik · återuppringning (försök 3)\n- Varför nu: inget svar två gånger; verkstäder svarar före 09:30\n- Öppning: «Hei Jonas, dette er Naim fra Driv. Jeg ringer om telefonene deres, har du et halvt minutt?»\n- Drivs fråga: «Hva skjer med spørsmål som kommer etter stengetid?»\n- Trolig invändning: «Vi har ikke så mange henvendelser.» → «Start med Small. AI-agenten tar kveld og helg, så ingen venter.»\n\n## 2. Aker Treningssenter · Sander Berg · ring tillbaka efter 14:00\n- Öppning: om frågor om öppettider och medlemskap\n\n## 3. Byåsen Legesenter · Tone Moen · första samtalet\n- Observation: recensioner på Google om lång telefonkö',
+  'demo/demo-prep': '# Demoförberedelse: Havgløtt Hotell (exempel)\n\n## Deras läge\n- Hotell med 40 rum i Ålesund, gäster från Norge, Tyskland och Storbritannien\n- Frågor via mejl och telefon: incheckning, parkering, frukost, ändrade bokningar\n- Receptionen bemannad 07:00–23:00\n\n## Frågorna de troligen får mest\n1. När är incheckning och utcheckning? (AI-agenten)\n2. Finns det parkering och vad kostar den? (AI-agenten)\n3. Kan jag ändra min bokning? (kollega, med sammanfattning)\n\n## Drivs sex frågor\n- «Hva skjer med spørsmål som kommer etter stengetid?» Väntat svar: de besvaras på morgonen.\n- «Hvor mange jobber med kundeservice?» Styr paketet.\n\n## Paket\n- Första uppskattning: 6 agenter, 2 köer, 1 webbchatt, 1 e-post, 2 AI-agenter = 13 krediter → Medium (15)\n\n## Nästa steg att komma överens om\n- Offert för e-signering och ett beslutsdatum före sommarsäsongen',
+  'demo/lead-research': '# Leads: nätbutiker i Bergen (exempel)\n\n## Røros Ull AS\n- Söker en kundeservicemedarbeider (FINN, publicerad den här veckan)\n- 25 anställda (brreg.no), daglig leder Per Eriksen (proff.no)\n- Drivs målgrupp: nettbutikk og handel\n- Öppning: jobbannonsen, och hur många av frågorna som gäller orderstatus\n- Passar 5/5 · paketgissning: Medium',
 };
 
 export function demoFile(path) {
-  return DEMO_FILES[path] || '# Example\n\nIn the live OS this opens the report from your vault.';
+  return DEMO_FILES[path] || '# Exempel\n\nI riktiga Jarvis öppnas rapporten från ditt valv här.';
 }
 
 const QUICK = [
-  [/booking rate|good rate|conversion|reply rate/i, 'There is no honest universal number. For cold outreach to small companies, a few percent of contacts booking a meeting is common, and many booked meetings never happen. After a few hundred contacts your own rate is the one to trust, and the Pace tab switches to it.'],
-  [/chatbot/i, 'Ask what share of questions their chatbot answers without a person. If it is under half, that gap is the conversation. Do not knock their tool; show what ours does with the questions they already get.'],
-  [/norsk|norwegian|bokmål|bokmal|language/i, 'Write emails in bokmål and keep them plain. On the phone, Swedish works for most Norwegians if you speak slowly, and being open about being Swedish is fine.'],
-  [/price|cost|pris|kostar/i, 'Do not quote a price until projects/product.md marks it as confirmed. Answer with a question: how many customer questions do they get a week? That is what the package depends on.'],
+  [/bokningsgrad|konvertering|svarsfrekvens|booking rate|reply rate/i, 'Det finns ingen ärlig universell siffra. För kalla kontakter till små företag är det vanligt att några procent bokar möte, och en del bokade möten blir aldrig av. Efter några hundra kontakter är din egen siffra den som gäller, och fliken Takt byter till den.'],
+  [/outlook/i, 'Drivs svar: fråga «Hvordan vet dere i dag at alle kunder har fått svar?» Låt dem själva komma fram till att en delad inkorg inte visar det. Sedan visar du ärendehanteringen.'],
+  [/chatbot/i, 'Fråga hur stor andel av frågorna deras chatbot svarar på utan en person, och vad som händer med resten. Om det hamnar i en inkorg utan ansvarig är det där Driv Kundesenter gör skillnad: varje chatt blir ett ärende med ansvarig och SLA.'],
+  [/dyr|pris|kostar|price|cost/i, 'Drivs svar på «det er for dyrt»: räkna tillsammans hur många timmar i veckan som går till likadana frågor. Listpris: Small 4 695, Medium 7 595, Large 13 595 kr i månaden exkl. moms. Lova aldrig rabatt, den bestäms med ledningen innan offerten skickas.'],
+  [/bindning|binding/i, 'Det är oklart än: provisionsbladet säger 12 månader och sedan löpande, säljguiden säger 24 eller 36 månader. Fråga chefen innan du lovar kunden något.'],
+  [/norsk|norwegian|bokmål|bokmal|språk/i, 'Skriv mejlen på bokmål och håll dem enkla. I telefon förstår de flesta norrmän svenska om du pratar lugnt, och det är helt okej att säga att du är svensk.'],
 ];
 
 export function demoQuick(text) {
   for (const [re, answer] of QUICK) if (re.test(text)) return answer;
-  return 'Demo answer. In the live OS this goes to Claude Haiku 5.5 through Claude Code on your subscription and comes back in a few seconds.';
+  return 'Demosvar. I riktiga Jarvis går frågan till Claude Haiku 5.5 via Claude Code på ditt abonnemang och svaret kommer på några sekunder.';
 }
 
 const STEPS = {
   default: ['→ Read ops/directives.md', '→ Read ops/pipeline.md'],
-  'lead-research': ['→ Read wiki/sales-playbook.md', '→ Read ops/pipeline.md', '→ WebSearch finn.no/job kundeservice Bergen', '→ WebFetch data.brreg.no/enhetsregisteret/api/enheter', '→ WebFetch company website', '→ Edit ops/pipeline.md', '→ Write outputs/lead-research/today.md'],
-  'outreach-drafts': ['→ Read projects/product.md', '→ Read wiki/sales-playbook.md', '→ Read ops/pipeline.md', '→ create_draft (Gmail)', '→ Edit ops/pipeline.md', '→ Write outputs/outreach-drafts/today.md'],
-  'call-list': ['→ Read wiki/sales-playbook.md', '→ Read wiki/objections.md', '→ Read ops/pipeline.md', '→ Write outputs/call-list/today.md'],
-  'demo-prep': ['→ Read projects/product.md', '→ Read ops/pipeline.md', '→ WebFetch company website', '→ WebSearch reviews customer service', '→ Write outputs/demo-prep/company.md'],
+  'lead-research': ['→ Read wiki/sales-playbook.md', '→ Read ops/pipeline.md', '→ WebSearch finn.no/job kundeservice Bergen', '→ WebFetch data.brreg.no/enhetsregisteret/api/enheter', '→ WebFetch company website', '→ Edit ops/pipeline.md', '→ Write outputs/lead-research/idag.md'],
+  'outreach-drafts': ['→ Read projects/product.md', '→ Read wiki/sales-playbook.md', '→ Read ops/pipeline.md', '→ create_draft (Gmail)', '→ Edit ops/pipeline.md', '→ Write outputs/outreach-drafts/idag.md'],
+  'call-list': ['→ Read wiki/sales-playbook.md', '→ Read wiki/objections.md', '→ Read ops/pipeline.md', '→ Write outputs/call-list/idag.md'],
+  'demo-prep': ['→ Read projects/product.md', '→ Read ops/pipeline.md', '→ WebFetch company website', '→ WebSearch reviews kundeservice', '→ Write outputs/demo-prep/foretag.md'],
+  offer: ['→ Read projects/product.md', '→ Read inbox/demo-foretag.md', '→ create_draft (Gmail, reply in thread)', '→ Edit ops/pipeline.md'],
   'follow-ups': ['→ Read ops/pipeline.md', '→ search_threads (Gmail)', '→ create_draft (Gmail, reply in thread)', '→ Edit ops/pipeline.md'],
-  'inbox-brief': ['→ search_threads unread (Gmail)', '→ Read ops/pipeline.md', '→ Edit ops/pipeline.md', '→ Write outputs/inbox-brief/today.md'],
-  'plan-today': ['→ Read ops/directives.md', '→ Read system/business.json', '→ Read ops/pipeline.md', '→ list_events today', '→ Edit daily-notes/today.md'],
+  'inbox-brief': ['→ search_threads unread (Gmail)', '→ Read ops/pipeline.md', '→ Edit ops/pipeline.md', '→ Write outputs/inbox-brief/idag.md'],
+  'plan-today': ['→ Read ops/directives.md', '→ Read system/business.json', '→ Read ops/pipeline.md', '→ list_events today', '→ Edit daily-notes/idag.md'],
 };
 
 export const demoStopped = new Set();
@@ -252,13 +269,13 @@ export const demoStopped = new Set();
 /** A simulated Tier 3 run that streams believable steps and says it is a demo. */
 export function demoRun(job, emit) {
   const steps = [
-    { kind: 'sys', text: `$ claude (skill ${job.skill || 'prompt'}) · cwd vault/  [DEMO, nothing runs]` },
+    { kind: 'sys', text: `$ claude (skill ${job.skill || 'prompt'}) · cwd vault/  [DEMO, inget körs på riktigt]` },
     { kind: 'sys', text: 'session 4f2a91c0 · model default' },
     { kind: 'tool', text: `→ Read .claude/skills/${job.skill || 'none'}/SKILL.md` },
     ...(STEPS[job.skill] || STEPS.default).map((t) => ({ kind: 'tool', text: t })),
-    { kind: 'out', text: 'Done. The report is saved in the vault.' },
-    { kind: 'sys', text: 'finished · 6 turns · 41s · demo' },
-    { kind: 'sys', text: 'This was a demo run. Start the Bridge locally (npm start) for real runs.' },
+    { kind: 'out', text: 'Klart. Rapporten är sparad i valvet.' },
+    { kind: 'sys', text: 'klar · 6 varv · 41 s · demo' },
+    { kind: 'sys', text: 'Det här var en demokörning. Starta Bridge lokalt (Start Jarvis.bat) för riktiga körningar.' },
   ];
   let i = 0;
   const tick = () => {
@@ -279,11 +296,11 @@ export function demoAsk(text, state, force) {
   r.classifier = 'local';
   if (force) {
     const f = r.choices.find((c) => c.id === force);
-    if (f) { r.pick = { ...f }; r.reason = 'you picked this route'; r.unsure = false; }
+    if (f) { r.pick = { ...f }; r.reason = 'du valde den här vägen'; r.unsure = false; }
   }
   const { pick } = r;
   if (pick.tier === 1) return { route: r, tier: 1, answer: answerRule(pick.id.slice(5), state) };
   if (pick.tier === 2) return { route: r, tier: 2, answer: demoQuick(text), backend: 'demo' };
   const skill = pick.id.slice(6);
-  return { route: r, tier: 3, skill, answer: `On it. Running /${skill} in ${state.engines[state.engine].label}. In the demo the run is simulated in the terminal below.` };
+  return { route: r, tier: 3, skill, answer: `Jag fixar det. Kör /${skill} i ${state.engines[state.engine].label}. I demon spelas körningen upp i terminalen nedanför.` };
 }
