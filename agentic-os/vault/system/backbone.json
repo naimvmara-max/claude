@@ -1,107 +1,159 @@
 {
-  "_readme": "The skill backbone. Domain -> task -> skill -> automation. The Bridge reads this file for the Backbone view, the router's triggers and the scheduler. Edit freely. Schedules: 'daily HH:MM', 'weekdays HH:MM', 'weekly mon|tue|wed|thu|fri|sat|sun HH:MM', 'monthly D HH:MM', 'event <name>', or 'manual'. Anything that sends, spends or publishes stays 'manual'.",
+  "_readme": "The skill backbone. Domain -> task -> skill -> automation. The Bridge reads this file for the Backbone view, the router's triggers and the scheduler. Edit freely. Schedules: 'daily HH:MM', 'weekdays HH:MM', 'weekly mon|tue|wed|thu|fri|sat|sun HH:MM', 'monthly D HH:MM', 'event <name>', or 'manual'. Anything that sends, calls, spends or publishes stays 'manual'. Triggers can be English or Swedish.",
   "rules": [
-    { "title": "Done it by hand twice", "then": "make it a skill" },
-    { "title": "Skill works 5 times in a row", "then": "automate it" },
-    { "title": "It sends, spends or publishes", "then": "keep it manual" }
+    {
+      "title": "Done it by hand twice",
+      "then": "make it a skill"
+    },
+    {
+      "title": "Skill works 5 times in a row",
+      "then": "automate it"
+    },
+    {
+      "title": "It sends, calls or spends",
+      "then": "keep it manual"
+    }
   ],
   "domains": [
-    { "id": "prospecting", "label": "Prospecting" },
-    { "id": "outreach", "label": "Outreach" },
-    { "id": "sales", "label": "Sales" },
-    { "id": "productivity", "label": "Productivity" },
-    { "id": "research", "label": "Research" },
-    { "id": "finance", "label": "Finance" },
-    { "id": "memory", "label": "Memory" }
+    {
+      "id": "prospecting",
+      "label": "Prospecting"
+    },
+    {
+      "id": "outreach",
+      "label": "Outreach"
+    },
+    {
+      "id": "sales",
+      "label": "Sales"
+    },
+    {
+      "id": "productivity",
+      "label": "Productivity"
+    },
+    {
+      "id": "research",
+      "label": "Research"
+    },
+    {
+      "id": "money",
+      "label": "Commission"
+    },
+    {
+      "id": "memory",
+      "label": "Memory"
+    }
   ],
   "skills": [
     {
       "name": "lead-research",
       "domain": "prospecting",
-      "task": "Find people to email",
-      "does": "10 leads + briefings",
-      "connectors": ["Web", "Pipeline"],
+      "task": "Find companies to contact",
+      "does": "10 Norwegian companies + briefings",
+      "connectors": ["Web", "brreg.no", "Pipeline"],
       "schedule": "manual",
       "quick": true,
       "label": "Find Leads",
-      "triggers": ["find leads", "find clients", "leads", "lead", "prospects", "lead research", "lead list", "build a list", "research this business", "who to email", "new leads"]
+      "triggers": ["find leads", "find companies", "leads", "lead", "prospects", "lead research", "lead list", "build a list", "research this company", "who to contact", "new leads", "companies hiring", "hitta leads", "hitta företag", "nya leads"]
     },
     {
       "name": "outreach-drafts",
       "domain": "outreach",
       "task": "Write first emails",
-      "does": "personalised drafts",
+      "does": "Norwegian drafts in Gmail",
       "connectors": ["Gmail", "Pipeline"],
       "schedule": "weekdays 08:30",
       "quick": true,
       "label": "Draft Emails",
-      "triggers": ["draft emails", "write emails", "cold email", "cold emails", "outreach email", "outreach emails", "first emails", "email copy", "write outreach", "draft outreach"]
+      "triggers": ["draft emails", "write emails", "cold email", "cold emails", "outreach email", "outreach emails", "first emails", "email copy", "write outreach", "draft outreach", "skriv mejl", "kalla mejl", "skriv mail"]
+    },
+    {
+      "name": "call-list",
+      "domain": "outreach",
+      "task": "Cold call",
+      "does": "who to call + openers",
+      "connectors": ["Pipeline", "Web"],
+      "schedule": "weekdays 08:15",
+      "quick": true,
+      "label": "Call List",
+      "triggers": ["call list", "calling list", "who should i call", "who do i call", "who to call", "cold call", "cold calls", "call script", "phone list", "ringlista", "ringlistan", "vem ska jag ringa", "kalla samtal"]
     },
     {
       "name": "follow-ups",
       "domain": "outreach",
       "task": "Chase non-replies",
-      "does": "day 3 / 7 / 14 drafts",
+      "does": "day 3 / 7 / 14 + call-backs",
       "connectors": ["Gmail", "Pipeline"],
       "schedule": "weekdays 08:45",
-      "quick": true,
+      "quick": false,
       "label": "Follow-ups",
-      "triggers": ["follow up", "follow ups", "follow-up", "follow-ups", "followups", "chase", "bump"]
+      "triggers": ["follow up", "follow ups", "follow-up", "follow-ups", "followups", "chase", "bump", "call backs", "callbacks", "följ upp", "uppföljning", "uppföljningar"]
     },
     {
       "name": "inbox-brief",
       "domain": "outreach",
       "task": "Handle replies",
-      "does": "lead replies first",
+      "does": "pipeline replies first",
       "connectors": ["Gmail", "Calendar"],
       "schedule": "daily 08:00",
-      "quick": true,
+      "quick": false,
       "label": "Inbox Brief",
-      "triggers": ["inbox", "email brief", "check my mail", "check my email", "check my inbox", "unread", "triage"]
+      "triggers": ["inbox", "email brief", "check my mail", "check my email", "check my inbox", "unread", "triage", "kolla mejlen", "kolla inkorgen", "inkorgen"]
     },
     {
       "name": "sync-pipeline",
       "domain": "outreach",
       "task": "Keep numbers real",
-      "does": "Gmail -> pipeline",
-      "connectors": ["Gmail", "Pipeline"],
+      "does": "Gmail + Calendar -> pipeline",
+      "connectors": ["Gmail", "Calendar", "Pipeline"],
       "schedule": "daily 12:00",
       "quick": false,
       "label": "Sync Pipeline",
-      "triggers": ["sync pipeline", "sync my pipeline", "update pipeline", "update my pipeline", "update my numbers", "refresh stats", "check replies", "who replied"]
+      "triggers": ["sync pipeline", "sync my pipeline", "update pipeline", "update my pipeline", "update my numbers", "refresh stats", "check replies", "who replied", "vem har svarat", "uppdatera pipelinen"]
     },
     {
-      "name": "call-prep",
+      "name": "demo-prep",
       "domain": "sales",
-      "task": "Prepare for calls",
-      "does": "questions, offer, objections",
+      "task": "Prepare demos",
+      "does": "situation, questions, package",
       "connectors": ["Web", "Gmail"],
-      "schedule": "event call-booked",
-      "quick": false,
-      "label": "Call Prep",
-      "triggers": ["call prep", "prep for my call", "prepare for my call", "prepare for the call", "before my call", "meeting prep", "sales call"]
+      "schedule": "event meeting-booked",
+      "quick": true,
+      "label": "Demo Prep",
+      "triggers": ["demo prep", "prep for my demo", "prep for my meeting", "prepare for my demo", "prepare for the demo", "prepare for my meeting", "before my demo", "before my meeting", "meeting prep", "prep for", "förbered demo", "förbered mötet", "inför mötet"]
     },
     {
-      "name": "proposal",
+      "name": "offer",
       "domain": "sales",
-      "task": "Write proposals",
-      "does": "call notes -> proposal",
-      "connectors": ["Gmail", "Drive"],
+      "task": "Send offers",
+      "does": "demo notes -> offer draft",
+      "connectors": ["Gmail"],
       "schedule": "manual",
       "quick": false,
-      "label": "Proposal",
-      "triggers": ["proposal", "write an offer", "quote for", "pitch deck", "pricing for"]
+      "label": "Offer",
+      "triggers": ["offer", "write the offer", "send an offer", "proposal", "quote for", "tilbud", "offert", "skriv offert"]
+    },
+    {
+      "name": "objections",
+      "domain": "sales",
+      "task": "Handle objections",
+      "does": "answers that are true",
+      "connectors": ["Vault", "Gmail"],
+      "schedule": "manual",
+      "quick": false,
+      "label": "Objections",
+      "triggers": ["objection", "objections", "collect objections", "they said no", "pushback", "lost reasons", "invändning", "invändningar"]
     },
     {
       "name": "plan-today",
       "domain": "productivity",
       "task": "Plan my day",
-      "does": "calendar + pipeline + plan",
+      "does": "pace + calendar + plan",
       "connectors": ["Calendar", "Vault"],
-      "schedule": "daily 07:00",
+      "schedule": "weekdays 07:00",
       "quick": false,
       "label": "Plan Today",
-      "triggers": ["plan my day", "plan today", "plan the day", "make my plan", "build my day", "morning plan", "daily plan"]
+      "triggers": ["plan my day", "plan today", "plan the day", "make my plan", "build my day", "morning plan", "daily plan", "planera dagen", "planera min dag"]
     },
     {
       "name": "close-day",
@@ -112,29 +164,29 @@
       "schedule": "daily 21:30",
       "quick": false,
       "label": "Close Day",
-      "triggers": ["close the day", "close day", "end of day", "wrap up today", "shutdown", "daily review"]
+      "triggers": ["close the day", "close day", "end of day", "wrap up today", "shutdown", "daily review", "avsluta dagen", "stäng dagen"]
     },
     {
       "name": "weekly-review",
       "domain": "productivity",
       "task": "Review my week",
-      "does": "numbers, funnel, next",
+      "does": "funnel, rates, next",
       "connectors": ["Pipeline", "Calendar"],
       "schedule": "weekly sun 19:00",
       "quick": false,
       "label": "Weekly Review",
-      "triggers": ["weekly review", "review my week", "week review", "how did my week go"]
+      "triggers": ["weekly review", "review my week", "week review", "how did my week go", "veckoöversikt", "hur gick veckan"]
     },
     {
       "name": "morning-intel",
       "domain": "research",
-      "task": "Catch up on news",
-      "does": "AI + cold email + sales brief",
+      "task": "Catch up on the market",
+      "does": "signals, competitors, one idea",
       "connectors": ["Web"],
-      "schedule": "daily 06:30",
+      "schedule": "weekdays 06:30",
       "quick": false,
       "label": "Intel Brief",
-      "triggers": ["news", "morning intel", "intel brief", "catch me up", "what happened", "ai news", "deliverability news"]
+      "triggers": ["news", "morning intel", "intel brief", "catch me up", "what happened", "ai news", "competitors", "nyheter", "konkurrenter"]
     },
     {
       "name": "deep-research",
@@ -145,18 +197,18 @@
       "schedule": "manual",
       "quick": false,
       "label": "Deep Research",
-      "triggers": ["research", "deep dive", "look into", "investigate", "find out everything", "report on", "market"]
+      "triggers": ["research", "deep dive", "look into", "investigate", "find out everything", "report on", "market", "industry", "undersök", "marknaden", "branschen"]
     },
     {
-      "name": "money-check",
-      "domain": "finance",
-      "task": "Track money in and out",
-      "does": "receipts -> ledger",
-      "connectors": ["Gmail", "Pipeline"],
+      "name": "commission-check",
+      "domain": "money",
+      "task": "Get paid",
+      "does": "earned vs paid out",
+      "connectors": ["Pipeline", "Gmail"],
       "schedule": "monthly 1 09:00",
       "quick": false,
-      "label": "Money Check",
-      "triggers": ["receipts", "ledger", "expenses", "money check", "runway", "budget", "spent this month"]
+      "label": "Commission Check",
+      "triggers": ["commission check", "check my commission", "have i been paid", "been paid", "payout", "payslip", "unpaid", "provisionskoll", "fått betalt", "utbetalning", "lönebesked"]
     },
     {
       "name": "vault-cleanup",
@@ -167,7 +219,7 @@
       "schedule": "weekly sun 18:00",
       "quick": false,
       "label": "Vault Cleanup",
-      "triggers": ["clean up my notes", "tidy my notes", "tidy the vault", "clean the vault", "archive old notes", "vault cleanup"]
+      "triggers": ["clean up my notes", "tidy my notes", "tidy the vault", "clean the vault", "archive old notes", "vault cleanup", "städa valvet", "städa anteckningar"]
     }
   ]
 }

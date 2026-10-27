@@ -9,6 +9,7 @@
 {{schedule}}
 
 ## Tasks
-- [ ] Send today's drafted emails and every follow-up that is due
+- [ ] Contacts today: calls + emails up to the daily target
+- [ ] Every follow-up and call-back that is due
 
 ## Log

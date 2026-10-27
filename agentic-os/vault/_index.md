@@ -9,6 +9,6 @@ The Obsidian plugin in `.obsidian/plugins/agentic-os-hud` opens the same view in
 
 - Pipeline: [[ops/pipeline]] (every number on the dashboard comes from here)
 - This week: [[ops/directives]] · [[ops/tasks]]
-- Business: [[projects/outreach-business]] · targets in `system/business.json`
-- How to write emails: [[wiki/outreach-playbook]] · [[wiki/connectors]]
-- Skills map: `system/backbone.json`
+- The job: [[projects/sales-job]] (commission and the contract checklist) · [[projects/product]]
+- How to sell in Norway: [[wiki/sales-playbook]] · [[wiki/objections]] · [[wiki/connectors]]
+- Commission and goal: `system/business.json` · skills map: `system/backbone.json`

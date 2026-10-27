@@ -40,20 +40,18 @@ Sources: [The Register](https://www.theregister.com/devops/2026/09/23/shut-up-an
 | audit-suite | community | Includes web-animation-design and make-interfaces-feel-better: a polish pass on motion and micro-interactions. |
 | designs-drift | community | Locks a design system with hooks so later edits do not drift from it. |
 
-## MCP connectors (updated for the outreach business)
+## MCP connectors (updated for the sales job)
 
-Already connected on your claude.ai account: **Gmail, Google Calendar, Google Drive**. Those
-three cover the email skills. Shopify and Higgsfield are connected too but no skill uses them now.
+Already connected on your claude.ai account: **Gmail, Google Calendar, Google Drive**. Gmail
+and Calendar cover the email, inbox, sync and demo skills. Company data for Norway comes from
+brreg.no's open API and public sites through web fetch, so no connector is needed for it.
 
 | Connector | Status | Why |
 | --- | --- | --- |
-| Vibe Prospecting | not connected | Find companies and enrich published contacts for /lead-research. |
-| Pipedrive or HubSpot | not connected | Only if the pipeline outgrows one Markdown table. /sync-pipeline could then read the CRM. |
-| Outreach | not connected | Only if you move sending onto the Outreach platform. |
-| Figma, Canva | not connected / needs reconnect | Only for designing the HUD further; not needed for the business. |
-
-Your sending tool, if you move off Gmail (Instantly, Smartlead, Lemlist), is the next thing
-worth connecting: then sent and reply counts can come from it directly.
+| The employer's CRM | ask the employer | So deals are not tracked twice; /sync-pipeline could read it. |
+| A sending tool (Instantly, Smartlead, Lemlist) | not connected | Only if you send volume from it instead of Gmail; then sent and reply counts come from it. |
+| A dialer | not connected | Only if you call a lot and want calls logged without typing. |
+| Figma, Canva | not connected / needs reconnect | Only for designing the HUD further. |
 
 Outside the claude.ai directory, for building UI in Claude Code:
 [21st.dev Magic MCP](https://www.augmentcode.com/mcp/21st-dev-magic-mcp-server),
@@ -63,5 +61,5 @@ Outside the claude.ai directory, for building UI in Claude Code:
 
 1. Make Gmail and Calendar work inside Claude Code (see `vault/wiki/connectors.md`). That turns
    the email skills from "drafts in a file" into "drafts in your Gmail" and makes the numbers sync.
-2. Add a prospecting data source only once you know your niche converts.
+2. Ask the employer what CRM and sending rules they use before adding a tool of your own.
 3. For the next HUD iteration, install the **frontend-design** plugin.

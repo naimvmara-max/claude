@@ -22,7 +22,7 @@ const css = fs.readFileSync(pub('css/os.css'), 'utf8');
 const backbone = fs.readFileSync(path.join(root, 'vault/system/backbone.json'), 'utf8');
 
 // Each module becomes an IIFE that returns its exports; imports become destructuring.
-const order = ['classify', 'rules', 'pipeline', 'core', 'demo', 'app'];
+const order = ['classify', 'pipeline', 'rules', 'core', 'demo', 'app'];
 const parts = order.map((name) => {
   let src = fs.readFileSync(pub(`js/${name}.js`), 'utf8');
   const exported = new Set();

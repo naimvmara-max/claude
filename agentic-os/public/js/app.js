@@ -3,9 +3,9 @@
 
 import { Core } from './core.js';
 import { classify } from './classify.js';
-import { fmtNum } from './rules.js';
+import { fmtNum, nok, packageMix } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped } from './demo.js';
-import { computeStats, applyStatus, nextId, COLUMNS, isoLocal } from './pipeline.js';
+import { computeStats, applyStatus, nextId, goalMath, packageOf, channelOf, COLUMNS, STAGES, STAGE_LABELS, PACKAGES, CHANNELS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -131,7 +131,7 @@ function renderAll() {
   syncCore();
 }
 
-const TRY = ['how am I doing?', 'who should I follow up with?', 'find 10 leads: accounting firms in Malmö', 'write a subject line for a cold email'];
+const TRY = ['how am I doing?', 'am I on pace?', 'find 10 leads: nettbutikker i Bergen', 'how do I answer "we already have a chatbot"?'];
 
 function renderWelcome() {
   $('#answer').innerHTML = `<div class="answer">
@@ -158,9 +158,24 @@ function renderStatus(connected = true) {
 }
 
 function money(v) {
-  const st = app.state.stats;
-  const cur = st?.currency === 'EUR' || !st ? '€' : `${st.currency} `;
-  return `${cur}${fmtNum(Math.round(v || 0))}`;
+  return nok(v);
+}
+
+/** Whole number with thousands separators, for big displays where the unit sits beside it. */
+function kr(v) {
+  return Math.round(Number(v) || 0).toLocaleString('en-US');
+}
+
+/** "≈ 28,500 SEK" from NOK, or '' when no rate is set. */
+function sek(v) {
+  const r = app.state.stats?.sekPerNok;
+  return r ? `≈ ${kr((v || 0) * r)} SEK` : '';
+}
+
+/** 20000 -> "20K", 5000 -> "5K" for the small deal slots. */
+function kShort(v) {
+  const n = Number(v) || 0;
+  return n >= 1000 ? `${Math.round(n / 100) / 10}K`.replace('.0K', 'K') : String(n);
 }
 
 function pct(v) {
@@ -185,19 +200,20 @@ function sparkline(history, color) {
   </div>`;
 }
 
-const METRIC_COLORS = { sent: '#7fd0ff', reply: '#b58cff', calls: '#f2c46a', value: '#f2876a' };
+const METRIC_COLORS = { contacts: '#5cc8ff', booked: '#8f9bff', demos: '#3fd9e8', commission: '#cfe6ff' };
 
-/** The four numbers that tell the outreach story, all counted from ops/pipeline.md. */
+/** The four numbers that tell the sales story, all counted from ops/pipeline.md. */
 function metrics() {
   const st = app.state.stats;
-  const h = (arr) => arr || [];
-  const wkDelta = (arr) => { const a = h(arr); return a.length > 1 ? a[a.length - 1].v - a[a.length - 2].v : 0; };
-  const arrow = (d, unit = '') => (d > 0 ? `▲ ${fmtNum(d)}${unit}` : d < 0 ? `▼ ${fmtNum(-d)}${unit}` : `· 0${unit}`);
+  const wkDelta = (arr) => { const a = arr || []; return a.length > 1 ? a[a.length - 1].v - a[a.length - 2].v : 0; };
+  const arrow = (d) => (d > 0 ? `▲ ${fmtNum(d)}` : d < 0 ? `▼ ${fmtNum(-d)}` : '· 0');
+  const ch = st.channelWeek || {};
+  const split = [ch.email ? `${ch.email} email` : '', ch.phone ? `${ch.phone} phone` : '', ch.other ? `${ch.other} other` : ''].filter(Boolean).join(' · ');
   return [
-    { key: 'sent', icon: 'i-mail', label: 'Sent this week', short: 'Sent this week', value: fmtNum(st.sentWeek), delta: `${arrow(st.sentWeek - st.sentPrevWeek)} vs last wk`, up: st.sentWeek > st.sentPrevWeek, sub: st.dailyTarget ? `today ${st.sentToday} / ${st.dailyTarget}` : `today ${st.sentToday}`, history: st.sentHistory },
-    { key: 'reply', icon: 'i-reply', label: 'Reply rate 30d', short: 'Reply rate 30d', value: pct(st.replyRate), delta: st.contacted30 ? `${st.replied30} of ${st.contacted30}` : 'no sends yet', up: false, sub: 'replies ÷ first emails', history: st.replyHistory, unit: '%' },
-    { key: 'calls', icon: 'i-phone', label: 'Calls this month', short: 'Calls this month', value: fmtNum(st.callsMonth), delta: `${arrow(wkDelta(st.callsHistory))} this wk`, up: wkDelta(st.callsHistory) > 0, sub: `${st.proposalsOpen} proposal${st.proposalsOpen === 1 ? '' : 's'} open`, history: st.callsHistory },
-    { key: 'value', icon: 'i-coin', label: 'Open pipeline value', short: 'Pipeline value', value: money(st.pipelineValue), delta: `${st.won} client${st.won === 1 ? '' : 's'} won`, up: false, sub: 'replied + call + proposal, per month', history: null },
+    { key: 'contacts', icon: 'i-send', label: 'Contacts this week', short: 'Contacts this week', value: fmtNum(st.contactsWeek), delta: `${arrow(st.contactsWeek - st.contactsPrevWeek)} vs last wk`, up: st.contactsWeek > st.contactsPrevWeek, sub: `today ${st.contactsToday}${st.dailyTarget ? ` / ${st.dailyTarget}` : ''}${split ? ` · ${split}` : ''}`, history: st.contactsHistory },
+    { key: 'booked', icon: 'i-cal', label: 'Meetings booked', short: 'Meetings booked', value: fmtNum(st.bookedMonth), delta: st.contacted30 ? `${pct(st.bookRate30)} of contacts · 30d` : 'no contacts yet', up: false, sub: `this month · ${arrow(wkDelta(st.bookedHistory))} this wk`, history: st.bookedHistory },
+    { key: 'demos', icon: 'i-demo', label: 'Demos held', short: 'Demos held', value: fmtNum(st.demosMonth), delta: `${st.inPlay.count} in play`, up: false, sub: 'this month', history: st.demosHistory },
+    { key: 'commission', icon: 'i-coin', label: 'Commission this month', short: 'Commission (NOK)', value: kr(st.commissionMonth), delta: sek(st.commissionMonth) || `${st.dealsMonth} deals`, up: false, sub: st.unpaid ? `${nok(st.unpaid)} not paid out yet` : 'nothing waiting for payout', history: st.commissionHistory },
   ];
 }
 
@@ -210,7 +226,7 @@ function renderVitals() {
       <span class="label vital-sub">${esc(m.sub)}</span>
     </div>`);
   if (app.demo) html.push('<span class="example-chip">Example pipeline · demo</span>');
-  else if (!st.leads) html.push('<p class="empty">Your pipeline is empty, so everything is 0. <button data-run="lead-research">Find leads</button> or <button data-goto="pipeline">add one</button>.</p>');
+  else if (!st.leads) html.push('<p class="empty">Your pipeline is empty, so everything is 0. <button data-run="lead-research">Find companies</button> or <button data-goto="pipeline">add one</button>.</p>');
   $('#vitals').innerHTML = html.join('');
   bindQuickLinks('#vitals');
 }
@@ -225,18 +241,43 @@ function engineInfo() {
   return { id: s.engine, ...s.engines[s.engine] };
 }
 
+/** One slot per deal in the monthly goal, filled with the package as deals are won. */
+function dealSlots(st, big = false) {
+  const target = st.goal.target || 0;
+  const won = st.wonThisMonth || [];
+  const n = Math.min(8, Math.max(target, won.length, 1));
+  const slots = Array.from({ length: n }, (_, i) => {
+    const d = won[i];
+    if (!d) return `<span class="slot"><b>${i + 1}</b><small>open</small></span>`;
+    const name = st.packages[d.package]?.name || 'no package';
+    return `<span class="slot on" title="${esc(d.company)} · ${esc(name)} · ${esc(nok(d.commission))}"><b>${esc(d.package || '?')}</b><small>${esc(d.package ? kShort(d.commission) : 'set pkg')}</small></span>`;
+  }).join('');
+  const extra = won.length > n ? `<span class="label">+ ${won.length - n} more deals</span>` : '';
+  return `<div class="slots${big ? ' big' : ''}" role="img" aria-label="${won.length} of ${target} deals won this month">${slots}</div>${extra}`;
+}
+
+/** One line on what the rest of the month needs, from goalMath. */
+function paceLine(st) {
+  const g = goalMath(st, app.state.business || {});
+  if (!g.target) return 'No deal goal set in business.json';
+  if (!g.left) return 'Goal reached · the rest is extra';
+  if (!g.perDay) return `${g.left} to go · check the rates in Pace`;
+  const guessed = [g.book, g.show, g.close].some((r) => r.source === 'guess');
+  return `${g.left} to go · ~${Math.ceil(g.perDay)} contacts a workday${guessed ? ' at guessed rates' : ''}`;
+}
+
 function renderGoal() {
   const st = app.state.stats;
   const g = st.goal;
-  const on = Math.round((g.pct / 100) * 24);
   $('#goal-card').innerHTML = `<div class="usage">
     <i class="b1"></i><i class="b2"></i>
-    <div class="label">Monthly goal · MRR</div>
-    <div class="big"><span class="num">${money(st.mrr)}</span><span class="label">of ${g.target ? money(g.target) : 'no goal set'}</span></div>
-    <div class="ticks" aria-hidden="true">${Array.from({ length: 24 }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('')}</div>
-    <div class="scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>
-    <div class="foot">${g.pct}% · ${st.won} client${st.won === 1 ? '' : 's'} · ${money(st.pipelineValue)} in open deals${app.demo ? ' · example' : ''}</div>
+    <div class="label">Deals this month · goal ${g.target || '—'}</div>
+    ${dealSlots(st)}
+    <div class="big"><span class="num">${kr(st.commissionMonth)}</span><span class="label">NOK earned</span></div>
+    <div class="foot">${st.sekPerNok ? `${esc(sek(st.commissionMonth))} · ` : ''}${esc(paceLine(st))}${app.demo ? ' · example' : ''}</div>
+    ${st.confirmed ? '' : '<button class="warn-chip" data-goto="pace">Amounts not confirmed in contract</button>'}
   </div>`;
+  bindQuickLinks('#goal-card');
 }
 
 function renderFollowups(sel, limit) {
@@ -324,7 +365,7 @@ function renderCommand() {
     : '<p class="empty">No schedule for today. <button data-run="plan-today">Run /plan-today</button></p>';
   const brief = s.brief && s.brief.bullets?.length
     ? `<ul>${s.brief.bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>`
-    : '<p class="empty">No brief yet. /morning-intel runs daily at 06:30. <button data-run="morning-intel">Run it now</button></p>';
+    : '<p class="empty">No brief yet. /morning-intel runs on weekdays at 06:30. <button data-run="morning-intel">Run it now</button></p>';
   const ordered = [...s.skills.filter((x) => x.quick), ...s.skills.filter((x) => !x.quick)];
   const wf = ordered.slice(0, 10).map((sk) => `<button class="wf" data-skill="${esc(sk.name)}" title="/${esc(sk.name)}">${esc(sk.label)}</button>`).join('');
   const cards = metrics().map((m) => `<div class="glass metric">
@@ -334,17 +375,21 @@ function renderCommand() {
       <svg class="glyph" aria-hidden="true" style="color:${METRIC_COLORS[m.key]}"><use href="#${m.icon}"/></svg>
       <span class="live ${app.demo ? 'example' : ''}" title="${app.demo ? 'Example data' : 'Counted from ops/pipeline.md'}"></span>
     </div>`).join('');
+  const mix = packageMix(st.dealsByPackage, st.packages);
 
   $('#tab-overview').innerHTML = `
-    <div class="glass wide-usage">
-      <div><div class="label">MRR · monthly goal</div><div class="num">${money(st.mrr)}<small> / ${g.target ? money(g.target) : '—'}</small></div></div>
-      <div class="meter" role="img" aria-label="${g.pct} percent of the monthly goal"><div class="fill" style="width:${g.pct}%"></div></div>
-      <div class="meter-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>
+    <div class="glass goal-wide">
+      <div class="gw-deals"><div class="label">Deals this month</div><div class="num">${g.value}<small> / ${g.target || '—'}</small></div><span class="label">${esc(mix || 'none won yet')}</span></div>
+      <div class="gw-slots">${dealSlots(st, true)}</div>
+      <div class="gw-money"><div class="label">Commission this month</div><div class="num">${kr(st.commissionMonth)}<small> NOK</small></div><span class="label">${esc(sek(st.commissionMonth))}${st.inPlay.commission ? ` · up to ${esc(nok(st.inPlay.commission))} in play` : ''}</span></div>
+      <div class="gw-pace"><span class="label">Pace</span><span>${esc(paceLine(st))}</span><button class="ghost-btn" data-goto="pace">Open Pace</button></div>
     </div>
+    ${st.confirmed ? '' : '<p class="warn-note">The commission per package is what you were told at the interview, not yet confirmed in writing. <button data-goto="pace">Open the contract checklist</button></p>'}
+    ${st.missingPackage ? `<p class="warn-note">${st.missingPackage} won deal${st.missingPackage === 1 ? ' has' : 's have'} no package, so no commission is counted for ${st.missingPackage === 1 ? 'it' : 'them'}. <button data-goto="pipeline">Set the package</button></p>` : ''}
     <div class="metrics">${cards}</div>
     <div class="today-grid">
-      <div class="glass today"><span class="label">Follow-ups due · ${st.followups.length}</span><div id="cmd-followups"></div></div>
-      <div class="glass today"><span class="label">Funnel · all leads${app.demo ? ' · example' : ''}</span>${funnelHtml(st.funnel)}</div>
+      <div class="glass today"><span class="label">Follow-ups and call-backs due · ${st.followups.length}</span><div id="cmd-followups"></div></div>
+      <div class="glass today"><span class="label">Funnel · all companies${app.demo ? ' · example' : ''}</span>${funnelHtml(st.funnel)}</div>
     </div>
     <div class="workflows">${wf}${s.skills.length > 10 ? '<button class="wf" id="more-wf">More workflows…</button>' : ''}</div>
     <div class="today-grid">
@@ -359,6 +404,7 @@ function renderCommand() {
   bindQuickLinks('#tab-overview');
 
   renderPipelineTab();
+  renderPaceTab();
 
   const outs = s.outputs || [];
   $('#tab-research').innerHTML = `<div class="glass research-list"><span class="label">Reports and drafts in outputs/</span>${outs.length
@@ -378,13 +424,13 @@ function funnelHtml(funnel) {
   }).join('')}</div>`;
 }
 
-const STATUS_OPTIONS = ['researched', 'drafted', 'contacted', 'replied', 'call', 'proposal', 'won', 'lost'];
-const STATUS_NAMES = { researched: 'Researched', drafted: 'Drafted', contacted: 'Contacted', replied: 'Replied', call: 'Call booked', proposal: 'Proposal', won: 'Won', lost: 'Lost' };
-
 function renderPipelineTab() {
   const s = app.state;
   const st = s.stats;
-  const all = [...(s.leads || [])].sort((a, b) => (a.next_date || '9999').localeCompare(b.next_date || '9999') || a.id.localeCompare(b.id));
+  // Due first (by date), then companies with no next step yet (new research), then later dates.
+  const today = st.today;
+  const rank = (r) => (r.next_date && r.next_date <= today ? `0${r.next_date}` : !r.next_date ? '1' : `2${r.next_date}`);
+  const all = [...(s.leads || [])].sort((a, b) => rank(a).localeCompare(rank(b)) || a.id.localeCompare(b.id));
   const groups = {
     open: all.filter((r) => !['won', 'lost'].includes(r.status)),
     won: all.filter((r) => r.status === 'won'),
@@ -392,47 +438,55 @@ function renderPipelineTab() {
     all,
   };
   const filter = groups[app.leadFilter] ? app.leadFilter : 'open';
-  const limit = app.leadLimit || 50;
+  const limit = app.leadLimit || 30;
   const leads = groups[filter].slice(0, limit);
   const more = groups[filter].length - leads.length;
+  const pkgSelect = (r) => `<label class="sr" for="pk-${esc(r.id)}">Package</label><select id="pk-${esc(r.id)}" data-f="package"><option value="">—</option>${PACKAGES.map((k) => `<option value="${k}"${packageOf(r) === k ? ' selected' : ''}>${esc(st.packages[k].name)}</option>`).join('')}</select>`;
+  const nextCell = (r) => (r.status === 'won'
+    ? `<label class="sr" for="pd-${esc(r.id)}">Commission paid on</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}"><br><span class="muted">${r.paid ? 'commission paid' : `paid out? ${packageOf(r) ? esc(nok(st.packages[packageOf(r)].commission)) : 'set the package'}`}</span>`
+    : `<label class="sr" for="nd-${esc(r.id)}">Next date</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span>`);
+  const site = (w) => esc(/^https?:/.test(w) ? w : `https://${w}`);
   const rows = leads.map((r) => `<tr data-id="${esc(r.id)}" class="st-${esc(r.status)}">
-      <td><b>${esc(r.company)}</b>${r.website ? `<br><a href="${esc(/^https?:/.test(r.website) ? r.website : `https://${r.website}`)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}</td>
-      <td>${esc(r.contact)}<br><span class="muted">${esc(r.email)}</span></td>
-      <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${STATUS_OPTIONS.map((o) => `<option value="${o}"${o === r.status ? ' selected' : ''}>${STATUS_NAMES[o]}</option>`).join('')}</select></td>
-      <td class="num-cell">${r.value ? money(r.value) : ''}</td>
-      <td><label class="sr" for="nd-${esc(r.id)}">Next date</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span></td>
-      <td class="muted">${esc(r.contacted || '—')}</td>
+      <td><b>${esc(r.company)}</b>${r.website ? `<br><a href="${site(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}${r.industry || r.city ? `<br><span class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}</span>` : ''}</td>
+      <td>${esc(r.contact)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ''}${r.phone ? `<br><a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a>` : ''}</td>
+      <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${STAGES.map((o) => `<option value="${o}"${o === r.status ? ' selected' : ''}>${STAGE_LABELS[o]}</option>`).join('')}</select></td>
+      <td>${pkgSelect(r)}</td>
+      <td>${nextCell(r)}</td>
+      <td class="muted">${esc(r.contacted || '—')}${r.contacted ? `<br>${esc(channelOf(r))}` : ''}</td>
     </tr>`).join('');
   $('#tab-pipeline').innerHTML = `
     <form class="glass add-lead" id="add-lead" autocomplete="off">
-      <span class="label">Add a lead</span>
+      <span class="label">Add a company</span>
       <div class="add-grid">
-        <label>Company<input id="al-company" name="company" required placeholder="Nordic Dental AB"></label>
-        <label>Contact<input id="al-contact" name="contact" placeholder="Anna Berg"></label>
-        <label>Email<input id="al-email" name="email" type="email" placeholder="anna@company.se"></label>
-        <label>Website<input id="al-website" name="website" placeholder="company.se"></label>
-        <label>Niche<input id="al-niche" name="niche" placeholder="dental clinics"></label>
-        <label>Value / month<input id="al-value" name="value" inputmode="numeric" placeholder="${esc(s.business?.avg_deal || 500)}"></label>
-        <button class="dock-btn" type="submit">Add lead</button>
+        <label>Company<input id="al-company" name="company" required placeholder="Fjordline Sport AS"></label>
+        <label>Contact<input id="al-contact" name="contact" placeholder="Ingrid Haugen, daglig leder"></label>
+        <label>Email<input id="al-email" name="email" type="email" placeholder="post@company.no"></label>
+        <label>Phone<input id="al-phone" name="phone" inputmode="tel" placeholder="+47 22 00 00 00"></label>
+        <label>Website<input id="al-website" name="website" placeholder="company.no"></label>
+        <label>Industry<input id="al-industry" name="industry" placeholder="online shop"></label>
+        <label>City<input id="al-city" name="city" placeholder="Bergen"></label>
+        <label>Channel<select id="al-channel" name="channel">${CHANNELS.map((c) => `<option value="${c}">${c}</option>`).join('')}</select></label>
+        <label>Package<select id="al-package" name="package"><option value="">not known</option>${PACKAGES.map((k) => `<option value="${k}">${esc(st.packages[k].name)}</option>`).join('')}</select></label>
+        <button class="dock-btn" type="submit">Add company</button>
       </div>
     </form>
     <div class="glass table-card">
       <div class="table-head">
-        <span class="label">${all.length} lead${all.length === 1 ? '' : 's'} · ops/pipeline.md${app.demo ? ' · example' : ''}</span>
-        <div class="tabs" role="tablist" aria-label="Filter leads">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${k} ${groups[k].length}</button>`).join('')}</div>
+        <span class="label">${all.length} compan${all.length === 1 ? 'y' : 'ies'} · ops/pipeline.md${app.demo ? ' · example' : ''}</span>
+        <div class="tabs" role="tablist" aria-label="Filter companies">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${k} ${groups[k].length}</button>`).join('')}</div>
       </div>
       ${leads.length ? `<div class="table-wrap"><table class="leads">
-        <thead><tr><th>Company</th><th>Contact</th><th>Status</th><th>Value</th><th>Next</th><th>First email</th></tr></thead>
+        <thead><tr><th>Company</th><th>Contact</th><th>Status</th><th>Package</th><th>${filter === 'won' ? 'Paid out' : 'Next'}</th><th>First contact</th></tr></thead>
         <tbody>${rows}</tbody></table></div>${more > 0 ? `<button class="ghost-btn" id="more-leads">Show ${more} more</button>` : ''}`
-        : all.length ? `<p class="empty">No ${filter} leads.</p>` : '<p class="empty">No leads yet. Add one above, or <button data-run="lead-research">run /lead-research</button> to find 10.</p>'}
+        : all.length ? `<p class="empty">No ${filter} companies.</p>` : '<p class="empty">No companies yet. Add one above, or <button data-run="lead-research">run /lead-research</button> to find 10.</p>'}
     </div>
     <div class="chart-grid">
-      <div class="glass chart-card" data-key="sent"><span class="label">First emails sent per week</span>${areaChart({ label: 'Emails sent per week', history: st.sentHistory, value: st.sentWeek }, METRIC_COLORS.sent)}</div>
-      <div class="glass chart-card" data-key="reply"><span class="label">Reply rate per week (by send week)</span>${areaChart({ label: 'Reply rate per week', history: st.replyHistory, value: st.replyHistory.at(-1)?.v ?? 0, unit: '%' }, METRIC_COLORS.reply)}</div>
+      <div class="glass chart-card" data-key="contacts"><span class="label">New contacts per week (email + phone)</span>${areaChart({ label: 'New contacts per week', history: st.contactsHistory, value: st.contactsWeek }, METRIC_COLORS.contacts)}</div>
+      <div class="glass chart-card" data-key="booked"><span class="label">Meetings booked per week</span>${areaChart({ label: 'Meetings booked per week', history: st.bookedHistory, value: st.bookedHistory.at(-1)?.v ?? 0 }, METRIC_COLORS.booked)}</div>
     </div>`;
-  $$('#tab-pipeline .chart-card').forEach((card) => wireChart(card, card.dataset.key === 'sent' ? { history: st.sentHistory } : { history: st.replyHistory, unit: '%' }));
+  $$('#tab-pipeline .chart-card').forEach((card) => wireChart(card, { history: card.dataset.key === 'contacts' ? st.contactsHistory : st.bookedHistory }));
   bindQuickLinks('#tab-pipeline');
-  $$('#tab-pipeline [data-filter]').forEach((b) => b.addEventListener('click', () => { app.leadFilter = b.dataset.filter; app.leadLimit = 50; renderPipelineTab(); }));
+  $$('#tab-pipeline [data-filter]').forEach((b) => b.addEventListener('click', () => { app.leadFilter = b.dataset.filter; app.leadLimit = 30; renderPipelineTab(); }));
   $('#more-leads')?.addEventListener('click', () => { app.leadLimit = limit + 100; renderPipelineTab(); });
   $('#add-lead').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -444,6 +498,112 @@ function renderPipelineTab() {
   }));
 }
 
+// ------------------------------------------------------------------ pace tab
+
+const RATE_FIELDS = [
+  ['book', 'Contact → meeting booked'],
+  ['show', 'Meeting → demo held'],
+  ['close', 'Demo → deal won'],
+];
+const SOURCE_NAMES = { yours: 'your data', guess: 'starting guess', typed: 'typed here' };
+
+function paceOverrides() { return store.get('pace', {}); }
+
+/** The goal calculator: the inputs are built once, the numbers update as you type. */
+function renderPaceTab() {
+  const s = app.state;
+  const st = s.stats;
+  const b = s.business || {};
+  const o = paceOverrides();
+  const sample = st.rates.sample;
+  const own = {
+    book: st.rates.book == null ? 'no contacts yet' : `yours: ${pct(st.rates.book)} (${sample.booked} of ${sample.contacted})`,
+    show: st.rates.show == null ? 'no meetings yet' : `yours: ${pct(st.rates.show)} (${sample.demo} of ${sample.booked})`,
+    close: st.rates.close == null ? 'no demos yet' : `yours: ${pct(st.rates.close)} (${st.won} of ${sample.demo})`,
+  };
+  const need = { book: `${MIN_SAMPLE.book} contacts`, show: `${MIN_SAMPLE.show} meetings`, close: `${MIN_SAMPLE.close} demos` };
+  const mix = o.mix || {};
+  $('#tab-pace').innerHTML = `
+    <div class="pace-grid">
+      <div class="glass pace-card">
+        <span class="label">Goal math · rest of this month</span>
+        <div class="pace-inputs">
+          <label class="rate"><span>Deals goal this month</span><input type="number" min="0" step="1" data-pace="goal" value="${esc(o.goal ?? '')}" placeholder="${st.goal.target}"><small>${st.goal.value} won so far</small></label>
+          ${RATE_FIELDS.map(([k, label]) => `<label class="rate"><span>${label} %</span><input type="number" min="0" max="100" step="0.5" data-pace="${k}" value="${esc(o[k] ?? '')}"><small><i class="src" data-src="${k}"></i> · ${esc(own[k])}, used after ${esc(need[k])}</small></label>`).join('')}
+        </div>
+        <div class="pace-out" id="pace-out" aria-live="polite"></div>
+        <p class="pace-say" id="pace-say"></p>
+        <div class="pace-actions"><button class="ghost-btn" id="pace-reset">Back to my data and guesses</button></div>
+        <p class="muted">What you type here stays in this browser and changes only this calculator. The starting guesses live in <code>system/business.json</code> under <code>assumptions</code>. Deals often close weeks after the first contact, so contacts made late in the month mostly pay next month.</p>
+      </div>
+      <div class="col" style="gap:12px">
+        <div class="glass pace-card">
+          <span class="label">Commission per deal · ${b.confirmed ? 'confirmed in contract' : 'not confirmed yet'}</span>
+          <div class="pkg-grid">${PACKAGES.map((k) => `<div class="pkg">
+            <span class="label">${esc(st.packages[k].name)}</span>
+            <b>${kr(st.packages[k].commission)}</b><small>NOK${st.sekPerNok ? ` · ${esc(sek(st.packages[k].commission))}` : ''}</small>
+            <small>${st.dealsByPackage[k]} this month</small>
+            <label>Share of deals %<input type="number" min="0" max="100" step="5" data-mix="${k}" value="${esc(mix[k] ?? '')}" placeholder="${k === st.defaultPackage ? '100' : '0'}"></label>
+          </div>`).join('')}</div>
+          <p class="pace-say" id="pace-money"></p>
+          <p class="muted">Amounts from <code>system/business.json</code>. Change them there when the contract says something else, then set <code>confirmed</code> to true.</p>
+        </div>
+        <div class="glass pace-card">
+          <span class="label">Before you sign · projects/sales-job.md</span>
+          <ul class="checks" id="contract-checks"></ul>
+        </div>
+      </div>
+    </div>`;
+  renderChecks('#contract-checks', s.contract, 'No checklist found under "## Before I sign" in projects/sales-job.md.');
+  $$('#tab-pace [data-pace]').forEach((el) => el.addEventListener('input', () => {
+    const cur = paceOverrides();
+    if (el.value === '') delete cur[el.dataset.pace]; else cur[el.dataset.pace] = Number(el.value);
+    store.set('pace', cur);
+    updatePace();
+  }));
+  $$('#tab-pace [data-mix]').forEach((el) => el.addEventListener('input', () => {
+    const cur = paceOverrides();
+    cur.mix = { ...(cur.mix || {}) };
+    if (el.value === '') delete cur.mix[el.dataset.mix]; else cur.mix[el.dataset.mix] = Number(el.value);
+    if (!Object.keys(cur.mix).length) delete cur.mix;
+    store.set('pace', cur);
+    updatePace();
+  }));
+  $('#pace-reset').addEventListener('click', () => { store.set('pace', {}); renderPaceTab(); });
+  updatePace();
+}
+
+function updatePace() {
+  const st = app.state.stats;
+  const g = goalMath(st, app.state.business || {}, paceOverrides());
+  const ceil = (v) => (v == null ? '—' : Math.ceil(v).toLocaleString('en-US'));
+  for (const [k] of RATE_FIELDS) {
+    const el = $(`#tab-pace [data-src="${k}"]`);
+    if (el) { el.textContent = `using ${pct(g[k].v)}, ${SOURCE_NAMES[g[k].source]}`; el.className = `src ${g[k].source}`; }
+    const input = $(`#tab-pace [data-pace="${k}"]`);
+    if (input) input.placeholder = (g[k].v * 100).toFixed(1).replace(/\.0$/, '');
+  }
+  $('#pace-out').innerHTML = [
+    ['Deals left', g.left],
+    ['Demos needed', ceil(g.demosNeeded)],
+    ['Meetings needed', ceil(g.meetingsNeeded)],
+    ['Contacts needed', ceil(g.contactsNeeded)],
+    ['Per workday', ceil(g.perDay)],
+  ].map(([l, v]) => `<div><span class="label">${l}</span><b>${v}</b></div>`).join('');
+  const target = st.dailyTarget;
+  let say;
+  if (!g.target) say = 'Set a deal goal to see what it takes.';
+  else if (!g.left) say = `The goal of ${g.target} is reached this month. Everything from here is extra commission.`;
+  else if (!g.perContact) say = 'One of the rates is 0%, so no number of contacts gets you there. Raise it, or check the pipeline.';
+  else {
+    say = `At these rates one deal takes about ${ceil(1 / g.perContact)} contacts. ${g.left} more deal${g.left === 1 ? '' : 's'} need about ${ceil(g.contactsNeeded)} new contacts, ${g.workdaysLeft ? `${ceil(g.perDay)} a workday for the ${g.workdaysLeft} workday${g.workdaysLeft === 1 ? '' : 's'} left` : 'and no workdays are left this month'}.`;
+    if (target && g.perDay) say += g.perDay > target ? ` Your daily target is ${target}, so you are about ${ceil(g.perDay - target)} a day short.` : ` Your daily target of ${target} covers it.`;
+    if (g.perDay > 150) say += ' That is more than one person can do well by hand: a better booking rate (sharper targeting, the hiring signal) moves this more than volume.';
+  }
+  $('#pace-say').textContent = say;
+  $('#pace-money').textContent = `${g.target} deal${g.target === 1 ? '' : 's'} at about ${nok(g.avgCommission)} each is ${nok(g.commissionAtGoal)} a month${st.sekPerNok ? ` (${sek(g.commissionAtGoal)})` : ''}. Still to earn this month: ${nok(g.commissionLeft)}.`;
+}
+
 async function saveLead(id, fields) {
   if (app.demo) {
     const today = isoLocal();
@@ -451,24 +611,25 @@ async function saveLead(id, fields) {
       const row = app.state.leads.find((r) => r.id === id);
       if (row) {
         if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, today);
-        if (fields.next_date != null) row.next_date = fields.next_date;
+        for (const k of ['next_date', 'package', 'paid']) if (fields[k] != null) row[k] = fields[k];
       }
     } else {
-      if (!fields.company) { toast('A lead needs at least a company name.'); return; }
+      if (!fields.company) { toast('A company name is needed.'); return; }
       const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
       Object.assign(row, fields, { id: nextId(app.state.leads), added: today });
       applyStatus(row, 'researched', today);
       app.state.leads.push(row);
     }
-    const b = app.state.business;
-    app.state.stats = computeStats(app.state.leads, { goal: b.goal_mrr, dailyTarget: b.daily_sends, currency: b.currency });
+    app.state.stats = computeStats(app.state.leads, { business: app.state.business });
     renderAll();
-    if (fields.status === 'call') toast('In the live OS this also runs /call-prep for that lead.');
+    if (fields.status === 'booked') toast('In the live OS this also runs /demo-prep for that company.');
+    if (fields.status === 'won') toast('Deal won. The slot fills with its package and the commission is counted.');
     return;
   }
   try {
     const res = await api(id ? `/api/leads/${id}` : '/api/leads', fields);
-    if (res.fired?.length) toast(`Call booked: /call-prep is preparing ${res.lead.company}.`);
+    if (res.fired?.length) toast(`Meeting booked: /demo-prep is preparing ${res.lead.company}.`);
+    else if (fields.status === 'won') toast(`${res.lead.company} won${res.lead.package ? '' : ': set the package so the commission counts'}`);
     else toast(id ? `${res.lead.company} updated` : `${res.lead.company} added to the pipeline`);
     await refresh();
   } catch (err) { toast(err.message); }
@@ -584,12 +745,12 @@ function renderBackbone() {
 // ------------------------------------------------------------------ router view
 
 const EXAMPLES = [
-  'find 10 leads: accounting firms in Malmö',
-  'who should I follow up with today?',
+  'find 10 leads: nettbutikker i Bergen',
+  'who should I call today?',
   'write cold emails for the new leads',
-  'what is a good reply rate for cold email?',
-  'prep for my call with Nordic Dental',
-  'hello',
+  'how many contacts do I need to hit my goal?',
+  'prep for my demo with Fjellsport',
+  'hur går det?',
 ];
 
 function renderRouter() {
@@ -611,11 +772,11 @@ function renderRouter() {
         <div class="node bridge"><strong>The Bridge</strong>one brain for both apps<br><br>takes every request from both front doors</div>
         <div class="node router"><strong>Router</strong>sorts each request into the right tier, from predefined choices</div>
         <div class="tiers">
-          <div class="node t1"><strong>Tier 1</strong>rules + your pipeline and notes, no AI, instant</div>
+          <div class="node t1"><strong>Tier 1</strong>rules + your pipeline, commission and notes, no AI, instant</div>
           <div class="node t2"><strong>Tier 2</strong>quick answer, Claude Haiku 5.5</div>
           <div class="node t3"><strong>Tier 3</strong>real work: Claude Code or Codex runs a skill in the background</div>
         </div>
-        <div class="node conn"><strong>Connectors</strong>Gmail · Calendar · Drive · Web</div>
+        <div class="node conn"><strong>Connectors</strong>Gmail · Calendar · Web · brreg.no</div>
       </div>
       <div class="vault-bar"><strong>THE VAULT: SHARED MEMORY</strong><br>daily notes · skills · outputs · logs — the Bridge reads and records every request, Tier 3 saves its reports here</div>
     </div>
@@ -632,7 +793,7 @@ function renderRouter() {
     <div class="tester">
       <div class="glass box">
         <span class="label">01 · LLM · generated text</span>
-        <div class="gen">"Sounds like you want to repurpose a video. I could write some captions, or maybe a carousel? Let me know which platform and I can…"</div>
+        <div class="gen">"Sounds like you want to reach some new companies. I could write a few emails, or maybe a call script? Let me know which industry and I can…"</div>
         <span class="label" style="text-transform:none;letter-spacing:0">Free text you would still have to parse before anything can happen.</span>
       </div>
       <div class="glass box">
@@ -1044,8 +1205,10 @@ function renderVoiceDialog() {
 function voiceSample() {
   const h = new Date().getHours();
   const part = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
-  const due = app.state?.stats?.followups?.length ?? 0;
-  return `Good ${part}, ${app.state?.owner || 'sir'}. You have ${due} follow-up${due === 1 ? '' : 's'} due today.`;
+  const st = app.state?.stats;
+  const due = st?.followups?.length ?? 0;
+  const deals = st?.goal?.target ? `${st.goal.value} of ${st.goal.target} deals this month, and ` : '';
+  return `Good ${part}, ${app.state?.owner || 'sir'}. You have ${deals}${due} follow-up${due === 1 ? '' : 's'} due today.`;
 }
 
 function bindVoiceDialog() {
@@ -1121,7 +1284,7 @@ function setView(view) {
 
 function setTab(tab) {
   app.tab = tab;
-  for (const t of ['overview', 'pipeline', 'research']) $(`#tab-${t}`).hidden = t !== tab;
+  for (const t of ['overview', 'pipeline', 'pace', 'research']) $(`#tab-${t}`).hidden = t !== tab;
   $$('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
 }
 
@@ -1149,7 +1312,7 @@ function toast(msg) {
     el = document.createElement('div');
     el.id = 'toast';
     el.setAttribute('role', 'status');
-    el.style.cssText = 'position:fixed;left:50%;bottom:calc(var(--dock-h) + 16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;max-width:calc(100vw - 32px);padding:9px 14px;border-radius:8px;border:1px solid var(--line-2);background:rgba(6,10,9,.94);font:400 12px/1.4 var(--font-mono);color:var(--ink)';
+    el.style.cssText = 'position:fixed;left:50%;bottom:calc(var(--dock-h) + 16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;max-width:calc(100vw - 32px);padding:9px 14px;border-radius:8px;border:1px solid var(--line-2);background:rgba(4,9,22,.94);font:400 12px/1.4 var(--font-mono);color:var(--ink)';
     document.body.appendChild(el);
   }
   el.textContent = msg;

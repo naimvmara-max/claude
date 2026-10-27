@@ -1,6 +1,8 @@
 // Tier 1: answers built from saved data with no model call.
 // Shared by the server and the browser demo.
 
+import { goalMath } from './pipeline.js';
+
 const fmtNum = (n) => {
   if (n == null || Number.isNaN(Number(n))) return 'not set';
   const v = Number(n);
@@ -9,11 +11,22 @@ const fmtNum = (n) => {
   return v.toLocaleString('en-US');
 };
 
-export { fmtNum };
+/** Whole kroner with thousands separators, never abbreviated: money is read exactly. */
+const nok = (v) => `${Math.round(Number(v) || 0).toLocaleString('en-US')} NOK`;
+
+export { fmtNum, nok };
+
+const n = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+const pct = (v) => `${(v * 100).toFixed(v < 0.1 ? 1 : 0).replace(/\.0$/, '')}%`;
+
+/** "2 Large, 1 Small" from { S, M, L } counts. */
+export function packageMix(byPackage, packages) {
+  return ['L', 'M', 'S'].filter((k) => byPackage?.[k]).map((k) => `${byPackage[k]} ${packages?.[k]?.name || k}`).join(', ');
+}
 
 /**
  * @param {string} intent  one of the TIER1_INTENTS ids
- * @param {object} state   { owner, directives, schedule, tasks, stats, skills, now }
+ * @param {object} state   { owner, directives, schedule, tasks, stats, business, skills, now }
  */
 export function answerRule(intent, state) {
   const now = state.now ? new Date(state.now) : new Date();
@@ -38,17 +51,34 @@ export function answerRule(intent, state) {
     }
     case 'numbers': {
       const st = state.stats;
-      if (!st || !st.leads) return 'No leads in the pipeline yet, so there is nothing to count. Run /lead-research or add a lead in Command, Pipeline.';
-      const cur = st.currency === 'EUR' ? '€' : `${st.currency} `;
-      const rate = st.replyRate == null ? 'no emails in the last 30 days' : `${Math.round(st.replyRate * 100)}% (${st.replied30} of ${st.contacted30})`;
-      const goal = st.goal.target ? ` That is ${st.goal.pct}% of your ${cur}${fmtNum(st.goal.target)} goal.` : '';
-      const n = (count, one, many) => `${count} ${count === 1 ? one : many}`;
-      return `This week you sent ${n(st.sentWeek, 'first email', 'first emails')} (last week ${st.sentPrevWeek}). Reply rate over 30 days: ${rate}. ${n(st.callsMonth, 'call', 'calls')} booked this month, ${n(st.proposalsOpen, 'proposal', 'proposals')} open, ${n(st.won, 'client', 'clients')}. MRR ${cur}${fmtNum(st.mrr)}.${goal}`;
+      if (!st || !st.leads) return 'No companies in the pipeline yet, so there is nothing to count. Run /lead-research or add one in Command, Pipeline.';
+      const mix = packageMix(st.dealsByPackage, st.packages);
+      const sek = st.sekPerNok && st.commissionMonth ? ` (about ${Math.round(st.commissionMonth * st.sekPerNok).toLocaleString('en-US')} SEK)` : '';
+      const goal = st.goal.target ? ` of your ${st.goal.target}` : '';
+      const deals = `This month: ${n(st.dealsMonth, 'deal', 'deals')}${goal}${mix ? ` (${mix})` : ''}, ${nok(st.commissionMonth)} in commission${sek}.`;
+      const week = ` This week ${n(st.contactsWeek, 'new contact', 'new contacts')} (last week ${st.contactsPrevWeek}).`;
+      const funnel = ` ${n(st.bookedMonth, 'meeting', 'meetings')} booked and ${n(st.demosMonth, 'demo', 'demos')} held this month.`;
+      const play = st.inPlay.count ? ` ${n(st.inPlay.count, 'deal is', 'deals are')} in play, worth up to ${nok(st.inPlay.commission)} if they close.` : '';
+      const unpaid = st.unpaid ? ` ${nok(st.unpaid)} earned but not paid out yet.` : '';
+      const unconfirmed = st.confirmed ? '' : ' The commission amounts are not confirmed in your contract yet.';
+      return `${deals}${week}${funnel}${play}${unpaid}${unconfirmed}`;
+    }
+    case 'pace': {
+      const st = state.stats;
+      if (!st) return 'No pipeline data yet.';
+      const g = goalMath(st, state.business || {});
+      if (!g.target) return 'No monthly deal goal set. Put goal_deals_month in system/business.json.';
+      if (!g.left) return `You have ${n(g.done, 'deal', 'deals')} this month, so the goal of ${g.target} is reached. Everything from here is extra commission.`;
+      if (!g.perContact) return `${n(g.left, 'more deal', 'more deals')} to reach ${g.target}, but one of your conversion rates is zero, so I cannot work out the pace. Check the Pace tab.`;
+      const guessed = [g.book, g.show, g.close].filter((r) => r.source === 'guess').length;
+      const src = guessed ? ' Some of these rates are starting guesses until you have more of your own data.' : ' These are your own rates.';
+      const perDay = g.workdaysLeft ? `, about ${Math.ceil(g.perDay)} a workday for the ${n(g.workdaysLeft, 'workday', 'workdays')} left` : '';
+      return `${n(g.left, 'more deal', 'more deals')} to reach ${g.target}. With ${pct(g.book.v)} of contacts booking a meeting, ${pct(g.show.v)} showing up and ${pct(g.close.v)} of demos closing, that takes about ${Math.ceil(g.contactsNeeded).toLocaleString('en-US')} new contacts${perDay}.${src}`;
     }
     case 'followups': {
       const f = state.stats?.followups || [];
-      if (!f.length) return 'No follow-ups due today.';
-      return `${f.length} due: ${f.slice(0, 5).map((x) => `${x.company} (${x.action}${x.overdue ? ', overdue' : ''})`).join('; ')}${f.length > 5 ? `; plus ${f.length - 5} more` : ''}. /follow-ups drafts them.`;
+      if (!f.length) return 'No follow-ups or call-backs due today.';
+      return `${f.length} due: ${f.slice(0, 5).map((x) => `${x.company} (${x.action}${x.overdue ? ', overdue' : ''})`).join('; ')}${f.length > 5 ? `; plus ${f.length - 5} more` : ''}. /follow-ups drafts the emails, /call-list lists the calls.`;
     }
     case 'time':
       return `It is ${now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} on ${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}.`;

@@ -1,7 +1,18 @@
 {
-  "_readme": "Targets for the dashboard. goal_mrr is the monthly recurring revenue you are working toward, daily_sends is how many first emails you aim to send per weekday. Edit freely.",
-  "currency": "EUR",
-  "goal_mrr": 3000,
-  "daily_sends": 20,
-  "avg_deal": 500
+  "_readme": "Targets and commission for the dashboard. Every amount is NOK. 'commission' is what Naim earns once per deal, as discussed at the interview: CONFIRM in the written contract, then set confirmed to true. goal_deals_month is the monthly deal goal, daily_contacts the new companies to contact per weekday (emails + calls). assumptions are starting guesses in percent, used until there is enough real data (100 contacts, 5 meetings, 5 demos). sek_per_nok is a rough rate: update it now and then.",
+  "role": "Sales rep, AI customer service for companies in Norway, commission only",
+  "employer": "",
+  "currency": "NOK",
+  "sek_per_nok": 0.95,
+  "goal_deals_month": 4,
+  "daily_contacts": 60,
+  "packages": {
+    "S": { "name": "Small", "commission": 5000 },
+    "M": { "name": "Medium", "commission": 10000 },
+    "L": { "name": "Large", "commission": 20000 }
+  },
+  "default_package": "M",
+  "assumptions": { "book_rate": 2, "show_rate": 80, "close_rate": 10 },
+  "confirmed": false,
+  "email_language": "nb"
 }

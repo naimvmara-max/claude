@@ -13,10 +13,10 @@ const FALLBACK = {
   rules: [
     { title: 'Done it by hand twice', then: 'make it a skill' },
     { title: 'Skill works 5 times in a row', then: 'automate it' },
-    { title: 'It sends, spends or publishes', then: 'keep it manual' },
+    { title: 'It sends, calls or spends', then: 'keep it manual' },
   ],
   domains: [{ id: 'productivity', label: 'Productivity' }],
-  skills: [{ name: 'plan-today', domain: 'productivity', task: 'Plan my day', does: 'calendar + plan', connectors: ['Calendar'], schedule: 'daily 07:00', quick: true, label: 'Plan Today', triggers: ['plan my day'] }],
+  skills: [{ name: 'plan-today', domain: 'productivity', task: 'Plan my day', does: 'pace + plan', connectors: ['Calendar'], schedule: 'weekdays 07:00', quick: true, label: 'Plan Today', triggers: ['plan my day'] }],
 };
 
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -31,27 +31,40 @@ function when(spec) {
   return { icon: 'hand', text: 'manual, you check it' };
 }
 
-// Example leads, spread over the last 8 weeks so every chart has a shape. Fictional.
+// The same targets as vault/system/business.json.
+const BUSINESS = {
+  role: 'Sales rep, AI customer service for companies in Norway, commission only',
+  currency: 'NOK',
+  sek_per_nok: 0.95,
+  goal_deals_month: 4,
+  daily_contacts: 60,
+  packages: { S: { name: 'Small', commission: 5000 }, M: { name: 'Medium', commission: 10000 }, L: { name: 'Large', commission: 20000 } },
+  default_package: 'M',
+  assumptions: { book_rate: 2, show_rate: 80, close_rate: 10 },
+  confirmed: false,
+  email_language: 'nb',
+};
+
+// Example companies, spread over the last 8 weeks so every chart has a shape. Fictional.
 const EXAMPLE_LEADS = [
-  // [company, contact, niche, city, status, value, addedAgo, contactedAgo, repliedAgo, callAgo, proposalAgo, closedAgo, nextIn, nextAction, note]
-  ['Nordic Dental AB', 'Anna Berg', 'dental clinics', 'Malmö', 'won', 600, 52, 50, 47, 44, 41, 36, null, 'Monthly report', 'Signed 6-month plan'],
-  ['Lindqvist Redovisning', 'Erik Lindqvist', 'accounting', 'Lund', 'won', 450, 40, 38, 35, 30, 26, 21, null, 'Onboarding', 'Intro price for a testimonial'],
-  ['Bergström Bygg AB', 'Johan Bergström', 'construction', 'Malmö', 'proposal', 700, 30, 28, 24, 18, 4, null, -1, 'Follow up on proposal', 'Wants case study first'],
-  ['Solberg Fastighet', 'Maria Solberg', 'real estate', 'Helsingborg', 'call', 550, 22, 20, 15, 1, null, null, 1, 'Call', 'Asked about pricing'],
-  ['Kvarnen Café Group', 'Sara Holm', 'hospitality', 'Malmö', 'replied', 400, 16, 14, 2, null, null, null, 0, 'Reply and offer call times', 'positive'],
-  ['Öresund Fysio', 'David Ek', 'physiotherapy', 'Malmö', 'replied', 350, 12, 10, 1, null, null, null, 0, 'Reply and offer call times', 'question'],
-  ['Hansson Advokatbyrå', 'Lena Hansson', 'law firms', 'Lund', 'contacted', 500, 9, 7, null, null, null, null, 0, 'Send follow-up 2', ''],
-  ['Skåne Elteknik', 'Ali Karimi', 'electricians', 'Malmö', 'contacted', 400, 7, 5, null, null, null, null, -2, 'Send follow-up 1', ''],
-  ['Vikström Arkitekter', 'Nils Vikström', 'architects', 'Malmö', 'contacted', 600, 6, 4, null, null, null, null, null, '', ''],
-  ['Granit Revision', 'Oskar Nyberg', 'accounting', 'Lund', 'contacted', 450, 5, 3, null, null, null, null, null, '', ''],
-  ['Lilla Kliniken', 'Emma Persson', 'dental clinics', 'Malmö', 'contacted', 500, 4, 2, null, null, null, null, 1, 'Send follow-up 1', ''],
-  ['Ljung Måleri', 'Peter Ljung', 'construction', 'Ystad', 'contacted', 300, 3, 1, null, null, null, null, 2, 'Send follow-up 1', ''],
-  ['Nova Tandvård', 'Karin Ali', 'dental clinics', 'Lund', 'contacted', 500, 2, 0, null, null, null, null, 3, 'Send follow-up 1', ''],
-  ['Brf Utsikten', 'Jonas Ström', 'real estate', 'Malmö', 'lost', 400, 35, 33, 30, null, null, 30, null, '', 'not interested'],
-  ['Ekdahl Konsult', 'Mia Ekdahl', 'consulting', 'Malmö', 'drafted', 450, 1, null, null, null, null, null, 0, 'Send first email', ''],
-  ['Strand Optik', 'Henrik Strand', 'retail', 'Malmö', 'drafted', 350, 1, null, null, null, null, null, 0, 'Send first email', ''],
-  ['Ahlgren Bilvård', 'Fatima Ahlgren', 'automotive', 'Lund', 'researched', 300, 0, null, null, null, null, null, null, 'Draft first email', 'New second location opened'],
-  ['Mårtensson Revision', 'Lars Mårtensson', 'accounting', 'Malmö', 'researched', 450, 0, null, null, null, null, null, null, 'Draft first email', 'Hiring two accountants'],
+  // [company, contact, industry, city, channel, package, status, addedAgo, contactedAgo, repliedAgo, bookedAgo, demoAgo, closedAgo, paidAgo, nextIn, nextAction, note]
+  ['Fjellsport Nett AS', 'Ingrid Haugen', 'online shop', 'Bergen', 'email', 'L', 'won', 30, 28, 26, 25, 20, 6, null, null, 'Hand over to onboarding', 'Was hiring 2 for kundeservice; about 400 order questions a week'],
+  ['Solheim Tannklinikk', 'Marte Solheim', 'dental clinic', 'Oslo', 'phone', 'M', 'won', 26, 24, null, 24, 15, 3, null, null, 'Hand over to onboarding', 'Phone only open 08:00 to 15:00'],
+  ['Elvebakken Optikk', 'Rune Solberg', 'optician', 'Oslo', 'phone', 'S', 'won', 52, 50, null, 49, 44, 36, 5, null, '', 'First deal; commission paid'],
+  ['Nordlys Sykkel', 'Eirik Dahl', 'bike shop', 'Tromsø', 'email', 'M', 'demo', 18, 16, 13, 12, 2, null, null, 0, 'Follow up after the demo', 'Asked whether it works with Shopify'],
+  ['Havgløtt Hotell', 'Silje Lunde', 'hotel', 'Ålesund', 'email', 'L', 'booked', 12, 10, 6, 5, null, null, null, 1, 'Demo meeting', 'Booking questions in Norwegian, English and German'],
+  ['Kvikk Rør AS', 'Henrik Moe', 'plumbing', 'Stavanger', 'phone', 'S', 'booked', 8, 7, null, 2, null, null, null, 2, 'Demo meeting', 'Misses calls while out on jobs'],
+  ['Bryggen Interiør', 'Nora Bakke', 'online shop', 'Bergen', 'email', 'M', 'replied', 9, 7, 1, null, null, null, null, 0, 'Reply and offer demo times', 'positive'],
+  ['Frisk Fysioterapi', 'Ola Strand', 'physiotherapy', 'Trondheim', 'email', '', 'replied', 6, 5, 0, null, null, null, null, 0, 'Reply and offer demo times', 'question: what does it cost?'],
+  ['Lunde Bilverksted', 'Jonas Vik', 'car workshop', 'Drammen', 'phone', '', 'contacted', 4, 2, null, null, null, null, null, 0, 'Call again', 'No answer twice'],
+  ['Polar Kaffebrenneri', 'Ida Hansen', 'online shop', 'Tromsø', 'email', '', 'contacted', 6, 4, null, null, null, null, null, -1, 'Send follow-up 1', ''],
+  ['Vestland Eiendom', 'Kari Nilsen', 'property management', 'Bergen', 'email', '', 'contacted', 3, 1, null, null, null, null, null, 2, 'Follow-up 1', ''],
+  ['Aker Treningssenter', 'Sander Berg', 'gym', 'Oslo', 'phone', '', 'contacted', 2, 0, null, null, null, null, null, 2, 'Call again', 'Call back after 14:00'],
+  ['Mjøsa Dyreklinikk', 'Hanne Lie', 'vet clinic', 'Hamar', 'email', '', 'drafted', 1, null, null, null, null, null, null, 0, 'Send first email', 'FAQ page with 35 questions'],
+  ['Sørlandet Fliser', 'Martin Aas', 'online shop', 'Kristiansand', 'email', '', 'drafted', 1, null, null, null, null, null, null, 0, 'Send first email', 'Reviews mention slow replies'],
+  ['Byåsen Legesenter', 'Tone Moen', 'medical centre', 'Trondheim', '', '', 'researched', 0, null, null, null, null, null, null, null, 'Draft first email or call', 'Phone queue complaints on Google'],
+  ['Røros Ull AS', 'Per Eriksen', 'online shop', 'Røros', '', 'M', 'researched', 0, null, null, null, null, null, null, null, 'Draft first email or call', 'Hiring a kundeservicemedarbeider (FINN)'],
+  ['Tidevann Restaurant', 'Lise Holm', 'restaurant', 'Bodø', 'email', '', 'lost', 20, 18, 15, null, null, 15, null, null, '', 'not interested: already has a chatbot'],
 ];
 
 function exampleLeads(now) {
@@ -62,32 +75,61 @@ function exampleLeads(now) {
     const p = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
   };
+  // Deals marked as won "this month" stay inside the current month whatever today's date is.
+  const inMonth = (offset) => Math.min(offset, now.getDate() - 1);
   const leads = EXAMPLE_LEADS.map((l, i) => {
-    const [company, contact, niche, city, status, value, added, contacted, replied, call, proposal, closed, nextIn, nextAction, notes] = l;
+    const [company, contact, industry, city, channel, pkg, status, added, contacted, replied, booked, demo, closed, paid, nextIn, nextAction, notes] = l;
+    const thisMonth = status === 'won' && closed != null && closed < 30;
     const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
-    const slug = company.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]+/g, '');
+    const slug = company.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/å/g, 'a').replace(/[^a-z]+/g, '');
     return Object.assign(row, {
-      id: `L${String(i + 1).padStart(3, '0')}`, company, contact, niche, city, status, value: String(value),
-      email: `${contact.split(' ')[0].toLowerCase()}@example.com`, website: `${slug.slice(0, 18)}.example`,
-      added: day(added), contacted: day(contacted), replied: day(replied), call: day(call), proposal: day(proposal), closed: day(closed),
+      id: `L${String(i + 1).padStart(3, '0')}`, company, contact, industry, city, channel, package: pkg, status,
+      email: `post@${slug.slice(0, 18)}.example`, phone: channel === 'phone' ? `+47 ${String(40000000 + i * 1234567).replace(/(\d{3})(\d{2})(\d{3})/, '$1 $2 $3')}` : '',
+      website: `${slug.slice(0, 18)}.example`,
+      added: day(added), contacted: day(contacted), replied: day(replied), booked: day(booked), demo: day(demo),
+      closed: day(thisMonth ? inMonth(closed) : closed), paid: day(paid),
       next_date: nextIn == null ? '' : day(-nextIn), next_action: nextAction, notes,
     });
   });
-  // Older sends so the weekly charts have history: 6 earlier weeks of first emails, a few replies.
-  const weekly = [14, 18, 22, 25, 20, 27];
+  // Bulk contacts so the weekly charts and the conversion rates have history: 7 full weeks
+  // back plus this week so far, on weekdays only. Older ones have played out; the last two
+  // weeks are still waiting for an answer.
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  const weekly = [55, 70, 80, 95, 90, 110, 120, 140];
   let n = leads.length;
   weekly.forEach((count, w) => {
+    const start = new Date(monday);
+    start.setDate(monday.getDate() - (7 - w) * 7);
     for (let k = 0; k < count; k += 1) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + (k % 5));
+      if (d > today) continue;
+      const ago = Math.round((today - d) / 864e5);
+      if (w === 7 && ago === 0 && k % 2) continue; // today is only half done
       n += 1;
-      const ago = 49 - w * 7 - (k % 5);
-      const replied = k % 11 === 0;
+      const phone = k % 3 === 0;
+      const done = ago >= 14;
+      const meeting = done && (k === 0 || k === 35);
+      const held = done && k === 0;
+      const replied = done && !phone && !meeting && k % 13 === 1;
       const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
-      // No reply after the day-14 breakup means lost; a few said "not now".
       Object.assign(row, {
-        id: `L${String(n).padStart(3, '0')}`, company: `Example lead ${n}`, status: 'lost', value: '400',
-        added: day(ago + 2), contacted: day(ago), replied: replied ? day(ago - 3) : '', closed: day(Math.max(0, ago - (replied ? 3 : 21))),
-        notes: replied ? 'not now' : 'no reply after breakup',
+        id: `L${String(n).padStart(3, '0')}`, company: `Example company ${n}`, channel: phone ? 'phone' : 'email',
+        added: day(ago + 2), contacted: iso(d), replied: replied ? day(ago - 3) : '',
+        booked: meeting ? day(ago - 1) : '', demo: held ? day(ago - 6) : '',
       });
+      if (done) {
+        Object.assign(row, {
+          status: 'lost',
+          closed: day(Math.max(0, ago - (meeting ? 10 : replied ? 3 : 12))),
+          notes: held ? 'went quiet after the demo' : meeting ? 'no-show' : replied ? 'not now' : 'no answer after 3 tries',
+        });
+      } else {
+        Object.assign(row, { status: 'contacted', next_date: day(-(5 + (k % 4))), next_action: phone ? 'Call again' : 'Follow-up 2' });
+      }
       leads.push(row);
     }
   });
@@ -103,12 +145,12 @@ export function demoState() {
     ...s,
     when: when(s.schedule),
   }));
-  const business = { currency: 'EUR', goal_mrr: 3000, daily_sends: 20, avg_deal: 500 };
+  const business = { ...BUSINESS };
   const leads = exampleLeads(now);
   return {
     name: 'JARVIS',
     owner: 'Naim',
-    tagline: 'Your outreach command center',
+    tagline: 'Your sales command center · Norway',
     now: now.toISOString(),
     mode: 'demo',
     engine: 'claude',
@@ -118,41 +160,50 @@ export function demoState() {
     },
     business,
     leads,
-    stats: computeStats(leads, { goal: business.goal_mrr, dailyTarget: business.daily_sends, currency: business.currency }),
+    stats: computeStats(leads, { business }),
     directives: [
-      { text: 'Send 20 first emails to accounting firms in Lund', done: false, file: 'demo', line: 1 },
-      { text: 'Answer both replies and book the calls', done: false, file: 'demo', line: 2 },
-      { text: 'Send the Bergström proposal follow-up', done: true, file: 'demo', line: 3 },
+      { text: 'Call 30 online shops in Bergen from the hiring-signal list', done: false, file: 'demo', line: 1 },
+      { text: 'Prep the Havgløtt Hotell demo and follow up Nordlys Sykkel', done: false, file: 'demo', line: 2 },
+      { text: 'Get the commission terms in writing', done: true, file: 'demo', line: 3 },
     ],
     schedule: [
-      { time: '07:00', text: 'Plan the day, review follow-ups due' },
+      { time: '07:00', text: 'Plan the day: pace, follow-ups, demos' },
       { time: '08:00', text: 'Gym' },
-      { time: '09:30', text: 'Outreach: send 20 drafted emails + follow-ups' },
-      { time: '11:00', text: 'Prospecting: research tomorrow\'s leads' },
-      { time: '13:00', text: 'Replies: Kvarnen Café, Öresund Fysio' },
-      { time: '14:00', text: 'Call: Solberg Fastighet' },
-      { time: '16:00', text: 'Deep work: rewrite the first-email template' },
+      { time: '09:00', text: 'Calls: 30 online shops in Bergen' },
+      { time: '11:30', text: 'Emails: send 25 drafted first emails + follow-ups' },
+      { time: '13:00', text: 'Call-backs: Lunde Bilverksted, Aker Treningssenter' },
+      { time: '14:00', text: 'Follow up the Nordlys Sykkel demo' },
+      { time: '15:00', text: 'Demo prep: Havgløtt Hotell (tomorrow 10:00)' },
+      { time: '16:00', text: 'Prospecting: companies hiring kundeservice on FINN' },
       { time: '21:30', text: '/close-day' },
     ],
     tasks: [
-      { text: 'Send today\'s drafted emails and every follow-up that is due', done: false, file: 'demo', line: 4 },
-      { text: 'Set up DMARC on the sending domain', done: false, file: 'demo', line: 5 },
-      { text: 'Write the case study from Nordic Dental', done: false, file: 'demo', line: 6 },
+      { text: 'Ask the manager for the price list and a demo account', done: false, file: 'demo', line: 4 },
+      { text: 'Fill in projects/product.md: languages, integrations, prices', done: false, file: 'demo', line: 5 },
+      { text: 'Mark Fjellsport and Solheim paid when the payout arrives', done: false, file: 'demo', line: 6 },
       { text: 'Connect Gmail to Claude Code', done: true, file: 'demo', line: 7 },
+    ],
+    contract: [
+      { text: 'Exact commission per package (Small, Medium, Large) in NOK', done: false, file: 'demo', line: 20 },
+      { text: 'When commission is paid: when the customer signs, or when the customer has paid', done: false, file: 'demo', line: 21 },
+      { text: 'What happens to my commission if a customer cancels early (clawback)', done: false, file: 'demo', line: 22 },
+      { text: 'Employment or freelance (in Sweden: F-skatt, holiday pay, pension, who pays social fees)', done: false, file: 'demo', line: 23 },
+      { text: 'Base salary after two months: the amount, and how much the commission drops', done: false, file: 'demo', line: 24 },
+      { text: 'Written OK to use my own outreach tools and lead lists', done: true, file: 'demo', line: 25 },
     ],
     brief: {
       path: 'demo',
       title: 'Example brief',
       bullets: [
-        'TypeSafe AI released Jev (Sep 15) in early access, a decision model that returns one of your predefined choices instead of text → the same idea as this OS\'s router; it could also sort replies into positive / not now / no. Sources: theregister.com, mindstudio.ai',
-        'Claude Haiku 5.5 lists at $0.10 per million input tokens and $0.50 per million output tokens on Anthropic\'s API → classifying every reply costs a fraction of a cent',
-        'Today\'s opener: "saw you just opened a second location" works better than any template line. /lead-research collects one real observation per lead for this.',
+        'Example: 3 online shops in Bergen posted customer service jobs on FINN this week → added to inbox/leads.md for /lead-research. Source: finn.no/job',
+        'Example: a Nordic competitor launched Norwegian-language voice answering → ask your manager how ours compares before a prospect asks you.',
+        'Idea for today: open calls with the hiring signal: «Jeg så at dere søker en kundeservicemedarbeider. Hvor mange av henvendelsene er spørsmål om ordrestatus?»',
       ],
     },
     outputs: [
-      { path: 'demo/outreach-drafts', name: 'today', folder: 'outreach-drafts', mtime: Date.now() - 3 * 36e5 },
-      { path: 'demo/call-prep', name: 'solberg-fastighet', folder: 'call-prep', mtime: Date.now() - 864e5 },
-      { path: 'demo/lead-research', name: 'accounting-lund', folder: 'lead-research', mtime: Date.now() - 2 * 864e5 },
+      { path: 'demo/call-list', name: 'today', folder: 'call-list', mtime: Date.now() - 2 * 36e5 },
+      { path: 'demo/demo-prep', name: 'havglott-hotell', folder: 'demo-prep', mtime: Date.now() - 5 * 36e5 },
+      { path: 'demo/lead-research', name: 'nettbutikker-bergen', folder: 'lead-research', mtime: Date.now() - 864e5 },
     ],
     todayNote: `daily-notes/${now.toISOString().slice(0, 10)}.md`,
     skills,
@@ -164,9 +215,9 @@ export function demoState() {
 }
 
 const DEMO_FILES = {
-  'demo/outreach-drafts': '# Outreach drafts (example)\n\nThis is what an /outreach-drafts batch looks like. In the real OS it is written into outputs/outreach-drafts/ and, with Gmail connected, saved as Gmail drafts.\n\n## Ekdahl Konsult · mia@example.com\n**Subject:** your new office\n\nHi Mia,\n\nsaw that Ekdahl Konsult just moved into a bigger office in Malmö, congrats.\n\nMost consultancies at that stage get new clients through referrals only, which makes growth lumpy. I set up cold email that books meetings with the right companies every week.\n\nWorth a quick chat?\n\nNaim\n\n_Not relevant? Reply "no" and I won\'t write again._',
-  'demo/call-prep': '# Call prep: Solberg Fastighet (example)\n\n## Their situation\n- 3 offices, growing in Helsingborg\n- New listings come mostly from referrals\n\n## Questions\n1. Where do new property owners find you today?\n2. What is one new management contract worth per year?\n\n## Next step to ask for\n- A 2-week test on one segment',
-  'demo/lead-research': '# Leads: accounting firms in Lund (example)\n\n## Mårtensson Revision\n- Hiring two accountants (careers page)\n- Opener: growth through hiring means capacity for new clients\n- Fit 4/5',
+  'demo/call-list': '# Call list (example)\n\nWhat /call-list writes into outputs/call-list/ every weekday at 08:15. Fictional companies.\n\n## 1. Lunde Bilverksted · Jonas Vik · call-back (try 3)\n- Why now: no answer twice; workshops pick up before 09:30\n- Opener: «Hei Jonas, dette er Naim. Jeg ringer om telefonene deres, har du et halvt minutt?»\n- Ask: «Hvor mange samtaler mister dere mens dere står i verkstedet?»\n- Likely objection: «Vi har ikke tid til noe nytt.» → «Derfor ringer jeg: oppsettet tar dere ikke tid, og det svarer når dere ikke kan.»\n\n## 2. Aker Treningssenter · Sander Berg · call back after 14:00\n- Opener: about questions on opening hours and memberships\n\n## 3. Byåsen Legesenter · Tone Moen · first call\n- Observation: Google reviews about long phone queues',
+  'demo/demo-prep': '# Demo prep: Havgløtt Hotell (example)\n\n## Their situation\n- 40-room hotel in Ålesund, guests from Norway, Germany and the UK\n- Questions by email and phone: check-in times, parking, breakfast, booking changes\n- Reception is staffed 07:00 to 23:00\n\n## Questions they probably get most\n1. When is check-in and check-out?\n2. Is there parking, and what does it cost?\n3. Can I change my booking?\n\n## Discovery questions\n1. How many emails and calls a day, and how many are the same five questions?\n2. Who answers them today, and what else should that person be doing?\n3. What happens to questions that come in at night?\n\n## Package\n- Large: three languages and a booking system to connect (confirm the integration in projects/product.md)\n\n## Next step to agree\n- An offer by email and a decision date before the summer season',
+  'demo/lead-research': '# Leads: online shops in Bergen (example)\n\n## Røros Ull AS\n- Hiring a kundeservicemedarbeider (FINN, posted this week)\n- 25 employees (brreg.no), daglig leder Per Eriksen (proff.no)\n- Opener: the job ad, and how many of the questions are order status\n- Fit 5/5 · package guess: Medium',
 };
 
 export function demoFile(path) {
@@ -174,9 +225,10 @@ export function demoFile(path) {
 }
 
 const QUICK = [
-  [/reply rate|response rate/i, 'There is no honest universal number: it depends on the list, the offer and deliverability. Low single-digit percentages are common for cold email. Your own rate after a few hundred sends is the number to trust, and the dashboard shows it.'],
-  [/subject/i, 'Short, lowercase, and specific to them: two to four words like "your new office" or "question about lund". It should look like a colleague wrote it, not a newsletter.'],
-  [/spf|dkim|dmarc|deliverab/i, 'SPF says which servers may send for your domain, DKIM signs each email, DMARC tells receivers what to do if those checks fail. Set all three on a separate sending domain before you send any volume.'],
+  [/booking rate|good rate|conversion|reply rate/i, 'There is no honest universal number. For cold outreach to small companies, a few percent of contacts booking a meeting is common, and many booked meetings never happen. After a few hundred contacts your own rate is the one to trust, and the Pace tab switches to it.'],
+  [/chatbot/i, 'Ask what share of questions their chatbot answers without a person. If it is under half, that gap is the conversation. Do not knock their tool; show what ours does with the questions they already get.'],
+  [/norsk|norwegian|bokmål|bokmal|language/i, 'Write emails in bokmål and keep them plain. On the phone, Swedish works for most Norwegians if you speak slowly, and being open about being Swedish is fine.'],
+  [/price|cost|pris|kostar/i, 'Do not quote a price until projects/product.md marks it as confirmed. Answer with a question: how many customer questions do they get a week? That is what the package depends on.'],
 ];
 
 export function demoQuick(text) {
@@ -186,11 +238,13 @@ export function demoQuick(text) {
 
 const STEPS = {
   default: ['→ Read ops/directives.md', '→ Read ops/pipeline.md'],
-  'lead-research': ['→ Read projects/outreach-business.md', '→ Read ops/pipeline.md', '→ WebSearch accounting firms Lund', '→ WebFetch company website', '→ Edit ops/pipeline.md', '→ Write outputs/lead-research/today.md'],
-  'outreach-drafts': ['→ Read wiki/outreach-playbook.md', '→ Read ops/pipeline.md', '→ create_draft (Gmail)', '→ Edit ops/pipeline.md', '→ Write outputs/outreach-drafts/today.md'],
+  'lead-research': ['→ Read wiki/sales-playbook.md', '→ Read ops/pipeline.md', '→ WebSearch finn.no/job kundeservice Bergen', '→ WebFetch data.brreg.no/enhetsregisteret/api/enheter', '→ WebFetch company website', '→ Edit ops/pipeline.md', '→ Write outputs/lead-research/today.md'],
+  'outreach-drafts': ['→ Read projects/product.md', '→ Read wiki/sales-playbook.md', '→ Read ops/pipeline.md', '→ create_draft (Gmail)', '→ Edit ops/pipeline.md', '→ Write outputs/outreach-drafts/today.md'],
+  'call-list': ['→ Read wiki/sales-playbook.md', '→ Read wiki/objections.md', '→ Read ops/pipeline.md', '→ Write outputs/call-list/today.md'],
+  'demo-prep': ['→ Read projects/product.md', '→ Read ops/pipeline.md', '→ WebFetch company website', '→ WebSearch reviews customer service', '→ Write outputs/demo-prep/company.md'],
   'follow-ups': ['→ Read ops/pipeline.md', '→ search_threads (Gmail)', '→ create_draft (Gmail, reply in thread)', '→ Edit ops/pipeline.md'],
   'inbox-brief': ['→ search_threads unread (Gmail)', '→ Read ops/pipeline.md', '→ Edit ops/pipeline.md', '→ Write outputs/inbox-brief/today.md'],
-  'plan-today': ['→ Read ops/directives.md', '→ Read ops/pipeline.md', '→ list_events today', '→ Edit daily-notes/today.md'],
+  'plan-today': ['→ Read ops/directives.md', '→ Read system/business.json', '→ Read ops/pipeline.md', '→ list_events today', '→ Edit daily-notes/today.md'],
 };
 
 export const demoStopped = new Set();

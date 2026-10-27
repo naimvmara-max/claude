@@ -93,6 +93,7 @@ function state() {
     directives: vault.directives(),
     schedule: vault.schedule(),
     tasks: vault.tasks(),
+    contract: vault.listItems('projects/sales-job.md', 'before i sign') || [],
     brief: vault.brief(),
     outputs: vault.outputs(12),
     todayNote: vault.todayNotePath(),
@@ -111,7 +112,7 @@ function ctxForModel() {
     date: new Date().toDateString(),
     directives: vault.directives().map((d) => d.text).join('; '),
     skills: catalog.skills.map((s) => `/${s.name}`).join(', '),
-    numbers: (() => { const st = vault.stats(); return `${st.leads} leads, ${st.sentWeek} first emails this week, reply rate ${st.replyRate == null ? 'n/a' : `${Math.round(st.replyRate * 100)}%`}, ${st.callsMonth} calls this month, ${st.won} clients, MRR ${st.mrr} ${st.currency}`; })(),
+    numbers: (() => { const st = vault.stats(); return `${st.leads} companies, ${st.contactsWeek} new contacts this week, email reply rate ${st.replyRate == null ? 'n/a' : `${Math.round(st.replyRate * 100)}%`}, ${st.bookedMonth} meetings booked and ${st.demosMonth} demos held this month, ${st.dealsMonth} of ${st.goal.target} deals this month, commission this month ${st.commissionMonth} NOK${st.confirmed ? '' : ' (amounts not confirmed in the contract yet)'}`; })(),
     cwd: vault.root,
   };
 }
@@ -273,7 +274,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/tasks/toggle' && req.method === 'POST') {
       const body = await readBody(req);
-      if (!/^(daily-notes|ops)\/[\w.-]+\.md$/.test(String(body.file))) return send(res, 400, { error: 'Tasks live in daily-notes/ or ops/.' });
+      if (!/^(daily-notes|ops|projects)\/[\w.-]+\.md$/.test(String(body.file))) return send(res, 400, { error: 'Checkboxes can be ticked in daily-notes/, ops/ or projects/.' });
       return send(res, 200, { done: vault.toggleTask(body.file, Number(body.line)) });
     }
     if (p === '/api/leads' && req.method === 'POST') {
@@ -285,8 +286,8 @@ const server = http.createServer(async (req, res) => {
     if (leadMatch && req.method === 'POST') {
       const { row, movedTo } = vault.updateLead(leadMatch[1], await readBody(req));
       let fired = [];
-      // Moving a lead to "Call booked" fires the call-booked event (call-prep drafts the prep).
-      if (movedTo === 'call') fired = scheduler.trigger('call-booked', `${row.company} (${row.id}), contact ${row.contact || 'unknown'}, ${row.website || ''}`);
+      // Moving a company to "Meeting booked" fires the meeting-booked event (/demo-prep prepares the demo).
+      if (movedTo === 'booked') fired = scheduler.trigger('meeting-booked', `${row.company} (${row.id}), contact ${row.contact || 'unknown'}, ${row.website || ''}${row.next_date ? `, meeting ${row.next_date}` : ''}`);
       return send(res, 200, { lead: row, fired });
     }
     const trig = p.match(/^\/api\/trigger\/([a-z0-9-]+)$/);

@@ -1,13 +1,14 @@
 # Jarvis · Agentic OS v2
 
-A personal operating system for Naim's **email outreach business**: one HUD and one brain
-on top of an Obsidian vault, driving Claude Code (or Codex) to find leads, draft emails and
-follow-ups, keep the pipeline current and prepare calls.
+A personal operating system for Naim's **sales job**: selling an AI customer service platform
+to companies in Norway, paid per deal. One HUD and one brain on top of an Obsidian vault,
+driving Claude Code (or Codex) to find companies, draft emails in Norwegian, build call lists,
+prepare demos and keep the pipeline and commission current.
 
 Preview on example data (no install): https://claude.ai/artifact/1CYR9f65iAVeMkjkibuJ4m
 
 ```
-You ──► HUD (browser) ──┐                     ┌─► Tier 1  pipeline + notes, no AI, instant
+You ──► HUD (browser) ──┐                     ┌─► Tier 1  pipeline, commission, pace, no AI, instant
      └► Obsidian panel ─┴─► THE BRIDGE ─► ROUTER ─► Tier 2  quick answer, Claude Haiku
                               │                    └─► Tier 3  skill runs in Claude Code / Codex ─► Gmail, Calendar, web
                               ▼
@@ -16,40 +17,53 @@ You ──► HUD (browser) ──┐                     ┌─► Tier 1  pipe
 
 ## What the dashboard shows
 
-Every number is counted from one table, `vault/ops/pipeline.md` (one row per lead). Nothing
-is estimated, and an empty pipeline shows zeros.
+Every number is counted from one table, `vault/ops/pipeline.md` (one row per company), and the
+commission amounts in `vault/system/business.json`. Nothing is estimated, and an empty pipeline
+shows zeros.
 
 | Number | How it is counted |
 | --- | --- |
-| Sent this week | leads whose `contacted` date is this week (Monday to Sunday); today vs `daily_sends` |
-| Reply rate 30d | of the leads first emailed in the last 30 days, how many have a `replied` date |
-| Calls this month | leads with a `call` date this month |
-| Pipeline value | monthly `value` of leads at replied, call or proposal |
-| MRR and goal | monthly `value` of leads marked won, against `goal_mrr` in `vault/system/business.json` |
-| Follow-ups due | open leads whose `next_date` is today or earlier, plus contacted leads with no reply after 3 days |
-| Funnel | how many leads reached each stage, with the conversion from the stage above |
+| Contacts this week | companies whose `contacted` date is this week (Monday to Sunday), email and phone; today vs `daily_contacts` |
+| Meetings booked | companies with a `booked` date this month; the share of the last 30 days' contacts that booked |
+| Demos held | companies with a `demo` date this month; how many booked or held demos are still open ("in play") |
+| Deals this month | won companies with a `closed` date this month, one slot per deal in `goal_deals_month` (4), filled with the package |
+| Commission | the `package` of each deal won this month × the commission for that package; ≈ SEK with `sek_per_nok` |
+| Not paid out | won deals with no `paid` date |
+| Pace (Command → Pace) | works back from the deal goal: deals → demos → meetings → contacts, a workday for the rest of the month. Uses your own conversion rates once you have 100 contacts, 5 meetings and 5 demos, and the starting guesses in `assumptions` until then |
+| Follow-ups due | open companies whose `next_date` is today or earlier, plus contacted ones with no answer after 3 days (2 for phone) |
+| Funnel | how many companies reached each stage, with the conversion from the stage above |
 
-You can add leads and move them through the stages in **Command → Pipeline**, edit the table
-in Obsidian, or let the skills do it.
+The commission per package (Small 5 000, Medium 10 000, Large 20 000 NOK) is what was said at the
+interview. The HUD says so until you set `"confirmed": true` in `business.json`. The contract
+checklist is in `vault/projects/sales-job.md` and in Command → Pace.
+
+You can add companies and move them through the stages in **Command → Pipeline**, edit the table
+in Obsidian, or let the skills do it. Moving a company to **Meeting booked** starts /demo-prep.
 
 ## Skills
 
 | Area | Skill | When |
 | --- | --- | --- |
-| Prospecting | /lead-research: find leads, add them to the pipeline with one real observation each | manual |
-| Outreach | /outreach-drafts: personalised first emails as Gmail drafts | weekdays 08:30 |
-| Outreach | /follow-ups: day 3, 7 and 14 follow-ups as drafts in the thread | weekdays 08:45 |
-| Outreach | /inbox-brief: lead replies first, draft answers with call times | daily 08:00 |
-| Outreach | /sync-pipeline: read Gmail, record who was emailed and who replied | daily 12:00 |
-| Sales | /call-prep: research, questions, offer, objections | when a lead moves to "Call booked" |
-| Sales | /proposal: three options and a Gmail draft | manual |
-| Productivity | /plan-today, /close-day, /weekly-review | 07:00, 21:30, Sundays 19:00 |
-| Research | /morning-intel (cold email, deliverability, AI, your niche), /deep-research | 06:30, manual |
-| Finance | /money-check | 1st of the month |
+| Prospecting | /lead-research: Norwegian companies with a real customer service load (job ads for kundeservice first), published contacts, one observation each | manual |
+| Outreach | /outreach-drafts: first emails in bokmål as Gmail drafts | weekdays 08:30 |
+| Outreach | /call-list: who to call today, published numbers, a 20-second opener each | weekdays 08:15 |
+| Outreach | /follow-ups: day 3, 7 and 14 emails, call-backs, after-demo follow-ups | weekdays 08:45 |
+| Outreach | /inbox-brief: pipeline replies first, draft answers with demo times | daily 08:00 |
+| Outreach | /sync-pipeline: Gmail and Calendar → who was emailed, replied, booked, demoed | daily 12:00 |
+| Sales | /demo-prep: their customer service, questions, which package and why | when a company moves to "Meeting booked" |
+| Sales | /offer: demo notes → offer email draft | manual |
+| Sales | /objections: collect objections, true answers into `wiki/objections.md` | manual |
+| Productivity | /plan-today (with the pace), /close-day, /weekly-review | weekdays 07:00, 21:30, Sundays 19:00 |
+| Research | /morning-intel (buying signals, competitors, one idea), /deep-research | weekdays 06:30, manual |
+| Commission | /commission-check: earned vs paid out, against the contract | 1st of the month |
 | Memory | /vault-cleanup | Sundays 18:00 |
 
-No skill sends anything. Emails are Gmail drafts at most; you send them. The old social-media
-and clothing-brand skills are in `vault/_archive-vault/` if you ever want them back.
+No skill sends, calls or spends anything. Emails are Gmail drafts at most; you send them and
+make the calls. Product claims come only from `vault/projects/product.md`, and prices marked
+unconfirmed there are never quoted. The old outreach-business setup is in
+`vault/_archive-vault/outreach-business/`.
+
+Jarvis understands Swedish too: "hur går det?", "hur många samtal behöver jag?", "ringlistan".
 
 ## Setup (about 10 minutes)
 
@@ -75,14 +89,14 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
    ```
    Open http://127.0.0.1:3217 in Chrome or Edge and keep the terminal window open. Or just
    double-click `Start Jarvis.bat`, which starts the Bridge and opens Jarvis in Chrome or Edge.
-4. **Make it yours:** fill in the offer in `vault/projects/outreach-business.md`, set
-   `goal_mrr` and `daily_sends` in `vault/system/business.json`, and edit `vault/system/routine.md`.
+4. **Make it yours:** fill in `vault/projects/product.md` from the employer's material, check the
+   commission and goal in `vault/system/business.json`, and edit `vault/system/routine.md`.
 5. **Gmail and Calendar in Claude Code:** the email skills need them to create drafts and read
    replies. See `vault/wiki/connectors.md`. Without them, drafts go to `vault/outputs/` instead.
 6. **Obsidian (optional):** open `agentic-os/vault` as a vault, Settings → Community plugins →
    turn off Restricted mode → enable *Agentic OS HUD*.
 
-`npm run check` runs 29 offline checks (routing, schedules, pipeline maths).
+`npm run check` runs 41 offline checks (routing, schedules, pipeline, commission and pace maths).
 `npm run demo` builds `dist/jarvis-demo.html`, a single-file demo that needs no server.
 
 ## Troubleshooting
@@ -122,9 +136,9 @@ Speech → Add voices. The choice is saved in that browser.
 ## How a request flows
 
 1. You speak or type. The HUD sends the text to `POST /api/ask`.
-2. The router scores a fixed list of choices (7 rules, a quick answer, 14 skills) and picks one.
+2. The router scores a fixed list of choices (8 rules, a quick answer, 16 skills) and picks one.
    You see the odds and can re-route with one tap.
-3. Tier 1 answers from the pipeline and notes ("how am I doing?", "who should I follow up with?").
+3. Tier 1 answers from the pipeline and notes ("how am I doing?", "am I on pace?", "who should I follow up with?").
 4. Tier 2 asks Claude Haiku through Claude Code on your plan (or the API, if you set one up).
 5. Tier 3 starts a headless Claude Code run inside the vault. The prompt goes in through stdin,
    so nothing you type passes through the Windows shell. Tool calls stream into the terminal
@@ -135,7 +149,7 @@ Speech → Add voices. The choice is saved in that browser.
 
 - The Bridge listens on `127.0.0.1` only and rejects other hosts and cross-site requests.
 - Headless runs can only use the tools in `vault/.claude/settings.json`. `rm`, `curl` and `git push` are denied.
-- Never guessed email addresses, an opt-out line in every email, and anyone who opts out is marked lost.
+- Never guessed email addresses or phone numbers, an opt-out line in every email, and anyone who opts out is marked lost.
 
 ## API
 
@@ -145,14 +159,14 @@ Speech → Add voices. The choice is saved in that browser.
 | GET | `/api/events` | server-sent events: `job`, `state` |
 | POST | `/api/ask` | `{ text, engine?, force? }` |
 | POST | `/api/classify` | `{ text }` |
-| POST | `/api/leads` | `{ company, contact?, email?, website?, niche?, value?, status? }` |
-| POST | `/api/leads/:id` | any of `{ status, next_date, next_action, value, notes, … }` |
+| POST | `/api/leads` | `{ company, contact?, email?, phone?, website?, industry?, city?, channel?, package?, status? }` |
+| POST | `/api/leads/:id` | any of `{ status, package, paid, next_date, next_action, notes, … }` |
 | POST | `/api/run` | `{ skill, input?, engine? }` |
 | POST | `/api/terminal` | `{ prompt, engine? }` |
 | POST | `/api/engine` | `{ engine }` |
 | GET / POST | `/api/jobs`, `/api/jobs/:id`, `/api/jobs/:id/stop` | |
 | POST | `/api/tasks/toggle` | `{ file, line }` |
-| POST | `/api/trigger/:event` | `{ input? }`, e.g. `call-booked` |
+| POST | `/api/trigger/:event` | `{ input? }`, e.g. `meeting-booked` |
 | GET | `/api/file?path=` | Markdown or JSON from the vault |
 
 See `docs/VISUAL-STACK.md` for the design references and connectors that were checked.

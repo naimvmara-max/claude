@@ -1,19 +1,18 @@
 ---
 name: deep-research
-description: Sourced research report on any topic Naim names (a market, a competitor, a tool, a tactic). Use for "research", "deep dive", "look into", "report on".
+description: Research a topic, industry or company in depth with sources - for example an industry in Norway before targeting it. Use for "research", "deep dive", "look into", "report on".
 ---
 
 # Deep research
 
 ## Do
-1. Restate the question in one sentence and list 3-5 sub-questions that would answer it.
-2. Search widely, then open and read the best 8-15 sources. Prefer primary data, official docs, earnings reports, platform blogs and first-hand practitioner posts. Note the date of each source.
-3. Answer each sub-question with evidence. Separate facts (with a source) from your inferences (marked "Inference").
-4. Finish with: the answer in three sentences, what Naim should do next, and what would change the conclusion.
-
-## Never
-- Never cite a page you did not open.
-- Never present a vendor's own claim as an independent fact; say "according to <vendor>".
+1. Restate the question in one line and what a useful answer looks like.
+2. Search widely, read the best sources (prefer official: brreg.no, ssb.no, company sites,
+   regulators), and note where each fact comes from.
+3. For an industry: how many companies in Norway and where (ssb.no, brreg.no), typical size,
+   what their customers ask, who decides, how they buy, seasonal peaks, and 10 example companies
+   that fit `projects/product.md`.
+4. Separate facts from estimates. Mark anything unverified.
 
 ## Output
-`outputs/deep-research/YYYY-MM-DD-<slug>.md` with a sources list at the end. Reply with the three-sentence answer.
+`outputs/deep-research/YYYY-MM-DD-<slug>.md` with sources. Reply with the three findings that change what Naim should do.

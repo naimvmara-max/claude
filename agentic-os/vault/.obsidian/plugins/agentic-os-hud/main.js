@@ -16,7 +16,7 @@ class HudView extends ItemView {
     root.style.padding = '0';
     root.style.overflow = 'hidden';
     const frame = root.createEl('iframe', { attr: { src: URL, title: 'Agentic OS HUD', allow: 'microphone' } });
-    frame.style.cssText = 'width:100%;height:100%;border:0;background:#050807';
+    frame.style.cssText = 'width:100%;height:100%;border:0;background:#02060f';
     try {
       // requestUrl is Obsidian's own HTTP client; a plain fetch would be blocked by CORS.
       const res = await requestUrl({ url: 'http://127.0.0.1:3217/api/health', throw: false });

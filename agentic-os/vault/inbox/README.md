@@ -1,10 +1,11 @@
 # Inbox
 
-Drop anything here: call notes, pasted replies, lead lists, links, half ideas.
+Drop anything here: call notes, demo notes, pasted replies, lead lists, links.
 /vault-cleanup files it every Sunday.
 
-Two files the skills look for:
+Files the skills look for:
 
-- `leads.md`: paste businesses you want researched, one per line (name or website).
-  Run /lead-research and they land in the pipeline.
-- `money.md`: lines like `2026-10-03 -12.99 Canva`. /money-check reads them.
+- `leads.md`: companies you want researched, one per line (name, website or org number).
+  Run /lead-research and they land in the pipeline. /morning-intel adds buying signals here.
+- `demo-<company>.md`: your notes from a demo. /offer turns them into an offer email,
+  /objections collects what they pushed back on.

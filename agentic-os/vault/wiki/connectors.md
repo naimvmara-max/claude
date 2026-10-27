@@ -20,18 +20,18 @@ copy the exact tool names into the `allow` list.
 
 | Connector | Skills | Allow | Keep manual |
 | --- | --- | --- | --- |
-| Gmail | outreach-drafts, follow-ups, sync-pipeline, inbox-brief, proposal, money-check | search, read, create draft | send, forward, delete, label |
-| Google Calendar | plan-today, inbox-brief, call-prep | list and read events, suggest times | create, update, delete events |
-| Google Drive | proposal | search, read | share, trash |
-| Web search and fetch | lead-research, call-prep, morning-intel, deep-research | allowed by default | — |
+| Gmail | outreach-drafts, follow-ups, sync-pipeline, inbox-brief, offer, commission-check | search, read, create draft | send, forward, delete, label |
+| Google Calendar | plan-today, inbox-brief, sync-pipeline, demo-prep | list and read events, suggest times | create, update, delete events |
+| Web search and fetch | lead-research, call-list, demo-prep, morning-intel, deep-research (brreg.no, proff.no, FINN) | allowed by default | — |
 
 ## Worth adding later
-- A CRM (Pipedrive, HubSpot) if the pipeline outgrows one table.
-- A data source for finding companies and published contacts (for example Vibe Prospecting).
-- Your sending tool (Instantly, Smartlead, Lemlist) if you move sending off Gmail: then
-  /sync-pipeline should read sent and replied counts from it instead.
+- The employer's CRM, if they have one, so deals are not tracked twice.
+- Your sending tool (Instantly, Smartlead, Lemlist) if you send volume from it instead of Gmail:
+  then /sync-pipeline should read sent and replied counts from it.
+- A dialer if you call a lot, so calls are logged without typing.
 
 ## Status
 - Connected on claude.ai today: Gmail, Google Calendar, Google Drive.
 - Without Gmail in Claude Code, the email skills write drafts into `outputs/` instead, and you
   update the pipeline yourself in the HUD (Command → Pipeline).
+- brreg.no's open API needs no account: lead-research reaches it with web fetch.

@@ -6,7 +6,7 @@
 //
 // Choices:
 //   Tier 1  rules + saved data, no AI, instant   ("what are my priorities?")
-//   Tier 2  quick answer from a small, fast model ("explain CPM in one line")
+//   Tier 2  quick answer from a small, fast model ("what is a good booking rate?")
 //   Tier 3  real work: a skill runs in Claude Code or Codex, report lands in the vault
 //
 // A forced choice can be confidently wrong when nothing fits, so when the winner is
@@ -17,42 +17,47 @@ export const TIER1_INTENTS = [
   {
     id: 'priorities',
     label: 'Top priorities',
-    terms: ['priorities', 'priority', 'directives', 'focus on', 'most important', 'what should i work on', 'what should i do', 'top 3', 'top three'],
+    terms: ['priorities', 'priority', 'directives', 'focus on', 'most important', 'what should i work on', 'what should i do', 'top 3', 'top three', 'prioriteringar', 'vad ska jag göra', 'vad ska jag fokusera på'],
   },
   {
     id: 'schedule',
     label: "Today's schedule",
-    terms: ['schedule', 'calendar', 'agenda', 'meetings', "what's on today", 'whats on today', 'what do i have today', 'next event', 'appointments'],
+    terms: ['schedule', 'calendar', 'agenda', 'meetings today', "what's on today", 'whats on today', 'what do i have today', 'next event', 'appointments', 'schema', 'kalender', 'vad har jag idag'],
   },
   {
     id: 'tasks',
     label: 'Open tasks',
-    terms: ['tasks', 'task list', 'to do', 'todo', 'to-do', 'checklist', 'open loops'],
+    terms: ['tasks', 'task list', 'to do', 'todo', 'to-do', 'checklist', 'open loops', 'uppgifter', 'att göra'],
   },
   {
     id: 'numbers',
-    label: 'Outreach numbers',
-    terms: ['emails sent', 'how many emails', 'reply rate', 'response rate', 'my numbers', 'my stats', 'stats', 'pipeline value', 'mrr', 'revenue', 'how many clients', 'calls booked', 'how many calls', 'how many leads', 'how am i doing', 'goal'],
+    label: 'Sales numbers',
+    terms: ['my numbers', 'my stats', 'stats', 'how am i doing', 'commission', 'how much have i earned', 'how many deals', 'deals this month', 'meetings booked', 'how many meetings', 'how many demos', 'reply rate', 'booking rate', 'contacts this week', 'how many leads', 'provision', 'mina siffror', 'hur går det', 'hur mycket har jag tjänat', 'hur många affärer'],
+  },
+  {
+    id: 'pace',
+    label: 'Pace to the goal',
+    terms: ['on pace', 'on track', 'pace', 'behind', 'to hit my goal', 'reach my goal', 'hit the goal', 'how many calls do i need', 'how many contacts do i need', 'how many emails do i need', 'how many calls', 'how many contacts', 'what do i need', 'i fas', 'takt', 'hur många samtal', 'hur många kontakter', 'nå målet'],
   },
   {
     id: 'followups',
     label: 'Follow-ups due',
-    terms: ['who should i follow up', 'who do i follow up', 'who to follow up', 'follow-ups due', 'follow ups due', 'followups due', 'due today', 'who is due'],
+    terms: ['who should i follow up', 'who do i follow up', 'who to follow up', 'follow-ups due', 'follow ups due', 'followups due', 'due today', 'who is due', 'vem ska jag följa upp', 'vilka ska jag följa upp'],
   },
   {
     id: 'time',
     label: 'Time and date',
-    terms: ['what time', 'the time', 'what day', "today's date", 'todays date', 'what date'],
+    terms: ['what time', 'the time', 'what day', "today's date", 'todays date', 'what date', 'vad är klockan', 'vilket datum'],
   },
   {
     id: 'skills',
     label: 'List skills',
-    terms: ['list skills', 'what skills', 'which skills', 'what can you do', 'commands', 'show skills'],
+    terms: ['list skills', 'what skills', 'which skills', 'what can you do', 'commands', 'show skills', 'vad kan du göra', 'vilka skills'],
   },
 ];
 
-const QUESTION_STARTS = ['what', 'why', 'how', 'who', 'when', 'where', 'is', 'are', 'can', 'could', 'should', 'does', 'do', 'explain', 'define', 'summarize', 'summarise', 'tell me', 'give me', 'quick'];
-const WORK_VERBS = ['make', 'write', 'draft', 'plan', 'run', 'research', 'build', 'create', 'find', 'turn', 'prepare', 'prep', 'generate', 'analyze', 'analyse', 'audit', 'review', 'clean', 'pull', 'update', 'refresh', 'track', 'sync', 'check', 'chase', 'send'];
+const QUESTION_STARTS = ['what', 'why', 'how', 'who', 'when', 'where', 'is', 'are', 'can', 'could', 'should', 'does', 'do', 'explain', 'define', 'summarize', 'summarise', 'tell me', 'give me', 'quick', 'vad', 'varför', 'hur', 'vem', 'när', 'var', 'kan', 'ska', 'förklara'];
+const WORK_VERBS = ['make', 'write', 'draft', 'plan', 'run', 'research', 'build', 'create', 'find', 'turn', 'prepare', 'prep', 'generate', 'analyze', 'analyse', 'audit', 'review', 'clean', 'pull', 'update', 'refresh', 'track', 'sync', 'check', 'chase', 'send', 'skriv', 'hitta', 'gör', 'förbered', 'planera', 'kolla', 'uppdatera'];
 
 function norm(text) {
   return ` ${String(text || '').toLowerCase().replace(/[^\p{L}\p{N}'\s/-]/gu, ' ').replace(/\s+/g, ' ').trim()} `;
@@ -96,7 +101,7 @@ export function classify(text, opts = {}) {
 
   for (const intent of TIER1_INTENTS) {
     const found = hits(t, intent.terms);
-    // Rules only fire on short, direct asks. "Write a post about my followers" is work.
+    // Rules only fire on short, direct asks. "Write an email about my numbers" is work.
     let score = found.length ? 3 + found.length * 0.8 : 0;
     if (found.length && workVerbs.length) score *= 0.3;
     if (found.length && words.length > 14) score -= 1;
@@ -115,7 +120,7 @@ export function classify(text, opts = {}) {
     const named = t.includes(`/${skill.name}`) || t.includes(` ${skill.name.replace(/-/g, ' ')} `);
     let score = found.length ? 1.4 + found.length * 1.1 : 0;
     if (found.length && workVerbs.length) score += 0.9;
-    // The thing named first is usually the thing being asked for: "hooks for a hoodie drop".
+    // The thing named first is usually the thing being asked for: "call list for the new leads".
     if (found.length) score += 0.6 * (1 - Math.min(...found.map((f) => t.indexOf(f.toLowerCase()))) / t.length);
     if (named) score += 4;
     choices.push({ id: `skill:${skill.name}`, tier: 3, label: `/${skill.name}`, score, matched: named ? [`/${skill.name}`, ...found] : found });

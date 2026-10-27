@@ -1,20 +1,21 @@
 ---
 name: vault-cleanup
-description: Weekly tidy of the vault. Archive stale notes, file inbox drops, fix broken links and promote durable knowledge into the wiki. Use for "clean up my notes", "tidy the vault", or Sundays 18:00 on schedule.
+description: Tidy the vault - file inbox notes, archive old outputs and daily notes, keep the pipeline table valid. Use for "clean up my notes", "tidy the vault", or on Sundays at 18:00 on schedule.
 ---
 
 # Vault cleanup
 
 ## Do
-1. `inbox/`: file each item where `CLAUDE.md` says it belongs, or add it as a task in `ops/tasks.md` if it is something to do. Leave `inbox/README.md`.
-2. Daily notes older than 30 days: move to `_archive-vault/daily-notes/` keeping the filename.
-3. `outputs/runs/` older than 14 days: move to `_archive-vault/outputs/runs/`.
-4. Anything learned twice in outputs (a subject line that got replies, a niche that converts, an objection answer that worked) goes into the right `wiki/` note as one bullet with a link back.
-5. Fix `[[wikilinks]]` that point at moved files.
+1. File everything in `inbox/` (except `leads.md` and `README.md`): demo notes next to the
+   company's demo prep, objections into `wiki/objections.md` via a note for /objections,
+   anything else into the right folder.
+2. Move daily notes older than 60 days and outputs older than 90 days to `_archive-vault/`
+   with the same relative path.
+3. Check `ops/pipeline.md`: same columns, one row per company, valid statuses and dates,
+   no duplicate companies. Fix format only; list anything that needs Naim's decision.
 
 ## Never
-- Never delete. Always move to `_archive-vault/` with the same relative path.
-- Never touch `system/`, `.claude/` or `.obsidian/`.
+- Never delete a file. Move it.
 
 ## Output
-`outputs/vault-cleanup/YYYY-MM-DD.md` listing every move. Reply with the counts.
+`outputs/vault-cleanup/YYYY-MM-DD.md` listing what moved. Reply with the count and anything that needs a decision.

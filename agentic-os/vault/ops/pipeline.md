@@ -1,14 +1,20 @@
 # Pipeline
 
-Every lead is one row. The dashboard counts everything from this table: emails sent,
-reply rate, calls, proposals, clients and MRR. Edit it here, in the HUD (Command → Pipeline),
-or let the skills update it.
+Every company is one row. The dashboard counts everything from this table: contacts,
+replies, meetings booked, demos, deals won and commission. Edit it here, in the HUD
+(Command → Pipeline), or let the skills update it.
 
-- **status**: researched → drafted → contacted → replied → call → proposal → won (or lost)
-- **dates** are `YYYY-MM-DD`. `contacted` is the day the first email went out.
-- **value** is the monthly deal value in EUR (what the client would pay per month).
-- **next_date / next_action**: when and what the next step is. Leads show up under
-  "Follow-ups due" on that date. A contacted lead with no reply is due 3 days after `contacted`.
+- **status**: researched → drafted → contacted → replied → booked → demo → won (or lost)
+  - `booked` = a demo meeting is booked, `demo` = the demo was held
+- **channel**: how the first contact happened: `email`, `phone`, `linkedin` or `other`.
+  Empty counts as email. Reply rate only counts email.
+- **package**: `S`, `M` or `L` (Small, Medium, Large). On a won row it decides the commission,
+  using the amounts in `system/business.json`. Leave empty until you know.
+- **dates** are `YYYY-MM-DD`: `contacted` is the first email or call, `booked` the day the
+  meeting was booked, `demo` the day it was held, `closed` the day it was won or lost,
+  `paid` the day your commission for it was paid out.
+- **next_date / next_action**: when and what the next step is. Companies show up under
+  "Follow-ups due" on that date. For a booked meeting, put the meeting date in `next_date`.
 
-| id | company | contact | email | website | niche | city | status | value | added | contacted | replied | call | proposal | closed | next_date | next_action | notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | company | contact | email | phone | website | industry | city | channel | package | status | added | contacted | replied | booked | demo | closed | paid | next_date | next_action | notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

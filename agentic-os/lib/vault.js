@@ -3,7 +3,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { parsePipeline, renderPipeline, computeStats, nextId, applyStatus, COLUMNS, STAGES } from '../public/js/pipeline.js';
+import { parsePipeline, renderPipeline, computeStats, nextId, applyStatus, packageOf, COLUMNS, STAGES } from '../public/js/pipeline.js';
 
 export function localDate(d = new Date()) {
   const p = (n) => String(n).padStart(2, '0');
@@ -145,7 +145,7 @@ export class Vault {
   }
 
   business() {
-    return { currency: 'EUR', goal_mrr: 0, daily_sends: 0, avg_deal: 0, ...this.readJson('system/business.json', {}) };
+    return { currency: 'NOK', sek_per_nok: 0, goal_deals_month: 0, daily_contacts: 0, packages: {}, default_package: 'M', assumptions: {}, confirmed: false, ...this.readJson('system/business.json', {}) };
   }
 
   pipeline() {
@@ -153,14 +153,13 @@ export class Vault {
   }
 
   stats(rows = this.pipeline().rows) {
-    const b = this.business();
-    return computeStats(rows, { goal: b.goal_mrr, dailyTarget: b.daily_sends, currency: b.currency, today: localDate() });
+    return computeStats(rows, { business: this.business(), today: localDate() });
   }
 
   addLead(fields) {
     const doc = this.pipeline();
     const company = String(fields.company || '').trim();
-    if (!company) throw Object.assign(new Error('A lead needs at least a company name.'), { status: 400 });
+    if (!company) throw Object.assign(new Error('A company name is needed.'), { status: 400 });
     const email = String(fields.email || '').trim().toLowerCase();
     if (doc.rows.some((r) => r.company.toLowerCase() === company.toLowerCase() || (email && r.email.toLowerCase() === email))) {
       throw Object.assign(new Error(`${company} is already in the pipeline.`), { status: 409 });
@@ -170,7 +169,7 @@ export class Vault {
     row.id = nextId(doc.rows);
     row.email = email;
     row.added = row.added || localDate();
-    row.value = row.value || String(this.business().avg_deal || '');
+    row.package = packageOf(row);
     const typed = { next_date: row.next_date, next_action: row.next_action };
     applyStatus(row, STAGES.includes(row.status) ? row.status : 'researched', localDate());
     if (typed.next_date) row.next_date = typed.next_date;
@@ -183,13 +182,14 @@ export class Vault {
   updateLead(id, fields) {
     const doc = this.pipeline();
     const row = doc.rows.find((r) => r.id === id);
-    if (!row) throw Object.assign(new Error(`No lead with id ${id}. Refresh and try again.`), { status: 404 });
+    if (!row) throw Object.assign(new Error(`No company with id ${id}. Refresh and try again.`), { status: 404 });
     const before = row.status;
     // Status first (it sets a default next step), then anything typed explicitly wins.
     if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, localDate());
-    for (const c of ['company', 'contact', 'email', 'website', 'niche', 'city', 'value', 'next_date', 'next_action', 'notes']) {
+    for (const c of ['company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'paid', 'next_date', 'next_action', 'notes']) {
       if (fields[c] != null) row[c] = String(fields[c]).trim();
     }
+    if (fields.package != null) row.package = packageOf(row);
     this.write('ops/pipeline.md', renderPipeline(doc));
     return { row, movedTo: row.status !== before ? row.status : null };
   }
