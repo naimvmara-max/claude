@@ -77,6 +77,16 @@ export function answerRule(intent, state) {
       const perDay = g.workdaysLeft ? `, ungefär ${Math.ceil(g.perDay)} per arbetsdag de ${n(g.workdaysLeft, 'arbetsdag', 'arbetsdagar')} som är kvar` : '';
       return `${n(g.left, 'affär', 'affärer')} kvar till ${g.target}. När ${pct(g.book.v)} av kontakterna bokar möte, ${pct(g.show.v)} dyker upp och ${pct(g.close.v)} av demona stänger, krävs ungefär ${sv(Math.ceil(g.contactsNeeded))} nya kontakter${perDay}.${src}`;
     }
+    case 'channels': {
+      const ch = state.stats?.channels;
+      if (!ch) return 'Ingen kanaldata ännu.';
+      const e = ch.email; const c = ch.call; const f = ch.followcall;
+      if (!e.contactsMonth && !c.contactsMonth && !e.meetingsMonth && !c.meetingsMonth && !f.meetingsMonth) return 'Inga kontakter den här månaden ännu, så inget att jämföra.';
+      const m = (x) => n(x.meetingsMonth, 'möte', 'möten');
+      const d = (x) => n(x.dealsMonth, 'affär', 'affärer');
+      const rate = (x) => (x.contacts30 ? ` (${sv((x.meetings30 / x.contacts30) * 100, 1)} per 100 kontakter)` : '');
+      return `Den här månaden: mejl till ${n(e.contactsMonth, 'företag', 'företag')} gav ${m(e)} via svar${rate(e)} och ${d(e)}. Kalla samtal till ${c.contactsMonth} företag gav ${m(c)}${rate(c)} och ${d(c)}. Samtal efter mejlen gav ${m(f)} och ${d(f)}. Siffrorna blir säkra först efter några hundra kontakter per kanal.`;
+    }
     case 'followups': {
       const f = state.stats?.followups || [];
       if (!f.length) return 'Inga uppföljningar eller återuppringningar idag.';

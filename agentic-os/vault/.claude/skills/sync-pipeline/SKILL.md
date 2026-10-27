@@ -27,7 +27,8 @@ one-line note on what is missing (see `wiki/connectors.md`) and stop. Never gues
    - `not-now`: `next_date` = the date they asked for (or 30 days out), `next_action` = `Hör av dig igen`.
    - `no` or `opt-out`: `status` = `lost`, `closed` = today. Never contact again.
 3. Calendar: a meeting with someone from a company in the pipeline means a demo.
-   Future meeting: `status` = `booked` (set `booked` to today if empty), `next_date` = the meeting date.
+   Future meeting: `status` = `booked` (set `booked` to today if empty), `next_date` = the meeting date,
+   and `booked_via` = `email` if the meeting followed an email reply, otherwise leave it for Naim.
    Past meeting: `status` = `demo`, `demo` = the meeting date, `next_action` = `Skicka offert`.
 4. An offer sent for e-signing (an e-signing email in Sent or from the e-signing service):
    `status` = `offer`, `offer` = that date, `next_action` = `Följ upp offerten`, `next_date` = 2 workdays later.

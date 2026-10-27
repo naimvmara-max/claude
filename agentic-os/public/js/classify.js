@@ -40,6 +40,11 @@ export const TIER1_INTENTS = [
     terms: ['on pace', 'on track', 'pace', 'behind', 'to hit my goal', 'reach my goal', 'hit the goal', 'how many calls do i need', 'how many contacts do i need', 'how many emails do i need', 'how many calls', 'how many contacts', 'what do i need', 'i fas', 'takt', 'takten', 'hur många samtal', 'hur många kontakter', 'hur många mejl', 'nå målet', 'klara målet', 'ligger jag efter'],
   },
   {
+    id: 'channels',
+    label: 'Mejl mot samtal',
+    terms: ['vilken kanal', 'kanaler', 'kanalerna', 'mejl eller samtal', 'samtal eller mejl', 'mejl mot samtal', 'funkar mejlen', 'fungerar mejlen', 'ger mejlen', 'which channel', 'channels', 'email vs phone', 'email or phone'],
+  },
+  {
     id: 'followups',
     label: 'Uppföljningar idag',
     terms: ['who should i follow up', 'who do i follow up', 'who to follow up', 'follow-ups due', 'follow ups due', 'followups due', 'due today', 'who is due', 'vem ska jag följa upp', 'vilka ska jag följa upp', 'vilka ska följas upp', 'vem ska jag ringa tillbaka', 'återuppringningar'],

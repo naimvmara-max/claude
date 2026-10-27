@@ -56,13 +56,16 @@ unlikely to work, say so and say what would.
 ## The pipeline table
 
 `ops/pipeline.md` has one Markdown table. Keep its columns and order exactly:
-`id | company | contact | email | phone | website | industry | city | channel | package | status | added | contacted | replied | booked | demo | offer | closed | paid | next_date | next_action | notes`
+`id | company | contact | email | phone | website | industry | city | channel | package | status | added | contacted | replied | booked | booked_via | demo | offer | closed | paid | next_date | next_action | notes`
 
 - `status` is one of: researched, drafted, contacted, replied, booked, demo, offer, won, lost.
   `booked` = demo meeting booked, `demo` = demo held, `offer` = offer sent for e-signing.
 - When a company moves to a stage, set that stage's date (`contacted`, `replied`, `booked`,
   `demo`, `offer`, `closed` for won/lost) if it is empty. Phone contacts never get a `replied` date.
 - `channel` is `email`, `phone`, `linkedin` or `other` (how the first contact happened).
+- `booked_via` is `email` or `phone`: how the meeting was booked (an email reply, or a call).
+  Set it whenever you set `booked`. A company emailed first and booked by phone keeps
+  `channel` = `email` and gets `booked_via` = `phone`.
 - `package` is `S`, `M` or `L`. Only a won row with a package earns commission on the dashboard.
 - `paid` is the date the commission for that deal was paid out. Empty means not paid yet.
 - `next_action` is a short Swedish instruction ("Ring igen", "Följ upp offerten").

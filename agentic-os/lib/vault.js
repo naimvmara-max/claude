@@ -199,6 +199,8 @@ export class Vault {
     const row = doc.rows.find((r) => r.id === id);
     if (!row) throw Object.assign(new Error(`Inget företag med id ${id}. Ladda om och försök igen.`), { status: 404 });
     const before = row.status;
+    // How a meeting was booked decides whether "replied" gets stamped, so it goes first.
+    if (fields.booked_via != null) row.booked_via = String(fields.booked_via).trim();
     // Status first (it sets a default next step), then anything typed explicitly wins.
     if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, localDate());
     for (const c of ['company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'paid', 'offer', 'next_date', 'next_action', 'notes']) {

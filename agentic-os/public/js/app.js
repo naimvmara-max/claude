@@ -5,7 +5,7 @@ import { Core } from './core.js';
 import { classify } from './classify.js';
 import { fmtNum, nok, packageMix } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped } from './demo.js';
-import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, COLUMNS, STAGES, STAGE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
+import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -390,6 +390,7 @@ function renderCommand() {
     ${st.overdueUnpaid ? `<p class="warn-note">${esc(nok(st.overdueUnpaid))} i provision borde ha kommit med lönen (Driv betalar månaden efter signering). <button data-goto="pipeline">Visa vunna affärer</button></p>` : ''}
     ${st.missingPackage ? `<p class="warn-note">${st.missingPackage} vunn${st.missingPackage === 1 ? 'en affär saknar' : 'a affärer saknar'} paket, så ingen provision räknas för ${st.missingPackage === 1 ? 'den' : 'dem'}. <button data-goto="pipeline">Välj paket</button></p>` : ''}
     <div class="metrics">${cards}</div>
+    ${channelsHtml(st)}
     <div class="today-grid">
       <div class="glass today"><span class="label">Uppföljningar och återuppringningar · ${st.followups.length}</span><div id="cmd-followups"></div></div>
       <div class="glass today"><span class="label">Tratt · alla företag${app.demo ? ' · exempel' : ''}</span>${funnelHtml(st.funnel)}</div>
@@ -417,6 +418,31 @@ function renderCommand() {
   $$('#tab-research .doc-link').forEach((b) => b.addEventListener('click', () => openFile(b.dataset.path)));
 }
 
+/** Which channel books meetings and wins deals: email replies, cold calls, calls after email. */
+function channelsHtml(st) {
+  const ch = st.channels;
+  if (!ch) return '';
+  const per100 = (m, c) => (c ? (Math.round((m / c) * 1000) / 10).toLocaleString('sv-SE') : '—');
+  const rows = ['email', 'call', 'followcall', 'other']
+    .filter((k) => k !== 'other' || ch.other.contactsMonth || ch.other.meetingsMonth)
+    .map((k) => {
+      const x = ch[k];
+      const contacts = k === 'followcall' ? '<span class="muted">mejlade först</span>' : fmtNum(x.contactsMonth);
+      const replies = k === 'email' ? fmtNum(x.replies30) : '—';
+      const rate = k === 'followcall' ? '—' : per100(x.meetings30, x.contacts30);
+      return `<tr><th scope="row">${esc(SOURCE_LABELS[k])}</th><td>${contacts}</td><td>${replies}</td><td><b>${x.meetingsMonth}</b></td><td>${x.demosMonth}</td><td><b>${x.dealsMonth}</b></td><td>${kr(x.commissionMonth)}</td><td>${rate}</td></tr>`;
+    }).join('');
+  const emailAll = per100(ch.email.meetings30 + ch.followcall.meetings30, ch.email.contacts30);
+  return `<div class="glass chan-card">
+    <span class="label">Kanaler · denna månad${app.demo ? ' · exempel' : ''}</span>
+    <div class="table-wrap"><table class="chan">
+      <thead><tr><th>Kanal</th><th>Kontakter</th><th>Svar 30 d</th><th>Möten</th><th>Demos</th><th>Affärer</th><th>Provision</th><th>Möten per 100 kontakter (30 d)</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <p class="muted">Kontakter räknas på hur första kontakten skedde. Möten, demos och affärer räknas på hur mötet bokades: svar på ett mejl, ett kallt samtal, eller ett samtal efter mejlen. Mejl inklusive samtalen efteråt: <b>${emailAll}</b> möten per 100 mejlade företag.</p>
+  </div>`;
+}
+
 function funnelHtml(funnel) {
   const top = Math.max(1, ...funnel.map((f) => f.count));
   return `<div class="funnel">${funnel.map((f, i) => {
@@ -429,6 +455,15 @@ function funnelHtml(funnel) {
 }
 
 const FILTER_NAMES = { open: 'öppna', won: 'vunna', lost: 'förlorade', all: 'alla' };
+
+/** Status choices; "Möte bokat" comes twice so the HUD learns which channel booked it. */
+function statusOptions(r) {
+  const current = r.status === 'booked' ? `booked|${bookedVia(r) === 'email' ? 'email' : 'phone'}` : r.status;
+  return STAGES.flatMap((o) => (o === 'booked'
+    ? [['booked|email', 'Möte bokat · via mejl'], ['booked|phone', 'Möte bokat · via samtal']]
+    : [[o, STAGE_LABELS[o]]]))
+    .map(([v, label]) => `<option value="${v}"${v === current ? ' selected' : ''}>${label}</option>`).join('');
+}
 
 function renderPipelineTab() {
   const s = app.state;
@@ -455,7 +490,7 @@ function renderPipelineTab() {
   const rows = leads.map((r) => `<tr data-id="${esc(r.id)}" class="st-${esc(r.status)}">
       <td><b>${esc(r.company)}</b>${r.website ? `<br><a href="${site(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}${r.industry || r.city ? `<br><span class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}</span>` : ''}</td>
       <td>${esc(r.contact)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ''}${r.phone ? `<br><a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a>` : ''}</td>
-      <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${STAGES.map((o) => `<option value="${o}"${o === r.status ? ' selected' : ''}>${STAGE_LABELS[o]}</option>`).join('')}</select></td>
+      <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${statusOptions(r)}</select></td>
       <td>${pkgSelect(r)}</td>
       <td>${nextCell(r)}</td>
       <td class="muted">${esc(r.contacted || '—')}${r.contacted ? `<br>${esc(CHANNEL_LABELS[channelOf(r)])}` : ''}</td>
@@ -500,7 +535,8 @@ function renderPipelineTab() {
     await saveLead(null, fields);
   });
   $$('#tab-pipeline tr[data-id] [data-f]').forEach((el) => el.addEventListener('change', () => {
-    saveLead(el.closest('tr').dataset.id, { [el.dataset.f]: el.value });
+    const [value, via] = el.value.split('|');
+    saveLead(el.closest('tr').dataset.id, via ? { [el.dataset.f]: value, booked_via: via } : { [el.dataset.f]: value });
   }));
 }
 
@@ -697,6 +733,7 @@ async function saveLead(id, fields) {
     if (id) {
       const row = app.state.leads.find((r) => r.id === id);
       if (row) {
+        if (fields.booked_via) row.booked_via = fields.booked_via;
         if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, today);
         for (const k of ['next_date', 'package', 'paid']) if (fields[k] != null) row[k] = fields[k];
       }

@@ -38,6 +38,7 @@ shows zeros.
 | Packages (Kommando → Paket) | Driv's three packages with price, credits and commission, and a credit calculator for step 3 of Driv's process: count credits with the customer and pick the smallest package that covers them |
 | Follow-ups due | open companies whose `next_date` is today or earlier, plus contacted ones with no answer after 3 days (2 for phone) |
 | Funnel | how many companies reached each stage, with the conversion from the stage above |
+| Channels (Kommando → Översikt) | email, cold calls and calls after email side by side this month: contacts, replies, meetings, demos, deals, commission, meetings per 100 contacts. Contacts count by first contact; meetings and deals by how the meeting was booked (`booked_via`, set by choosing "Möte bokat · via mejl/samtal") |
 
 Driv's numbers: Small 4 695, Medium 7 595, Large 13 595 NOK per month excl. VAT (5, 15, 30
 credits); commission 5 000, 10 000, 20 000 NOK per signed agreement. Open questions (binding
@@ -113,7 +114,7 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
 6. **Obsidian (optional):** open `agentic-os/vault` as a vault, Settings → Community plugins →
    turn off Restricted mode → enable *Agentic OS HUD*.
 
-`npm run check` runs 49 offline checks (Swedish and English routing, schedules, pipeline, commission, credits and pace maths).
+`npm run check` runs 52 offline checks (Swedish and English routing, schedules, pipeline, commission, credits and pace maths).
 `npm run demo` builds `dist/jarvis-demo.html`, a single-file demo that needs no server.
 
 ## Troubleshooting

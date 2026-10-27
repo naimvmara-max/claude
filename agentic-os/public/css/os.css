@@ -704,6 +704,17 @@ body[data-engine='codex'] .slot.on { border-color: var(--ink); background: rgba(
 .need-inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 @media (max-width: 900px) { .pkg-cards { grid-template-columns: minmax(0, 1fr); } }
 
+/* ---------- channels card ---------- */
+.chan-card { padding: 14px 18px; display: grid; gap: 10px; min-width: 0; }
+.chan { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.chan th, .chan td { padding: 8px; border-bottom: 1px solid var(--line); text-align: right; }
+.chan thead th { font: 500 9.5px/1.2 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); border-bottom-color: var(--line-2); }
+.chan th[scope='row'], .chan thead th:first-child { text-align: left; }
+.chan th[scope='row'] { font: 500 12.5px/1.2 var(--font-body); color: var(--ink); }
+.chan td b { color: var(--ink); font-weight: 600; }
+.chan-card > .muted { margin: 0; line-height: 1.5; }
+.chan-card > .muted b { color: var(--accent); }
+
 /* ---------- embed (Obsidian side panel) ---------- */
 body.embed .hud { grid-template-columns: 1fr; }
 body.embed .top { grid-template-columns: 1fr auto; }

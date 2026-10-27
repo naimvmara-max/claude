@@ -5,7 +5,7 @@
 // skills write them; everything the HUD shows is Swedish.
 // Shared by the server and the browser demo, so it has no imports.
 
-export const COLUMNS = ['id', 'company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'status', 'added', 'contacted', 'replied', 'booked', 'demo', 'offer', 'closed', 'paid', 'next_date', 'next_action', 'notes'];
+export const COLUMNS = ['id', 'company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'status', 'added', 'contacted', 'replied', 'booked', 'booked_via', 'demo', 'offer', 'closed', 'paid', 'next_date', 'next_action', 'notes'];
 
 export const STAGES = ['researched', 'drafted', 'contacted', 'replied', 'booked', 'demo', 'offer', 'won', 'lost'];
 
@@ -111,6 +111,30 @@ export function channelOf(r) {
   return 'other';
 }
 
+/**
+ * How the meeting was booked: `email` (they answered an email) or `phone` (a call).
+ * Uses `booked_via` when it is set; otherwise a phone lead was booked by phone, and an email
+ * lead that never replied must have been booked by a call after the emails.
+ */
+export function bookedVia(r) {
+  const v = String(r?.booked_via || '').trim().toLowerCase();
+  if (v === 'email' || v === 'phone') return v;
+  const ch = channelOf(r);
+  if (ch === 'phone') return 'phone';
+  if (ch === 'other') return 'other';
+  return r?.replied ? 'email' : 'phone';
+}
+
+/** Where a meeting came from: an email reply, a cold call, or a call after the emails. */
+export function meetingSource(r) {
+  const via = bookedVia(r);
+  if (via === 'email') return 'email';
+  if (via === 'phone') return channelOf(r) === 'email' ? 'followcall' : 'call';
+  return 'other';
+}
+
+export const SOURCE_LABELS = { email: 'Mejl', call: 'Kalla samtal', followcall: 'Samtal efter mejl', other: 'Annat' };
+
 /** Move a company to a stage and stamp that stage's date if it is not set yet. */
 export function applyStatus(row, status, today) {
   status = STATUS_ALIASES[status] || status;
@@ -123,7 +147,7 @@ export function applyStatus(row, status, today) {
   const idx = STAGES.indexOf(status);
   if (status !== 'lost') {
     for (const s of ['contacted', 'replied', 'booked', 'demo', 'offer']) {
-      if (s === 'replied' && channelOf(row) === 'phone') continue;
+      if (s === 'replied' && (channelOf(row) === 'phone' || row.booked_via === 'phone')) continue;
       if (STAGES.indexOf(s) < idx && !row[STAGE_DATE[s]]) row[STAGE_DATE[s]] = today;
     }
   }
@@ -251,6 +275,11 @@ export function computeStats(rows, opts = {}) {
   let overdueUnpaid = 0;
   let paidMonth = 0;
   let missingPackage = 0;
+  // Per channel: contacts by how the first contact happened, meetings and deals by where the
+  // meeting came from (an email reply, a cold call, or a call after the emails).
+  const blank = () => ({ contactsMonth: 0, contacts30: 0, replies30: 0, meetingsMonth: 0, meetings30: 0, demosMonth: 0, dealsMonth: 0, commissionMonth: 0 });
+  const channels = { email: blank(), call: blank(), followcall: blank(), other: blank() };
+  const firstTouch = { email: 'email', phone: 'call', other: 'other' };
 
   for (const r of rows) {
     const c = parseDay(r.contacted);
@@ -264,11 +293,18 @@ export function computeStats(rows, opts = {}) {
     if (wi >= 0) contacts[wi] += 1;
     if (wi === 7) channelWeek[ch] += 1;
     if (c && isoLocal(c) === todayStr) contactsToday += 1;
+    const ft = channels[firstTouch[ch]];
+    if (inMonth(c)) ft.contactsMonth += 1;
     if (c && c <= today && today - c <= 30 * DAY) {
       contacted30 += 1;
+      ft.contacts30 += 1;
       if (bk) booked30 += 1;
-      if (ch === 'email') { email30 += 1; if (rep) replied30 += 1; }
+      if (ch === 'email') { email30 += 1; if (rep) { replied30 += 1; ft.replies30 += 1; } }
     }
+    const src = channels[meetingSource(r)];
+    if (bk && inMonth(bk)) src.meetingsMonth += 1;
+    if (bk && bk <= today && today - bk <= 30 * DAY) src.meetings30 += 1;
+    if (dm && inMonth(dm)) src.demosMonth += 1;
     if (bk) { const i = weekIdx(bk); if (i >= 0) booked[i] += 1; if (inMonth(bk)) bookedMonth += 1; }
     if (dm) { const i = weekIdx(dm); if (i >= 0) demos[i] += 1; if (inMonth(dm)) demosMonth += 1; }
     if (r.status === 'won') {
@@ -280,6 +316,8 @@ export function computeStats(rows, opts = {}) {
       if (inMonth(cl)) {
         if (k) dealsByPackage[k] += 1;
         commissionMonth += amount;
+        src.dealsMonth += 1;
+        src.commissionMonth += amount;
         wonThisMonth.push({ id: r.id, company: r.company, package: k, closed: r.closed, commission: amount });
       }
       if (!pd) {
@@ -334,6 +372,7 @@ export function computeStats(rows, opts = {}) {
     contactsWeek: contacts[7],
     contactsPrevWeek: contacts[6],
     channelWeek,
+    channels,
     contactsHistory: series(contacts),
     replyRate: email30 ? replied30 / email30 : null,
     email30,

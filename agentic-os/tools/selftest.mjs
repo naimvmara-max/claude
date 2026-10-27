@@ -32,6 +32,8 @@ const routes = {
   'ligger jag i fas?': 'rule:pace',
   'hur många samtal behöver jag för att nå målet?': 'rule:pace',
   'vem ska jag följa upp idag?': 'rule:followups',
+  'vilken kanal funkar bäst?': 'rule:channels',
+  'ger mejlen något?': 'rule:channels',
   'vad svarar jag på «vi klarer oss med Outlook»?': 'quick',
   'planera dagen': 'skill:plan-today',
   'hitta 10 företag: nettbutikker i Bergen': 'skill:lead-research',
@@ -217,6 +219,23 @@ check('offers are a stage, and late commission is flagged', () => {
   assert.equal(st.overdueUnpaid, 10000);
   assert.equal(st.unpaid, 35000);
   assert.equal(st.payoutNextMonth, 20000);
+});
+
+check('meetings are counted by the channel that booked them', () => {
+  const st = computeStats([
+    { id: 'L1', company: 'A', channel: 'email', status: 'booked', contacted: '2026-10-01', replied: '2026-10-03', booked: '2026-10-04' },
+    { id: 'L2', company: 'B', channel: 'email', status: 'won', package: 'S', contacted: '2026-10-01', booked: '2026-10-06', closed: '2026-10-12' },
+    { id: 'L3', company: 'C', channel: 'phone', status: 'booked', contacted: '2026-10-02', booked: '2026-10-02' },
+    { id: 'L4', company: 'D', channel: 'email', status: 'booked', booked_via: 'phone', contacted: '2026-10-05', booked: '2026-10-07' },
+  ], { business: DRIV, today: '2026-10-14' });
+  assert.equal(st.channels.email.contactsMonth, 3);
+  assert.equal(st.channels.call.contactsMonth, 1);
+  assert.equal(st.channels.email.meetingsMonth, 1); // L1 replied
+  assert.equal(st.channels.followcall.meetingsMonth, 2); // L2 no reply, L4 set by hand
+  assert.equal(st.channels.call.meetingsMonth, 1);
+  assert.equal(st.channels.followcall.commissionMonth, 5000);
+  const row = applyStatus({ status: 'contacted', channel: 'email', booked_via: 'phone' }, 'booked', '2026-10-14');
+  assert.equal(row.replied, undefined); // booked by phone: no fake reply
 });
 
 check('schedules read in Swedish', () => {
