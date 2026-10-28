@@ -8,9 +8,10 @@ import { fileURLToPath } from 'node:url';
 import { classify } from '../public/js/classify.js';
 import { answerRule } from '../public/js/rules.js';
 import { parseSchedule, lastDue, describe } from '../lib/scheduler.js';
-import { H, Vault } from '../lib/vault.js';
+import { H, Vault, slugify } from '../lib/vault.js';
 import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan } from '../public/js/pipeline.js';
 import { loadSkills } from '../lib/skills.js';
+import { parseCards, searchCards } from '../public/js/cards.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vault = new Vault(path.join(root, 'vault'));
@@ -48,6 +49,7 @@ const routes = {
   'förbered demon med Havgløtt Hotell': 'skill:demo-prep',
   'skriv offerten till Nordlys Sykkel': 'skill:offer',
   'samla invändningarna från veckan': 'skill:objections',
+  'sammanfatta samtalet med Fjellsport': 'skill:call-summary',
   'har jag fått betalt för Fjellsport?': 'skill:commission-check',
   'undersök marknaden för treningssentre i norge': 'skill:deep-research',
   'hej': 'quick',
@@ -56,6 +58,7 @@ const routes = {
   'am I on pace?': 'rule:pace',
   'find 10 leads: nettbutikker i Bergen': 'skill:lead-research',
   'prep for my demo with Havgløtt Hotell': 'skill:demo-prep',
+  'summarize the call with Fjellsport': 'skill:call-summary',
   'hello': 'quick',
 };
 for (const [text, want] of Object.entries(routes)) {
@@ -241,6 +244,34 @@ check('meetings are counted by the channel that booked them', () => {
 check('schedules read in Swedish', () => {
   assert.equal(describe('weekdays 08:30').text, 'vardagar 08:30');
   assert.equal(describe('event meeting-booked').text, 'när ett möte bokas');
+  assert.equal(describe('event call-saved').text, 'när du sparar ett samtal');
+});
+
+check('Live view cards parse from the vault', () => {
+  const objections = parseCards(vault.read('wiki/objections.md'));
+  assert.equal(objections.length, 18);
+  for (const c of objections) {
+    assert.match(c.title, /^«.+»$/, c.title);
+    for (const k of ['svar', 'kategori', 'källa']) assert.ok(c.fields[k], `${c.title} has no ${k}`);
+  }
+  const cards = parseCards(vault.read('wiki/product-cards.md'));
+  for (const c of cards) assert.ok(['produkt', 'fråga', 'behov', 'fras', 'ord'].includes(c.fields.typ), `${c.title}: Typ ${c.fields.typ}`);
+  assert.equal(cards.filter((c) => c.fields.typ === 'behov').length, 6);
+  assert.ok(searchCards(objections, 'outlook').length >= 1);
+  assert.ok(searchCards(cards, 'kreditt').some((c) => c.title === 'Kreditter forklart'));
+});
+
+check('call notes are saved per company and day, and listed back', () => {
+  assert.equal(slugify('Havgløtt Hotell AS'), 'havglott-hotell-as');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aos-'));
+  const v = new Vault(tmp);
+  const first = v.saveCall('Havgløtt Hotell AS', '# Samtal 1');
+  const again = v.saveCall('Havgløtt Hotell AS', '# Samtal 2');
+  assert.equal(first, again);
+  assert.match(v.read(first), /# Samtal 1\n\n---\n\n# Samtal 2/);
+  v.saveCall('Annet AS', '# x');
+  assert.deepEqual(v.calls('Havgløtt Hotell AS').map((c) => c.path), [first]);
+  fs.rmSync(tmp, { recursive: true, force: true });
 });
 
 check('tier 1 answers come from saved data', () => {

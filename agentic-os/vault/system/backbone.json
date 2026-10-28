@@ -156,6 +156,17 @@
       "triggers": ["objection", "objections", "collect objections", "they said no", "pushback", "lost reasons", "invändning", "invändningar", "samla invändningar", "varför sa de nej"]
     },
     {
+      "name": "call-summary",
+      "domain": "sales",
+      "task": "Efter samtalet",
+      "does": "sammanfattning, paket, uppföljningsmejl",
+      "connectors": ["Valv", "Gmail"],
+      "schedule": "event call-saved",
+      "quick": false,
+      "label": "Samtalssammanfattning",
+      "triggers": ["summarize the call", "call summary", "after the call", "call notes", "sammanfatta samtalet", "efter samtalet", "samtalsanteckningar", "samtalssammanfattning", "sammanfatta mötet"]
+    },
+    {
       "name": "plan-today",
       "domain": "productivity",
       "task": "Planera dagen",

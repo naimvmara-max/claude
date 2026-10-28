@@ -6,8 +6,10 @@ description: Turn demo notes into the credit count, the package and a short cove
 # Offer
 
 ## Input
-A company name or id, plus demo notes (pasted, or in `inbox/`). Without notes, use the latest
-`outputs/demo-prep/` file for that company and say the offer is based on prep, not on the demo.
+A company name or id, plus demo notes (pasted, in `inbox/`, or saved from the Live view in
+`samtal/`; the `## Siffror` section there has the numbers for the credit count). Without notes,
+use the latest `outputs/demo-prep/` file for that company and say the offer is based on prep,
+not on the demo.
 
 ## Do
 1. Read `projects/product.md`. Count credits from the demo notes (agents, queues, webchats,

@@ -48,6 +48,7 @@
       </div>
       <nav class="views" role="tablist" aria-label="Vyer">
         <button role="tab" data-view="hud" aria-selected="true">HUD</button>
+        <button role="tab" data-view="live" aria-selected="false" title="Under ett kundsamtal: anteckningar, invändningar och produktkort">Live</button>
         <button role="tab" data-view="command" aria-selected="false">Kommando</button>
         <button role="tab" data-view="backbone" aria-selected="false">Ryggrad</button>
         <button role="tab" data-view="router" aria-selected="false">Router</button>
@@ -122,6 +123,9 @@
         <div id="answer"></div>
       </aside>
     </section>
+
+    <!-- ============ LIVE (built by js/live.js) ============ -->
+    <section class="view live-view" id="view-live" aria-label="Live-samtal" hidden></section>
 
     <!-- ============ COMMAND (glass) ============ -->
     <section class="view command" id="view-command" aria-label="Kommando" hidden>

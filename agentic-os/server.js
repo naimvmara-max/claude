@@ -290,6 +290,23 @@ const server = http.createServer(async (req, res) => {
       if (movedTo === 'booked') fired = scheduler.trigger('meeting-booked', `${row.company} (${row.id}), contact ${row.contact || 'unknown'}, ${row.website || ''}${row.next_date ? `, meeting ${row.next_date}` : ''}`);
       return send(res, 200, { lead: row, fired });
     }
+    if (p === '/api/calls' && req.method === 'POST') {
+      const body = await readBody(req);
+      const company = String(body.company || '').trim();
+      const text = String(body.text || '');
+      if (!company || company.length > 200) return send(res, 400, { error: 'Samtalet behöver ett företag.' });
+      if (!text.trim() || text.length > 100_000) return send(res, 400, { error: 'Anteckningen är tom eller för lång.' });
+      const saved = vault.saveCall(company, text);
+      vault.logRequest({ tier: 1, route: 'call saved', text: `${company} → ${saved}` });
+      // /call-summary reads the note, writes the summary and drafts the follow-up email.
+      const lead = /^L\d+$/.test(String(body.lead || '')) ? ` (${body.lead})` : '';
+      const fired = body.summarize ? scheduler.trigger('call-saved', `${saved} · ${company}${lead}`) : [];
+      return send(res, 200, { path: saved, fired });
+    }
+    if (p === '/api/calls' && req.method === 'GET') {
+      const company = String(url.searchParams.get('company') || '').trim();
+      return send(res, 200, { calls: company ? vault.calls(company) : [] });
+    }
     const trig = p.match(/^\/api\/trigger\/([a-z0-9-]+)$/);
     if (trig && req.method === 'POST') {
       const body = await readBody(req);

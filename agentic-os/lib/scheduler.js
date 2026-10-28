@@ -30,7 +30,7 @@ export function lastDue(sched, now = new Date()) {
 }
 
 const SV_DAYS = ['söndagar', 'måndagar', 'tisdagar', 'onsdagar', 'torsdagar', 'fredagar', 'lördagar'];
-const SV_EVENTS = { 'meeting-booked': 'när ett möte bokas' };
+const SV_EVENTS = { 'meeting-booked': 'när ett möte bokas', 'call-saved': 'när du sparar ett samtal' };
 
 /** A schedule in plain Swedish for the HUD. */
 export function describe(spec) {

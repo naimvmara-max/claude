@@ -46,7 +46,9 @@ unlikely to work, say so and say what would.
 | `projects/sales-job.md` | The job: commission, payout, open questions, contract checklist | Naim |
 | `projects/email-outreach.md` | The cold email setup: domains, inboxes, sending tool, rules, costs | Naim |
 | `wiki/sales-playbook.md` | Who to target, the six questions, the five-step process, emails and calls | Naim, /weekly-review |
-| `wiki/objections.md` | Driv's answers to objections, plus ones heard in the field | /objections, Naim |
+| `wiki/objections.md` | Driv's answers to objections, plus ones heard in the field. One card per objection (`## «…»`, Svar, Följdfråga, Tips, Kategori, Källa): the Live view reads this format | /objections, /call-summary, Naim |
+| `wiki/product-cards.md` | Short product cards, customer questions, the six questions, phrases and false friends for the Live view (`- Typ:` produkt, fråga, behov, fras, ord) | Naim |
+| `samtal/` | One note per call from the Live view: `YYYY-MM-DD-<company>.md` with notes, the six questions, numbers, objections and the result. Never move or rewrite. | the HUD, Naim |
 | `inbox/` | Raw drops: call notes, demo notes, lead lists, links | Naim |
 | `outputs/<skill>/` | Every report or draft batch a skill produces, dated | skills |
 | `outputs/runs/` | Automatic transcript of every headless run | the Bridge |

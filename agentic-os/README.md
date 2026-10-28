@@ -45,6 +45,30 @@ credits); commission 5 000, 10 000, 20 000 NOK per signed agreement. Open questi
 period 12 vs 24/36 months, extra-credit price, clawback) and the contract checklist are in
 `vault/projects/sales-job.md` and in Kommando → Takt.
 
+## The Live view (during a call)
+
+**Live** is one screen for a cold call, a follow-up call or a demo. Open it from the top bar, or
+with the **Live** button on a company in Kommando → Pipeline or in the follow-up list.
+
+- **Company card**: contact, published phone, status, next step, the observation from research,
+  and earlier call notes for that company.
+- **Driv's six questions** with what to listen for, and a field for each answer.
+- **Credit count**: type what the customer tells you; Jarvis picks the smallest package
+  (price per month excl. VAT). No commission anywhere in this view.
+- **Notes** with dictation (Chrome or Edge), a call timer, and the draft kept in the browser
+  until you save, so a reload loses nothing.
+- **Cards**, searchable with `/`: 18 objections with an answer in bokmål, a follow-up question and
+  a tip (`vault/wiki/objections.md`), product cards, customer questions, phrases and Norwegian
+  false friends (`vault/wiki/product-cards.md`). "Hörde den" marks an objection as heard in this call.
+- **Result**: call back, meeting booked, demo held, offer sent, won or not interested, with a date
+  and the next step. Saving (button or Ctrl+S) writes `vault/samtal/YYYY-MM-DD-<company>.md`,
+  moves the pipeline row (a booked meeting gets `booked_via` = phone and starts /demo-prep) and,
+  if ticked, starts /call-summary.
+- **Kundläge** hides everything internal (notes, tips, objections, phrases, the company card)
+  so you can share the screen in a demo.
+
+Both card files are plain Markdown: edit them in Obsidian and the Live view shows the change.
+
 You can add companies and move them through the stages in **Kommando → Pipeline**, edit the table
 in Obsidian, or let the skills do it. Stages: researched → drafted → contacted → replied →
 booked → demo → offer → won/lost. Moving a company to **Möte bokat** starts /demo-prep.
@@ -63,6 +87,7 @@ booked → demo → offer → won/lost. Moving a company to **Möte bokat** star
 | Sales | /demo-prep: their customer service, questions, which package and why | when a company moves to "Möte bokat" |
 | Sales | /offer: demo notes → credit count, package and the covering email for the CRM offer | manual |
 | Sales | /objections: collect objections, true answers into `wiki/objections.md` | manual |
+| Sales | /call-summary: a saved call → summary, needs, package, objections, next step and a bokmål follow-up email as a Gmail draft | when you save a call in Live with the box ticked |
 | Productivity | /plan-today (with the pace), /close-day, /weekly-review | weekdays 07:00, 21:30, Sundays 19:00 |
 | Research | /morning-intel (buying signals, competitors, one idea), /deep-research | weekdays 06:30, manual |
 | Commission | /commission-check: earned vs paid out, against the contract | 1st of the month |
@@ -114,7 +139,7 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
 6. **Obsidian (optional):** open `agentic-os/vault` as a vault, Settings → Community plugins →
    turn off Restricted mode → enable *Agentic OS HUD*.
 
-`npm run check` runs 52 offline checks (Swedish and English routing, schedules, pipeline, commission, credits and pace maths).
+`npm run check` runs 56 offline checks (Swedish and English routing, schedules, pipeline, commission, credits, pace maths, the Live cards and saved calls).
 `npm run demo` builds `dist/jarvis-demo.html`, a single-file demo that needs no server.
 
 ## Troubleshooting
@@ -153,7 +178,7 @@ reads Swedish badly. More voices: Windows Settings → Time & language → Speec
 ## How a request flows
 
 1. You speak or type. The HUD sends the text to `POST /api/ask`.
-2. The router scores a fixed list of choices (8 rules, a quick answer, 16 skills) and picks one.
+2. The router scores a fixed list of choices (9 rules, a quick answer, 18 skills) and picks one.
    You see the odds and can re-route with one tap.
 3. Tier 1 answers from the pipeline and notes ("how am I doing?", "am I on pace?", "who should I follow up with?").
 4. Tier 2 asks Claude Haiku through Claude Code on your plan (or the API, if you set one up).
@@ -183,7 +208,9 @@ reads Swedish badly. More voices: Windows Settings → Time & language → Speec
 | POST | `/api/engine` | `{ engine }` |
 | GET / POST | `/api/jobs`, `/api/jobs/:id`, `/api/jobs/:id/stop` | |
 | POST | `/api/tasks/toggle` | `{ file, line }` |
-| POST | `/api/trigger/:event` | `{ input? }`, e.g. `meeting-booked` |
+| POST | `/api/trigger/:event` | `{ input? }`, e.g. `meeting-booked`, `call-saved` |
+| POST | `/api/calls` | `{ company, lead?, text, summarize? }`: saves the call note to `samtal/`, starts /call-summary if `summarize` |
+| GET | `/api/calls?company=` | earlier call notes for a company |
 | GET | `/api/file?path=` | Markdown or JSON from the vault |
 
 See `docs/VISUAL-STACK.md` for the design references and connectors that were checked.

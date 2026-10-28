@@ -1,10 +1,11 @@
-// The HUD: one page, four views (HUD, Command, Backbone, Router) and the terminal dock.
+// The HUD: one page, five views (HUD, Live, Command, Backbone, Router) and the terminal dock.
 // Talks to the Bridge at /api. With no Bridge it runs in demo mode on example data.
 
 import { Core } from './core.js';
 import { classify } from './classify.js';
 import { fmtNum, nok, packageMix } from './rules.js';
-import { demoState, demoAsk, demoRun, demoFile, demoStopped } from './demo.js';
+import { demoState, demoAsk, demoRun, demoFile, demoStopped, demoText } from './demo.js';
+import { createLive } from './live.js';
 import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -34,6 +35,8 @@ const app = {
 const core = new Core($('#core'));
 core.setSlot($('#core-slot'));
 
+const VIEWS = ['hud', 'live', 'command', 'backbone', 'router'];
+
 // ------------------------------------------------------------------ api
 
 async function api(path, body) {
@@ -61,7 +64,7 @@ async function boot() {
   await refresh();
   setEngine(app.state.engine || 'claude', { silent: true });
   const fromHash = location.hash.slice(1);
-  setView(['hud', 'command', 'backbone', 'router'].includes(fromHash) ? fromHash : store.get('view', 'hud'));
+  setView(VIEWS.includes(fromHash) ? fromHash : store.get('view', 'hud'));
   if (!app.demo) {
     connectEvents();
     setInterval(refresh, 60_000);
@@ -127,6 +130,7 @@ function renderAll() {
   renderRouter();
   renderSkillList();
   renderDock();
+  live.update();
   if (!$('#answer').children.length) renderWelcome();
   syncCore();
 }
@@ -287,11 +291,23 @@ function renderFollowups(sel, limit) {
   const el = $(sel);
   if (!el) return;
   el.innerHTML = f.length
-    ? `<ul class="fu-list">${f.slice(0, limit).map((x) => `<li><span class="fu-co">${esc(x.company)}</span><span class="fu-act">${esc(x.action)}</span><span class="chip ${x.overdue ? 'late' : ''}">${x.overdue ? `sen ${esc(svDay(x.due))}` : 'idag'}</span></li>`).join('')}</ul>
+    ? `<ul class="fu-list">${f.slice(0, limit).map((x) => `<li><span class="fu-co">${esc(x.company)}</span><span class="fu-act">${esc(x.action)}</span><span class="chip ${x.overdue ? 'late' : ''}">${x.overdue ? `sen ${esc(svDay(x.due))}` : 'idag'}</span><button class="fu-live" data-live="${esc(x.id)}" title="Öppna ${esc(x.company)} i Live">Live</button></li>`).join('')}</ul>
        ${f.length > limit ? `<span class="label">+ ${f.length - limit} till</span>` : ''}
        <button class="ghost-btn" data-run="follow-ups">Skriv uppföljningar</button>`
     : '<p class="empty">Inget att följa upp idag.</p>';
   bindQuickLinks(sel);
+  bindLiveLinks(sel);
+}
+
+/** "Live" buttons open the Live view on that company. */
+function bindLiveLinks(sel) {
+  $$(`${sel} [data-live]`).forEach((b) => b.addEventListener('click', () => openLive(b.dataset.live)));
+}
+
+async function openLive(id) {
+  setView('live');
+  await live.show();
+  live.openCompany(id);
 }
 
 function renderChecks(sel, items, emptyText) {
@@ -488,7 +504,7 @@ function renderPipelineTab() {
     : `<label class="sr" for="nd-${esc(r.id)}">Nästa datum</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span>`);
   const site = (w) => esc(/^https?:/.test(w) ? w : `https://${w}`);
   const rows = leads.map((r) => `<tr data-id="${esc(r.id)}" class="st-${esc(r.status)}">
-      <td><b>${esc(r.company)}</b>${r.website ? `<br><a href="${site(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}${r.industry || r.city ? `<br><span class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}</span>` : ''}</td>
+      <td><b>${esc(r.company)}</b> <button class="row-live" data-live="${esc(r.id)}" title="Öppna ${esc(r.company)} i Live">Live</button>${r.website ? `<br><a href="${site(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}${r.industry || r.city ? `<br><span class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}</span>` : ''}</td>
       <td>${esc(r.contact)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ''}${r.phone ? `<br><a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a>` : ''}</td>
       <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${statusOptions(r)}</select></td>
       <td>${pkgSelect(r)}</td>
@@ -527,6 +543,7 @@ function renderPipelineTab() {
     </div>`;
   $$('#tab-pipeline .chart-card').forEach((card) => wireChart(card, { history: card.dataset.key === 'contacts' ? st.contactsHistory : st.bookedHistory }));
   bindQuickLinks('#tab-pipeline');
+  bindLiveLinks('#tab-pipeline');
   $$('#tab-pipeline [data-filter]').forEach((b) => b.addEventListener('click', () => { app.leadFilter = b.dataset.filter; app.leadLimit = 30; renderPipelineTab(); }));
   $('#more-leads')?.addEventListener('click', () => { app.leadLimit = limit + 100; renderPipelineTab(); });
   $('#add-lead').addEventListener('submit', async (e) => {
@@ -727,36 +744,47 @@ function updateCredits() {
   $('#credit-say').textContent = say;
 }
 
-async function saveLead(id, fields) {
+/**
+ * Add a company (id null) or change one. Returns the row. `quiet` skips the toasts, for the
+ * Live view, which says what happened itself.
+ */
+async function saveLead(id, fields, { quiet = false } = {}) {
+  const say = (msg) => { if (!quiet) toast(msg); };
   if (app.demo) {
     const today = isoLocal();
+    let row = null;
     if (id) {
-      const row = app.state.leads.find((r) => r.id === id);
+      row = app.state.leads.find((r) => r.id === id);
       if (row) {
         if (fields.booked_via) row.booked_via = fields.booked_via;
         if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, today);
-        for (const k of ['next_date', 'package', 'paid']) if (fields[k] != null) row[k] = fields[k];
+        for (const k of ['next_date', 'next_action', 'package', 'paid', 'notes']) if (fields[k] != null) row[k] = fields[k];
       }
     } else {
-      if (!fields.company) { toast('Skriv in ett företagsnamn.'); return; }
-      const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
+      if (!fields.company) { toast('Skriv in ett företagsnamn.'); return null; }
+      row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
       Object.assign(row, fields, { id: nextId(app.state.leads), added: today });
       applyStatus(row, 'researched', today);
       app.state.leads.push(row);
     }
     app.state.stats = computeStats(app.state.leads, { business: app.state.business });
     renderAll();
-    if (fields.status === 'booked') toast('I riktiga Jarvis startar /demo-prep nu för det företaget.');
-    if (fields.status === 'won') toast('Affären vunnen. Rutan fylls med paketet och provisionen räknas.');
-    return;
+    if (fields.status === 'booked') say('I riktiga Jarvis startar /demo-prep nu för det företaget.');
+    if (fields.status === 'won') say('Affären vunnen. Rutan fylls med paketet och provisionen räknas.');
+    return row ? { lead: row, fired: [] } : null;
   }
   try {
     const res = await api(id ? `/api/leads/${id}` : '/api/leads', fields);
-    if (res.fired?.length) toast(`Möte bokat: /demo-prep förbereder ${res.lead.company}.`);
-    else if (fields.status === 'won') toast(`${res.lead.company} vunnen${res.lead.package ? '' : ': välj paket så att provisionen räknas'}`);
-    else toast(id ? `${res.lead.company} uppdaterad` : `${res.lead.company} tillagd i pipelinen`);
+    if (res.fired?.length) say(`Möte bokat: /demo-prep förbereder ${res.lead.company}.`);
+    else if (fields.status === 'won') say(`${res.lead.company} vunnen${res.lead.package ? '' : ': välj paket så att provisionen räknas'}`);
+    else say(id ? `${res.lead.company} uppdaterad` : `${res.lead.company} tillagd i pipelinen`);
     await refresh();
-  } catch (err) { toast(err.message); }
+    return res;
+  } catch (err) {
+    if (quiet) throw err;
+    toast(err.message);
+    return null;
+  }
 }
 
 function areaChart(m, color) {
@@ -1196,8 +1224,7 @@ function startListening() {
     toast(`Röstinmatning är blockerad här. ${VOICE_FIX}`);
     return;
   }
-  const lang = voiceSettings().lang;
-  rec.lang = lang && lang !== 'auto' ? lang : navigator.language || 'en-US';
+  rec.lang = listenLang();
   rec.interimResults = true;
   rec.continuous = false;
   let finalText = '';
@@ -1229,6 +1256,11 @@ function startListening() {
     if (!heard && !failed && Date.now() - startedAt < 1500) toast(`Rösten slutade innan den hörde dig. ${VOICE_FIX}`);
   };
   try { rec.start(); setListening(true); } catch (err) { toast(err.message); }
+}
+
+function listenLang() {
+  const lang = voiceSettings().lang;
+  return lang && lang !== 'auto' ? lang : navigator.language || 'en-US';
 }
 
 function stopListening(cancel = false) {
@@ -1416,15 +1448,17 @@ function setView(view) {
   store.set('view', view);
   document.body.dataset.view = view;
   core.setView(view);
-  for (const v of ['hud', 'command', 'backbone', 'router']) $(`#view-${v}`).hidden = v !== view;
+  for (const v of VIEWS) $(`#view-${v}`).hidden = v !== view;
   $$('.views button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.view === view)));
   if (location.hash.slice(1) !== view) history.replaceState(null, '', `#${view}`);
+  if (view === 'live') live.show();
+  else document.body.classList.remove('share-safe');
 }
 
 function setTab(tab) {
   app.tab = tab;
   for (const t of ['overview', 'pipeline', 'pace', 'packages', 'research']) $(`#tab-${t}`).hidden = t !== tab;
-  $$('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+  $$('.tabs button[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
 }
 
 // ------------------------------------------------------------------ misc UI
@@ -1471,7 +1505,7 @@ function clock() {
 function bind() {
   $$('.engine button').forEach((b) => b.addEventListener('click', () => setEngine(b.dataset.engine)));
   $$('.views button').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
-  $$('.tabs button').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  $$('.tabs button[data-tab]').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
   $$('.states button').forEach((b) => b.addEventListener('click', () => {
     app.manualState = b.dataset.state === 'auto' ? null : b.dataset.state;
     if (app.manualState === 'speaking') core.pulse();
@@ -1488,12 +1522,38 @@ function bind() {
   $$('dialog').forEach((d) => {
     d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
   });
-  addEventListener('hashchange', () => { const v = location.hash.slice(1); if (['hud', 'command', 'backbone', 'router'].includes(v)) setView(v); });
+  addEventListener('hashchange', () => { const v = location.hash.slice(1); if (VIEWS.includes(v)) setView(v); });
   addEventListener('keydown', (e) => {
-    const typing = /INPUT|TEXTAREA/.test(document.activeElement?.tagName || '');
+    const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
     if (e.key === 'Escape' && app.listening) { stopListening(true); return; }
-    if (e.key === '/' && !typing) { e.preventDefault(); setView('hud'); $('#ask-input').focus(); }
+    if (app.view === 'live' && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); live.save(); return; }
+    if (e.key === '/' && !typing) {
+      e.preventDefault();
+      if (app.view === 'live') { live.focusSearch(); return; }
+      setView('hud');
+      $('#ask-input').focus();
+    }
   });
 }
+
+// ------------------------------------------------------------------ live view
+
+/** Add a company from the Live view and return its row. */
+async function addLead(fields) {
+  return (await saveLead(null, fields, { quiet: true }))?.lead || null;
+}
+
+/** A Markdown note from the vault (or the copy built into the demo). */
+async function loadText(path) {
+  if (app.demo) return demoText(path);
+  return (await api(`/api/file?path=${encodeURIComponent(path)}`)).text;
+}
+
+const live = createLive({
+  $, $$, esc, store, api, toast, saveLead, addLead, loadText, openFile, Recognition, listenLang, voiceBlockedReason,
+  getState: () => app.state,
+  isDemo: () => app.demo,
+  demoJob: (skill, title) => startDemoJob(skill, title),
+});
 
 boot();

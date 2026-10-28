@@ -16,6 +16,7 @@ description: Tidy the vault - file inbox notes, archive old outputs and daily no
 
 ## Never
 - Never delete a file. Move it.
+- Never move or edit call notes in `samtal/`: they are the history of every customer conversation.
 
 
 ## Language

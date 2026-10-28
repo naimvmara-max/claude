@@ -9,6 +9,10 @@ import { computeStats, COLUMNS } from './pipeline.js';
 // tools/build-demo.mjs replaces this with system/backbone.json.
 const BACKBONE = /*__BACKBONE__*/ null;
 
+// tools/build-demo.mjs replaces this with the Live view's cards: wiki/objections.md and
+// wiki/product-cards.md, so the preview shows the same answers as the vault.
+const TEXTS = /*__TEXTS__*/ null;
+
 const FALLBACK = {
   rules: [
     { title: 'Gjort det för hand två gånger', then: 'gör det till en skill' },
@@ -21,7 +25,7 @@ const FALLBACK = {
 
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const SV_DAYS = ['söndagar', 'måndagar', 'tisdagar', 'onsdagar', 'torsdagar', 'fredagar', 'lördagar'];
-const SV_EVENTS = { 'meeting-booked': 'när ett möte bokas' };
+const SV_EVENTS = { 'meeting-booked': 'när ett möte bokas', 'call-saved': 'när du sparar ett samtal' };
 function when(spec) {
   const s = String(spec || 'manual');
   let m;
@@ -64,7 +68,7 @@ const EXAMPLE_LEADS = [
   ['Solheim Tannklinikk', 'Marte Solheim', 'tannklinikk', 'Oslo', 'phone', 'M', 'won', 26, 24, null, 24, 15, 13, 3, null, null, 'Lämna över till onboarding', 'Telefonen öppen bara 08–15'],
   ['Elvebakken Optikk', 'Rune Solberg', 'optiker', 'Oslo', 'phone', 'S', 'won', 52, 50, null, 49, 44, 42, 36, 5, null, '', 'Första affären; provisionen utbetald'],
   ['Nordlys Sykkel', 'Eirik Dahl', 'sykkelbutikk', 'Tromsø', 'email', 'M', 'offer', 18, 16, 13, 12, 3, 2, null, null, 0, 'Följ upp offerten', 'Undrade om Shopify (fråga Driv)'],
-  ['Havgløtt Hotell', 'Silje Lunde', 'hotell', 'Ålesund', 'email', 'L', 'booked', 12, 10, 6, 5, null, null, null, null, 1, 'Demomöte', 'Bokningsfrågor på norska, engelska och tyska'],
+  ['Havgløtt Hotell', 'Silje Lunde', 'hotell', 'Ålesund', 'email', 'M', 'booked', 12, 10, 6, 5, null, null, null, null, 1, 'Demomöte', 'Bokningsfrågor på norska, engelska och tyska'],
   ['Kvikk Rør AS', 'Henrik Moe', 'rørlegger', 'Stavanger', 'phone', 'S', 'booked', 8, 7, null, 2, null, null, null, null, 2, 'Demomöte', 'Missar samtal när de är ute på jobb'],
   ['Bryggen Interiør', 'Nora Bakke', 'nettbutikk', 'Bergen', 'email', 'M', 'replied', 9, 7, 1, null, null, null, null, null, 0, 'Svara och föreslå demotider', 'positivt'],
   ['Frisk Fysioterapi', 'Ola Strand', 'fysioterapi', 'Trondheim', 'email', '', 'replied', 6, 5, 0, null, null, null, null, null, 0, 'Svara och föreslå demotider', 'fråga: vad kostar det?'],
@@ -238,6 +242,12 @@ export function demoFile(path) {
   return DEMO_FILES[path] || '# Exempel\n\nI riktiga Jarvis öppnas rapporten från ditt valv här.';
 }
 
+/** A vault note built into the demo (the Live view's cards). */
+export function demoText(path) {
+  if (!TEXTS?.[path]) throw new Error(`${path} finns inte i demon`);
+  return TEXTS[path];
+}
+
 const QUICK = [
   [/bokningsgrad|konvertering|svarsfrekvens|booking rate|reply rate/i, 'Det finns ingen ärlig universell siffra. För kalla kontakter till små företag är det vanligt att några procent bokar möte, och en del bokade möten blir aldrig av. Efter några hundra kontakter är din egen siffra den som gäller, och fliken Takt byter till den.'],
   [/outlook/i, 'Drivs svar: fråga «Hvordan vet dere i dag at alle kunder har fått svar?» Låt dem själva komma fram till att en delad inkorg inte visar det. Sedan visar du ärendehanteringen.'],
@@ -261,6 +271,7 @@ const STEPS = {
   offer: ['→ Read projects/product.md', '→ Read inbox/demo-foretag.md', '→ create_draft (Gmail, reply in thread)', '→ Edit ops/pipeline.md'],
   'follow-ups': ['→ Read ops/pipeline.md', '→ search_threads (Gmail)', '→ create_draft (Gmail, reply in thread)', '→ Edit ops/pipeline.md'],
   'inbox-brief': ['→ search_threads unread (Gmail)', '→ Read ops/pipeline.md', '→ Edit ops/pipeline.md', '→ Write outputs/inbox-brief/idag.md'],
+  'call-summary': ['→ Read samtal/idag-foretag.md', '→ Read ops/pipeline.md', '→ Read projects/product.md', '→ Read wiki/objections.md', '→ Write outputs/call-summary/foretag.md', '→ create_draft (Gmail, till adressen kunden gav)', '→ Edit ops/pipeline.md'],
   'plan-today': ['→ Read ops/directives.md', '→ Read system/business.json', '→ Read ops/pipeline.md', '→ list_events today', '→ Edit daily-notes/idag.md'],
 };
 

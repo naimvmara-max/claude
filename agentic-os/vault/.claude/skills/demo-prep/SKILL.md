@@ -11,7 +11,8 @@ A company name or pipeline id. If none is given, take the `booked` company whose
 
 ## Read first
 `projects/product.md`, `wiki/sales-playbook.md` (demo structure), `wiki/objections.md`,
-the company's row, its briefing in `outputs/lead-research/`, and any email thread with them.
+the company's row, its briefing in `outputs/lead-research/`, earlier call notes for it in
+`samtal/` (what they already told you: don't ask again, build on it), and any email thread with them.
 
 ## Do
 1. Research their customer service: channels (phone, email, chat, contact form), opening hours,

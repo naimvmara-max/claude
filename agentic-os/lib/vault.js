@@ -15,7 +15,10 @@ export function localTime(d = new Date()) {
 }
 
 export function slugify(text, max = 48) {
-  return String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, max) || 'run';
+  return String(text).toLowerCase()
+    .replace(/[øö]/g, 'o').replace(/[æä]/g, 'ae').replace(/å/g, 'a')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, max) || 'run';
 }
 
 /** Note headings, Swedish first. English names from older notes still work. */
@@ -209,6 +212,29 @@ export class Vault {
     if (fields.package != null) row.package = packageOf(row);
     this.write('ops/pipeline.md', renderPipeline(doc));
     return { row, movedTo: row.status !== before ? row.status : null };
+  }
+
+  /**
+   * Save a call note from the Live view to samtal/YYYY-MM-DD-<company>.md. A second call
+   * with the same company on the same day is appended below a rule.
+   */
+  saveCall(company, text) {
+    const rel = `samtal/${localDate()}-${slugify(company)}.md`;
+    const before = this.read(rel, '');
+    this.write(rel, before.trim() ? `${before.trimEnd()}\n\n---\n\n${text.trim()}\n` : `${text.trim()}\n`);
+    return rel;
+  }
+
+  /** Saved call notes for one company, newest first. */
+  calls(company) {
+    const slug = slugify(company);
+    let names = [];
+    try { names = fs.readdirSync(this.resolve('samtal')); } catch { return []; }
+    return names
+      .map((n) => n.match(/^(\d{4}-\d{2}-\d{2})-(.+)\.md$/))
+      .filter((m) => m && m[2] === slug)
+      .map((m) => ({ path: `samtal/${m[0]}`, date: m[1] }))
+      .sort((a, b) => b.date.localeCompare(a.date));
   }
 
   /** Newest Markdown files under outputs/, for the Research tab. */

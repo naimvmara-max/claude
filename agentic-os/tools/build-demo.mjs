@@ -20,16 +20,18 @@ const title = html.match(/<title>(.*?)<\/title>/)[1];
 const fonts = html.match(/<link rel="stylesheet" href="(https:\/\/fonts[^"]+)">/)[1];
 const css = fs.readFileSync(pub('css/os.css'), 'utf8');
 const backbone = fs.readFileSync(path.join(root, 'vault/system/backbone.json'), 'utf8');
+const texts = Object.fromEntries(['wiki/objections.md', 'wiki/product-cards.md']
+  .map((p) => [p, fs.readFileSync(path.join(root, 'vault', p), 'utf8')]));
 
 // Each module becomes an IIFE that returns its exports; imports become destructuring.
-const order = ['classify', 'pipeline', 'rules', 'core', 'demo', 'app'];
+const order = ['classify', 'pipeline', 'rules', 'cards', 'core', 'live', 'demo', 'app'];
 const parts = order.map((name) => {
   let src = fs.readFileSync(pub(`js/${name}.js`), 'utf8');
   const exported = new Set();
   src = src.replace(/^import\s*\{([^}]+)\}\s*from\s*'\.\/([\w-]+)\.js';\s*$/gm, (_m, names, mod) => `const {${names}} = __mod_${mod};`);
   src = src.replace(/^export\s+(async\s+function|function|class|const|let)\s+([A-Za-z0-9_$]+)/gm, (_m, kind, id) => { exported.add(id); return `${kind} ${id}`; });
   src = src.replace(/^export\s*\{([^}]+)\};?\s*$/gm, (_m, names) => { names.split(',').map((n) => n.trim()).filter(Boolean).forEach((n) => exported.add(n)); return ''; });
-  if (name === 'demo') src = src.replace('/*__BACKBONE__*/ null', backbone.trim());
+  if (name === 'demo') src = src.replace('/*__BACKBONE__*/ null', backbone.trim()).replace('/*__TEXTS__*/ null', () => JSON.stringify(texts).replace(/<\//g, '<\\/'));
   return `const __mod_${name} = (() => {\n${src}\nreturn { ${[...exported].join(', ')} };\n})();`;
 });
 const bundle = parts.join('\n\n');

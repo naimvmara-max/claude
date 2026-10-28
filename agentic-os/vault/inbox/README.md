@@ -2,6 +2,7 @@
 
 Släng in allt här: samtalsanteckningar, demoanteckningar, inklistrade svar, leadlistor, länkar.
 /vault-cleanup sorterar det varje söndag.
+Samtal du antecknar i fliken Live sparas direkt i `samtal/`, inte här.
 
 Filer som skills letar efter:
 
