@@ -55,6 +55,12 @@
   "confirmed": true,
   "confirmed_by": "provisionsbladet från Driv, okt 2026",
   "email_language": "nb",
+  "privacy": {
+    "_readme": "GDPR-läge. 'company-only' = Jarvis sparar bara företagsuppgifter (namn, webb, bransch, ort, allmän adress som post@, växelnummer); kontaktpersoner, direktadresser och namn i anteckningar hör hemma i Drivs CRM. 'full' = kontaktpersoner får sparas i valvet. Byt till 'full' först när Driv/Flowtel har godkänt det skriftligt (anställningsavtalet 10.2). Se projects/gdpr-jarvis.md.",
+    "mode": "company-only",
+    "approved_by": "",
+    "approved_date": ""
+  },
   "outreach": {
     "_readme": "Kalla mejl. mode 'drafts' = Jarvis gör utkast i din egen inkorg och du skickar (högst ~30 om dagen från Drivs huvuddomän). mode 'campaign' = /campaign bygger en CSV och en sekvens som du granskar och laddar upp i utskicksverktyget, som skickar från separata, uppvärmda domäner. Fyll i när det är uppsatt.",
     "mode": "drafts",

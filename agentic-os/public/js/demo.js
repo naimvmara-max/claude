@@ -59,6 +59,9 @@ const BUSINESS = {
   confirmed: true,
   confirmed_by: 'provisionsbladet från Driv, okt 2026',
   email_language: 'nb',
+  // The preview's example companies are made up, so it shows contact persons. A real vault
+  // starts in 'company-only' (system/business.json → privacy).
+  privacy: { mode: 'full' },
 };
 
 // Example companies, spread over the last 8 weeks so every chart has a shape. Fictional.

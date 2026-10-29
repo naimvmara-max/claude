@@ -3,7 +3,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { parsePipeline, renderPipeline, computeStats, nextId, applyStatus, packageOf, COLUMNS, STAGES } from '../public/js/pipeline.js';
+import { parsePipeline, renderPipeline, computeStats, nextId, applyStatus, packageOf, scrubPersonal, COLUMNS, STAGES } from '../public/js/pipeline.js';
 
 export function localDate(d = new Date()) {
   const p = (n) => String(n).padStart(2, '0');
@@ -174,7 +174,12 @@ export class Vault {
     return computeStats(rows, { business: this.business(), today: localDate() });
   }
 
-  addLead(fields) {
+  /**
+   * Add a company. In GDPR mode `company-only` the contact name and named addresses are not
+   * stored; `dropped` says what was left out so the HUD can tell Naim.
+   */
+  addLead(input) {
+    const { fields, dropped } = scrubPersonal(input, this.business());
     const doc = this.pipeline();
     const company = String(fields.company || '').trim();
     if (!company) throw Object.assign(new Error('Skriv in ett företagsnamn.'), { status: 400 });
@@ -194,10 +199,11 @@ export class Vault {
     if (typed.next_action) row.next_action = typed.next_action;
     doc.rows.push(row);
     this.write('ops/pipeline.md', renderPipeline(doc));
-    return row;
+    return { row, dropped };
   }
 
-  updateLead(id, fields) {
+  updateLead(id, input) {
+    const { fields, dropped } = scrubPersonal(input, this.business());
     const doc = this.pipeline();
     const row = doc.rows.find((r) => r.id === id);
     if (!row) throw Object.assign(new Error(`Inget företag med id ${id}. Ladda om och försök igen.`), { status: 404 });
@@ -211,7 +217,7 @@ export class Vault {
     }
     if (fields.package != null) row.package = packageOf(row);
     this.write('ops/pipeline.md', renderPipeline(doc));
-    return { row, movedTo: row.status !== before ? row.status : null };
+    return { row, movedTo: row.status !== before ? row.status : null, dropped };
   }
 
   /**

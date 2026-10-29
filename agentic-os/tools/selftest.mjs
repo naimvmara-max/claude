@@ -9,7 +9,8 @@ import { classify } from '../public/js/classify.js';
 import { answerRule } from '../public/js/rules.js';
 import { parseSchedule, lastDue, describe } from '../lib/scheduler.js';
 import { H, Vault, slugify } from '../lib/vault.js';
-import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan } from '../public/js/pipeline.js';
+import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan, isGenericEmail, scrubPersonal, privacyMode } from '../public/js/pipeline.js';
+import { blockReason } from './guard.mjs';
 import { loadSkills } from '../lib/skills.js';
 import { parseCards, searchCards } from '../public/js/cards.js';
 
@@ -272,6 +273,37 @@ check('call notes are saved per company and day, and listed back', () => {
   v.saveCall('Annet AS', '# x');
   assert.deepEqual(v.calls('Havgløtt Hotell AS').map((c) => c.path), [first]);
   fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+check('GDPR mode keeps company data and drops people', () => {
+  assert.equal(privacyMode({}), 'company-only');
+  assert.equal(privacyMode({ privacy: { mode: 'full' } }), 'full');
+  assert.ok(isGenericEmail('post@fjellsport.no') && isGenericEmail('Kundeservice@firma.no'));
+  assert.ok(!isGenericEmail('kari.nordmann@firma.no') && !isGenericEmail('post@'));
+  const { fields, dropped } = scrubPersonal({ company: 'X AS', contact: 'Kari', email: 'kari@x.no', phone: '22 00 00 00' }, {});
+  assert.deepEqual([fields.contact, fields.email, fields.phone], ['', '', '22 00 00 00']);
+  assert.equal(dropped.length, 2);
+  assert.equal(scrubPersonal({ contact: 'Kari' }, { privacy: { mode: 'full' } }).fields.contact, 'Kari');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aos-'));
+  fs.cpSync(path.join(root, 'vault/system'), path.join(tmp, 'system'), { recursive: true });
+  fs.cpSync(path.join(root, 'vault/ops'), path.join(tmp, 'ops'), { recursive: true });
+  const v = new Vault(tmp);
+  const added = v.addLead({ company: 'Test AS', contact: 'Ola', email: 'ola@test.no' });
+  assert.equal(added.row.contact, '');
+  assert.equal(added.row.email, '');
+  assert.equal(v.updateLead(added.row.id, { email: 'post@test.no' }).row.email, 'post@test.no');
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+check('the commit guard blocks customer data, not templates', () => {
+  const empty = vault.read('ops/pipeline.md');
+  assert.equal(parsePipeline(empty).rows.length, 0, 'the committed pipeline must be an empty template');
+  assert.equal(blockReason('vault/ops/pipeline.md', () => empty), null);
+  assert.ok(blockReason('vault/ops/pipeline.md', () => `${empty.trimEnd()}\n| L001 | Test AS |  |  |  |  |  |  | phone |  | researched |  |  |  |  |  |  |  |  |  |  |  |  |`));
+  assert.ok(blockReason('vault/samtal/2026-10-29-test.md', () => ''));
+  assert.ok(blockReason('vault/outputs/call-summary/x.md', () => ''));
+  assert.equal(blockReason('vault/samtal/README.md', () => ''), null);
+  assert.equal(blockReason('public/js/app.js', () => ''), null);
 });
 
 check('tier 1 answers come from saved data', () => {

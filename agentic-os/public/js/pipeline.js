@@ -164,6 +164,37 @@ export function applyStatus(row, status, today) {
   return row;
 }
 
+// ------------------------------------------------------------------ privacy
+
+/**
+ * Company mailboxes that are not a named person. Cold email may go only to these
+ * (Forbrukertilsynet's guidance under markedsføringsloven § 15), and they are not personal data.
+ */
+export const GENERIC_MAILBOXES = ['post', 'postmottak', 'firmapost', 'kontakt', 'kundeservice', 'kundesenter', 'info', 'hei', 'hallo', 'support', 'service', 'salg', 'ordre', 'booking', 'resepsjon'];
+
+export function isGenericEmail(email) {
+  const m = String(email || '').trim().toLowerCase().match(/^([^@\s]+)@[^@\s]+\.[a-z]{2,}$/);
+  return Boolean(m) && GENERIC_MAILBOXES.includes(m[1]);
+}
+
+/**
+ * `full` keeps contact persons in the vault. `company-only` (the default until Driv approves
+ * more, contract 10.2) keeps company-level data only: people live in Driv's CRM.
+ */
+export function privacyMode(business = {}) {
+  return business.privacy?.mode === 'full' ? 'full' : 'company-only';
+}
+
+/** In company-only mode, drop the contact name and any address that is not a generic mailbox. */
+export function scrubPersonal(fields, business = {}) {
+  if (privacyMode(business) === 'full') return { fields, dropped: [] };
+  const out = { ...fields };
+  const dropped = [];
+  if (String(out.contact || '').trim()) { dropped.push('kontaktperson'); out.contact = ''; }
+  if (String(out.email || '').trim() && !isGenericEmail(out.email)) { dropped.push(`e-post ${String(out.email).trim()}`); out.email = ''; }
+  return { fields: out, dropped };
+}
+
 // ------------------------------------------------------------------ dates
 
 export function isoLocal(d = new Date()) {

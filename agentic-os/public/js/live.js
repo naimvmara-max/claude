@@ -4,7 +4,7 @@
 // write the follow-up email. Nothing here shows commission, so it is safe to share the screen.
 
 import { parseCards, searchCards } from './cards.js';
-import { creditPlan, packageOf, STAGE_LABELS, PACKAGES, isoLocal } from './pipeline.js';
+import { creditPlan, packageOf, privacyMode, STAGE_LABELS, PACKAGES, isoLocal } from './pipeline.js';
 
 const CALL_TYPES = { phone: 'Kallt samtal', followup: 'Uppföljning', demo: 'Demo' };
 
@@ -135,7 +135,7 @@ export function createLive(d) {
             <div class="glass lv-card lv-hook">«Kundene får svar på sekunder – også klokken 23:41.» <span>Sälj nyttan, inte funktionerna.</span></div>
             <div class="glass lv-card internal">
               <div class="lv-notes-head"><label class="label" for="lv-notes">Anteckningar</label><button class="ghost-btn" id="lv-dictate" title="Skriv med rösten (Chrome eller Edge)">Diktera</button></div>
-              <textarea id="lv-notes" placeholder="Skriv medan ni pratar: vad de säger, siffror, namn, vem som bestämmer …  Ctrl+S sparar."></textarea>
+              <textarea id="lv-notes" placeholder="${privacyMode(business()) === 'full' ? 'Skriv medan ni pratar: vad de säger, siffror, namn, vem som bestämmer …  Ctrl+S sparar.' : 'Skriv medan ni pratar: vad de säger, siffror, vem som bestämmer. GDPR-läge: skriv roll, inte namn (t.ex. «daglig leder»).  Ctrl+S sparar.'}"></textarea>
               <div class="lv-heard" id="lv-heard"></div>
             </div>
             <div class="glass lv-card internal">

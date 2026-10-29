@@ -278,17 +278,17 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { done: vault.toggleTask(body.file, Number(body.line)) });
     }
     if (p === '/api/leads' && req.method === 'POST') {
-      const row = vault.addLead(await readBody(req));
+      const { row, dropped } = vault.addLead(await readBody(req));
       vault.logRequest({ tier: 1, route: 'add lead', text: row.company });
-      return send(res, 200, { lead: row });
+      return send(res, 200, { lead: row, dropped });
     }
     const leadMatch = p.match(/^\/api\/leads\/(L\d+)$/);
     if (leadMatch && req.method === 'POST') {
-      const { row, movedTo } = vault.updateLead(leadMatch[1], await readBody(req));
+      const { row, movedTo, dropped } = vault.updateLead(leadMatch[1], await readBody(req));
       let fired = [];
       // Moving a company to "Meeting booked" fires the meeting-booked event (/demo-prep prepares the demo).
       if (movedTo === 'booked') fired = scheduler.trigger('meeting-booked', `${row.company} (${row.id}), contact ${row.contact || 'unknown'}, ${row.website || ''}${row.next_date ? `, meeting ${row.next_date}` : ''}`);
-      return send(res, 200, { lead: row, fired });
+      return send(res, 200, { lead: row, fired, dropped });
     }
     if (p === '/api/calls' && req.method === 'POST') {
       const body = await readBody(req);

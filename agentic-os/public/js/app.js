@@ -6,7 +6,7 @@ import { classify } from './classify.js';
 import { fmtNum, nok, packageMix } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped, demoText } from './demo.js';
 import { createLive } from './live.js';
-import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
+import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, privacyMode, scrubPersonal, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -503,6 +503,7 @@ function renderPipelineTab() {
     ? `<label class="sr" for="pd-${esc(r.id)}">Provision utbetald</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}"><br><span class="muted">${r.paid ? 'provision utbetald' : `utbetald? ${packageOf(r) ? esc(nok(st.packages[packageOf(r)].commission)) : 'välj paket'}`}</span>`
     : `<label class="sr" for="nd-${esc(r.id)}">Nästa datum</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span>`);
   const site = (w) => esc(/^https?:/.test(w) ? w : `https://${w}`);
+  const companyOnly = privacyMode(s.business) === 'company-only';
   const rows = leads.map((r) => `<tr data-id="${esc(r.id)}" class="st-${esc(r.status)}">
       <td><b>${esc(r.company)}</b> <button class="row-live" data-live="${esc(r.id)}" title="Öppna ${esc(r.company)} i Live">Live</button>${r.website ? `<br><a href="${site(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}${r.industry || r.city ? `<br><span class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}</span>` : ''}</td>
       <td>${esc(r.contact)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ''}${r.phone ? `<br><a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a>` : ''}</td>
@@ -516,8 +517,8 @@ function renderPipelineTab() {
       <span class="label">Lägg till ett företag</span>
       <div class="add-grid">
         <label>Företag<input id="al-company" name="company" required placeholder="Fjellsport Nett AS"></label>
-        <label>Kontaktperson<input id="al-contact" name="contact" placeholder="Ingrid Haugen, daglig leder"></label>
-        <label>E-post<input id="al-email" name="email" type="email" placeholder="post@foretag.no"></label>
+        ${companyOnly ? '' : '<label>Kontaktperson<input id="al-contact" name="contact" placeholder="Ingrid Haugen, daglig leder"></label>'}
+        <label>${companyOnly ? 'Allmän e-post' : 'E-post'}<input id="al-email" name="email" type="email" placeholder="post@foretag.no"></label>
         <label>Telefon<input id="al-phone" name="phone" inputmode="tel" placeholder="+47 22 00 00 00"></label>
         <label>Webbplats<input id="al-website" name="website" placeholder="foretag.no"></label>
         <label>Bransch<input id="al-industry" name="industry" placeholder="nettbutikk"></label>
@@ -529,7 +530,7 @@ function renderPipelineTab() {
     </form>
     <div class="glass table-card">
       <div class="table-head">
-        <span class="label">${all.length} företag · ops/pipeline.md${app.demo ? ' · exempel' : ''}</span>
+        <span class="label">${all.length} företag · ops/pipeline.md${app.demo ? ' · exempel' : ''}${companyOnly ? ' · <span class="gdpr-chip" title="Jarvis sparar bara företagsuppgifter. Kontaktpersoner och personliga adresser hör hemma i Drivs CRM tills Driv godkänt mer (system/business.json → privacy).">GDPR-läge</span>' : ''}</span>
         <div class="tabs" role="tablist" aria-label="Filtrera företag">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${FILTER_NAMES[k]} ${groups[k].length}</button>`).join('')}</div>
       </div>
       ${leads.length ? `<div class="table-wrap"><table class="leads">
@@ -752,6 +753,9 @@ async function saveLead(id, fields, { quiet = false } = {}) {
   const say = (msg) => { if (!quiet) toast(msg); };
   if (app.demo) {
     const today = isoLocal();
+    const clean = scrubPersonal(fields, app.state.business);
+    fields = clean.fields;
+    if (clean.dropped.length) toast(gdprNote(clean.dropped));
     let row = null;
     if (id) {
       row = app.state.leads.find((r) => r.id === id);
@@ -775,6 +779,7 @@ async function saveLead(id, fields, { quiet = false } = {}) {
   }
   try {
     const res = await api(id ? `/api/leads/${id}` : '/api/leads', fields);
+    if (res.dropped?.length) { toast(gdprNote(res.dropped)); await refresh(); return res; }
     if (res.fired?.length) say(`Möte bokat: /demo-prep förbereder ${res.lead.company}.`);
     else if (fields.status === 'won') say(`${res.lead.company} vunnen${res.lead.package ? '' : ': välj paket så att provisionen räknas'}`);
     else say(id ? `${res.lead.company} uppdaterad` : `${res.lead.company} tillagd i pipelinen`);
@@ -785,6 +790,10 @@ async function saveLead(id, fields, { quiet = false } = {}) {
     toast(err.message);
     return null;
   }
+}
+
+function gdprNote(dropped) {
+  return `GDPR-läge: sparade inte ${dropped.join(' och ')}. Personuppgifter hör hemma i Drivs CRM.`;
 }
 
 function areaChart(m, color) {

@@ -45,6 +45,7 @@ unlikely to work, say so and say what would.
 | `projects/product.md` | **What we sell**: Driv Kundesenter, packages, credits, prices, process. The only source for product claims. | Naim |
 | `projects/sales-job.md` | The job: commission, payout, open questions, contract checklist | Naim |
 | `projects/email-outreach.md` | The cold email setup: domains, inboxes, sending tool, rules, costs | Naim |
+| `projects/gdpr-jarvis.md` | How Jarvis handles personal data, for the employer's approval | Naim |
 | `wiki/sales-playbook.md` | Who to target, the six questions, the five-step process, emails and calls | Naim, /weekly-review |
 | `wiki/objections.md` | Driv's answers to objections, plus ones heard in the field. One card per objection (`## «…»`, Svar, Följdfråga, Tips, Kategori, Källa): the Live view reads this format | /objections, /call-summary, Naim |
 | `wiki/product-cards.md` | Short product cards, customer questions, the six questions, phrases and false friends for the Live view (`- Typ:` produkt, fråga, behov, fras, ord) | Naim |
@@ -101,6 +102,23 @@ unlikely to work, say so and say what would.
 - Anyone who asks not to be contacted is marked `lost` with `opt-out` in notes and never contacted again.
 - Numbers come from a source. If something is unknown, write `okänt`.
 - Dates are `YYYY-MM-DD`, times 24h `HH:MM`, money NOK (SEK only as a rough conversion).
+
+## Personal data (GDPR)
+
+The employment contract (10.2) says customer and personal data may only be kept in systems the
+employer points to. Read `privacy.mode` in `system/business.json` before you write anything.
+
+- **`company-only`** (the default until Driv or Flowtel approves more in writing): store
+  company-level data only: company name, org number, website, industry, city, a generic
+  company address (post@, kontakt@ …) and the published switchboard number. Leave `contact`
+  empty and never write a person's name, personal email or mobile number into any vault file
+  (pipeline, outputs, notes). Write the role instead ("daglig leder", "kundeservicesjef").
+  The person's details belong in Driv's CRM. A Gmail draft may still go to an address the
+  person gave or replied from, as long as Gmail is connected to the work mailbox.
+- **`full`**: contact persons may be stored, but only what the job needs.
+- Never copy vault data anywhere else: no uploads, no git commits, no other services.
+- If someone asks to be deleted: mark the row `lost` with `opt-out`, empty `contact`, `email`
+  and `phone`, and list their files in `samtal/` and `outputs/` for Naim to delete by hand.
 
 ## Tiers (how requests reach you)
 

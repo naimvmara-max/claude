@@ -1,5 +1,5 @@
 node_modules/
-# Runtime state the Bridge writes. Your notes are not ignored.
+# Runtime state the Bridge writes.
 vault/system/log/
 vault/system/usage.json
 vault/system/automation-state.json
@@ -9,3 +9,17 @@ vault/.obsidian/cache
 .env
 dist/
 .runtime/
+
+# Customer data never goes to git (GDPR, and the employment contract 10.1-10.2): call notes,
+# reports, daily notes, inbox drops and the call log. Only the placeholders are committed.
+# ops/pipeline.md is committed as an empty template; tools/guard.mjs blocks a commit that
+# would add rows to it.
+vault/samtal/*
+!vault/samtal/README.md
+vault/outputs/*
+!vault/outputs/.gitkeep
+vault/daily-notes/*
+!vault/daily-notes/.gitkeep
+vault/inbox/*
+!vault/inbox/README.md
+vault/ops/calls.md
