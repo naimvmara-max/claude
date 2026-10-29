@@ -35,6 +35,11 @@ export const TIER1_INTENTS = [
     terms: ['my numbers', 'my stats', 'stats', 'how am i doing', 'commission', 'how much have i earned', 'how many deals', 'deals this month', 'meetings booked', 'how many meetings', 'how many demos', 'reply rate', 'booking rate', 'contacts this week', 'how many leads', 'provision', 'mina siffror', 'siffrorna', 'hur går det', 'hur ligger jag till', 'hur mycket har jag tjänat', 'hur många affärer', 'hur många möten', 'hur många demos', 'bokade möten', 'affärer denna månad'],
   },
   {
+    id: 'payout',
+    label: 'Utbetalningar',
+    terms: ['när får jag betalt', 'när får jag provisionen', 'när kommer provisionen', 'när kommer pengarna', 'utbetalning', 'utbetalningen', 'utbetalningar', 'nästa utbetalning', 'pengar på väg', 'nästa lön', 'förskott', 'förskottet', 'återkrav', 'when do i get paid', 'next payout', 'payout'],
+  },
+  {
     id: 'pace',
     label: 'Takt mot målet',
     terms: ['on pace', 'on track', 'pace', 'behind', 'to hit my goal', 'reach my goal', 'hit the goal', 'how many calls do i need', 'how many contacts do i need', 'how many emails do i need', 'how many calls', 'how many contacts', 'what do i need', 'i fas', 'takt', 'takten', 'hur många samtal', 'hur många kontakter', 'hur många mejl', 'nå målet', 'klara målet', 'ligger jag efter'],

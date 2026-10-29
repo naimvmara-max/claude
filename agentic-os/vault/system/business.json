@@ -1,10 +1,19 @@
 {
-  "_readme": "Mål och provision för dashboarden. Alla belopp i NOK (norska kronor), priser exkl. moms. Källa: 'Provisjon Driv Kundesenter' och 'Driv Kundesenter – selgerguide' (Driv Mobil AS, oktober 2026). commission är engångsprovision per signerat avtal, utbetalas med lönen månaden efter signering. goal_deals_month är månadsmålet i affärer, daily_contacts nya företag att kontakta per vardag (mejl + samtal). typical_mix är Drivs 'typisk måned' (55 % Small, 35 % Medium, 10 % Large). assumptions är startgissningar i procent tills du har egen data (100 kontakter, 5 möten, 5 demos). sek_per_nok är en ungefärlig kurs.",
+  "_readme": "Mål och provision för dashboarden. Kundpriser i NOK exkl. moms (currency). Provisionen i SEK före skatt (commission_currency), ett fast belopp per signerad och aktiverad affär, enligt anställningsavtalet med Flowtel Nordic AB, bilaga 1 (signerat 2026-10-28). Den betalas med lönen den 25:e (payday) månaden efter att tjänsten aktiverats och kan återkrävas om kundavtalet upphör inom clawback_months från aktiveringen. Ingen provision på extra krediter eller tillval. goal_deals_month är månadsmålet (avtalets budget: 1 affär i veckan, 4 i månaden), daily_contacts nya företag att kontakta per vardag (mejl + samtal). typical_mix är Drivs 'typisk måned' (55 % Small, 35 % Medium, 10 % Large). assumptions är startgissningar i procent tills du har egen data (100 kontakter, 5 möten, 5 demos). sek_per_nok används bara om provisionen är i NOK.",
   "role": "Säljare, Driv Kundesenter (AI-kundtjänst) till företag i Norge",
-  "employer": "Driv Mobil AS",
+  "employer": "Flowtel Nordic AB (säljuppdrag för Driv Mobil AS)",
   "product": "Driv Kundesenter",
   "currency": "NOK",
+  "commission_currency": "SEK",
   "sek_per_nok": 0.95,
+  "payday": 25,
+  "clawback_months": 6,
+  "advance": {
+    "_readme": "Förskott när första affären sitter, så att du inte väntar till lönen. Muntligt från Vasanth (2026-10-28), står inte i avtalet. Fyll i belopp när det är bestämt.",
+    "when": "första affären",
+    "amount": null,
+    "in_writing": false
+  },
   "goal_deals_month": 4,
   "daily_contacts": 60,
   "packages": {
@@ -53,7 +62,7 @@
     "close_rate": 10
   },
   "confirmed": true,
-  "confirmed_by": "provisionsbladet från Driv, okt 2026",
+  "confirmed_by": "anställningsavtalet med Flowtel Nordic AB, bilaga 1 (signerat 2026-10-28)",
   "email_language": "nb",
   "privacy": {
     "_readme": "GDPR-läge. 'company-only' = Jarvis sparar bara företagsuppgifter (namn, webb, bransch, ort, allmän adress som post@, växelnummer); kontaktpersoner, direktadresser och namn i anteckningar hör hemma i Drivs CRM. 'full' = kontaktpersoner får sparas i valvet. Byt till 'full' först när Driv/Flowtel har godkänt det skriftligt (anställningsavtalet 10.2). Se projects/gdpr-jarvis.md.",

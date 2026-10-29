@@ -52,7 +52,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 ## «Andre har ingen bindingstid.»
 - Svar: Fråga Driv först: fast pris, lokal support eller kortare bindning? Till dess: «Det sjekker jeg og kommer tilbake til deg med i dag.»
 - Följdfråga: «Hva er viktigst for dere: fleksibilitet eller fast pris?»
-- Tips: Bindningstiden är oklar (12 eller 24/36 månader). Lova ingenting.
+- Tips: Provisionsplanen säger 12 månader, säljguiden 24 eller 36. Lova ingenting förrän offerten i CRM:et visar det.
 - Kategori: avtal
 - Källa: Driv (öppen)
 

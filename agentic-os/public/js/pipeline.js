@@ -1,11 +1,12 @@
 // The sales pipeline: one Markdown table in ops/pipeline.md, one row per company.
 // Every number on the dashboard is counted from these rows, so nothing is estimated.
 // Commission comes from the package on each won row and the amounts in system/business.json
-// (Driv Kundesenter: Small, Medium, Large). Status ids stay English in the file because the
+// (Driv Kundesenter: Small, Medium, Large). Under the employment contract it is earned when the
+// customer has signed and the service is activated, and paid with the salary the month after. Status ids stay English in the file because the
 // skills write them; everything the HUD shows is Swedish.
 // Shared by the server and the browser demo, so it has no imports.
 
-export const COLUMNS = ['id', 'company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'status', 'added', 'contacted', 'replied', 'booked', 'booked_via', 'demo', 'offer', 'closed', 'paid', 'next_date', 'next_action', 'notes'];
+export const COLUMNS = ['id', 'company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'status', 'added', 'contacted', 'replied', 'booked', 'booked_via', 'demo', 'offer', 'closed', 'activated', 'paid', 'next_date', 'next_action', 'notes'];
 
 export const STAGES = ['researched', 'drafted', 'contacted', 'replied', 'booked', 'demo', 'offer', 'won', 'lost'];
 
@@ -215,6 +216,32 @@ function monday(d) {
 
 const DAY = 864e5;
 
+const SV_MONTHS = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
+
+/** "25 december" from 2026-12-25. */
+export function svDate(iso) {
+  const d = parseDay(iso);
+  return d ? `${d.getDate()} ${SV_MONTHS[d.getMonth()]}` : '';
+}
+
+/**
+ * The payday a deal's commission comes with: the salary day (the 25th) of the month after the
+ * service was activated (contract 6.1). Empty until it is activated.
+ */
+export function payoutDate(activated, business = {}) {
+  const a = parseDay(activated);
+  if (!a) return '';
+  return isoLocal(new Date(a.getFullYear(), a.getMonth() + 1, Number(business.payday) || 25));
+}
+
+/** Until when a deal's commission can be taken back: activation + the clawback period (6.2). */
+export function clawbackUntil(activated, business = {}) {
+  const a = parseDay(activated);
+  const months = Number(business.clawback_months) || 0;
+  if (!a || !months) return '';
+  return isoLocal(new Date(a.getFullYear(), a.getMonth() + months, a.getDate()));
+}
+
 /** Weekdays from today (inclusive) to the end of the month. */
 export function workdaysLeft(today) {
   const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -306,6 +333,9 @@ export function computeStats(rows, opts = {}) {
   let overdueUnpaid = 0;
   let paidMonth = 0;
   let missingPackage = 0;
+  const payouts = [];
+  const awaiting = [];
+  const clawback = [];
   // Per channel: contacts by how the first contact happened, meetings and deals by where the
   // meeting came from (an email reply, a cold call, or a call after the emails).
   const blank = () => ({ contactsMonth: 0, contacts30: 0, replies30: 0, meetingsMonth: 0, meetings30: 0, demosMonth: 0, dealsMonth: 0, commissionMonth: 0 });
@@ -351,10 +381,19 @@ export function computeStats(rows, opts = {}) {
         src.commissionMonth += amount;
         wonThisMonth.push({ id: r.id, company: r.company, package: k, closed: r.closed, commission: amount });
       }
+      const deal = { id: r.id, company: r.company, package: k, amount, closed: r.closed, activated: r.activated, paid: r.paid };
+      const until = clawbackUntil(r.activated, b);
+      if (until && until >= todayStr) clawback.push({ ...deal, until });
       if (!pd) {
         unpaid += amount;
-        // Paid with the salary the month after signing: two months on and still unpaid is late.
-        if (cl && (today.getFullYear() * 12 + today.getMonth()) - (cl.getFullYear() * 12 + cl.getMonth()) >= 2) overdueUnpaid += amount;
+        const due = payoutDate(r.activated, b);
+        if (due) {
+          // Paid with the salary on the 25th the month after activation; after that day it is late.
+          payouts.push({ ...deal, date: due, late: due < todayStr });
+          if (due < todayStr) overdueUnpaid += amount;
+        } else {
+          awaiting.push({ ...deal, days: cl ? Math.round((today - cl) / DAY) : null });
+        }
       } else if (inMonth(pd)) paidMonth += amount;
     }
   }
@@ -385,6 +424,18 @@ export function computeStats(rows, opts = {}) {
     .filter(Boolean)
     .sort((a, b) => a.due.localeCompare(b.due));
 
+  // Money over the next three months: what is scheduled (activated, not paid), by payday month.
+  payouts.sort((a, c) => a.date.localeCompare(c.date));
+  const upcoming = payouts.filter((x) => !x.late);
+  const nextDate = upcoming[0]?.date || '';
+  const forecast = [0, 1, 2].map((k) => {
+    const d = new Date(today.getFullYear(), today.getMonth() + k, 1);
+    const key = isoLocal(d).slice(0, 7);
+    const due = upcoming.filter((x) => x.date.startsWith(key));
+    return { key, label: SV_MONTHS[d.getMonth()], amount: due.reduce((a, x) => a + x.amount, 0), deals: due.length };
+  });
+  const commissionCurrency = b.commission_currency || b.currency || 'NOK';
+
   const labels = weeks.map((w) => isoLocal(w));
   const series = (arr) => labels.map((t, i) => ({ t, v: arr[i] }));
   const dealsMonth = wonThisMonth.length;
@@ -392,7 +443,9 @@ export function computeStats(rows, opts = {}) {
 
   return {
     currency: b.currency || 'NOK',
-    sekPerNok: Number(b.sek_per_nok) || 0,
+    commissionCurrency,
+    // A rough SEK figure only makes sense when commission is in NOK.
+    sekPerNok: commissionCurrency === 'NOK' ? Number(b.sek_per_nok) || 0 : 0,
     packages: pk,
     defaultPackage: defPkg,
     confirmed: Boolean(b.confirmed),
@@ -422,7 +475,12 @@ export function computeStats(rows, opts = {}) {
     commissionHistory: series(earned),
     unpaid,
     overdueUnpaid,
-    payoutNextMonth: wonThisMonth.reduce((a, d) => a + d.commission, 0),
+    payouts,
+    nextPayout: { date: nextDate, amount: upcoming.filter((x) => x.date === nextDate).reduce((a, x) => a + x.amount, 0) },
+    awaitingActivation: { count: awaiting.length, amount: awaiting.reduce((a, x) => a + x.amount, 0), deals: awaiting },
+    clawback: { count: clawback.length, amount: clawback.reduce((a, x) => a + x.amount, 0), deals: clawback },
+    forecast,
+    advance: b.advance || null,
     paidMonth,
     missingPackage,
     inPlay: { count: inPlayRows.length, commission: inPlayRows.reduce((a, r) => a + pk[packageOf(r) || defPkg].commission, 0) },

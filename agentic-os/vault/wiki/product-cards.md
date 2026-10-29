@@ -116,7 +116,7 @@ Vad, Nytta, Lyssna efter, Tips och Fråga Driv. Ändra fritt, men behåll format
 ## «Hvor lang er bindingstiden?»
 - Typ: fråga
 - Säg: «Det bekrefter jeg skriftlig i tilbudet.»
-- Fråga Driv: Provisionsbladet säger 12 månader, säljguiden 24 eller 36.
+- Fråga Driv: Provisionsplanen i ditt anställningsavtal säger 12 månader, säljguiden 24 eller 36. Lova inget förrän offerten i CRM:et visar det.
 
 ## «Får vi rabatt?»
 - Typ: fråga

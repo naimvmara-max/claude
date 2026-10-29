@@ -455,7 +455,7 @@ body[data-state='listening'] .level i { background: var(--accent); }
 }
 .add-grid button { height: 35px; }
 .table-card { padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; min-width: 0; max-width: 100%; position: relative; } /* clips the visually hidden labels too */
 .table-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
 .leads { width: 100%; border-collapse: collapse; min-width: 760px; font-size: 12.5px; }
 .leads th { text-align: left; font: 500 9.5px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); padding: 8px; border-bottom: 1px solid var(--line-2); }
@@ -703,6 +703,23 @@ body[data-engine='codex'] .slot.on { border-color: var(--ink); background: rgba(
 .presets { display: flex; flex-wrap: wrap; gap: 6px; }
 .need-inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 @media (max-width: 900px) { .pkg-cards { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- money tab: payouts under the employment contract ---------- */
+.money-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.money-card { padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.money-card b { font: 400 30px/1 var(--font-display); color: var(--ink); font-variant-numeric: tabular-nums; }
+.money-card .muted { line-height: 1.4; }
+.money-forecast { padding: 14px 18px; display: grid; gap: 10px; }
+.mf-months { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mf-months > div { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 255, 255, 0.02); }
+.mf-months b { font: 400 26px/1 var(--font-display); color: var(--warm); font-variant-numeric: tabular-nums; }
+.mf-months small { font: 400 10.5px/1.3 var(--font-mono); color: var(--mute); }
+.money-forecast > p { margin: 0; }
+.money-table { min-width: 820px; }
+.money-table input[type='date'] { width: auto; padding: 5px 7px; font-family: var(--font-mono); font-size: 11.5px; color-scheme: dark; }
+.runway .pace-say { margin: 0; }
+@media (max-width: 900px) { .money-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .money-cards, .mf-months { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- channels card ---------- */
 .chan-card { padding: 14px 18px; display: grid; gap: 10px; min-width: 0; }

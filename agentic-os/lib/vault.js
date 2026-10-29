@@ -29,7 +29,7 @@ export const H = {
   week: ['den här veckan', 'this week'],
   open: ['öppna', 'open'],
   routine: ['varje dag', 'every day'],
-  contract: ['innan jag skriver på', 'before i sign'],
+  contract: ['avtalet', 'innan jag skriver på', 'before i sign'],
 };
 
 export class Vault {
@@ -212,7 +212,7 @@ export class Vault {
     if (fields.booked_via != null) row.booked_via = String(fields.booked_via).trim();
     // Status first (it sets a default next step), then anything typed explicitly wins.
     if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, localDate());
-    for (const c of ['company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'paid', 'offer', 'next_date', 'next_action', 'notes']) {
+    for (const c of ['company', 'contact', 'email', 'phone', 'website', 'industry', 'city', 'channel', 'package', 'activated', 'paid', 'offer', 'next_date', 'next_action', 'notes']) {
       if (fields[c] != null) row[c] = String(fields[c]).trim();
     }
     if (fields.package != null) row.package = packageOf(row);

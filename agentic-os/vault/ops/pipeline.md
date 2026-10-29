@@ -13,12 +13,13 @@ bokade möten, demos, offerter, vunna affärer och provision. Ändra här, i HUD
   HUD:en sätter det när du väljer "Möte bokat · via mejl" eller "· via samtal". Det avgör
   kanalsiffrorna: ett företag som mejlades först men bokades i telefon räknas som "samtal efter mejl".
 - **package**: `S`, `M` eller `L` (Small, Medium, Large). På en vunnen rad avgör den provisionen
-  (5 000, 10 000, 20 000 kr, se `system/business.json`). Lämna tomt tills du vet.
+  (5 000, 10 000, 20 000 SEK, se `system/business.json`). Lämna tomt tills du vet.
 - **datum** skrivs `ÅÅÅÅ-MM-DD`: `contacted` första mejlet eller samtalet, `booked` dagen mötet
   bokades, `demo` dagen den hölls, `offer` dagen offerten skickades, `closed` dagen den vanns eller
-  förlorades, `paid` dagen provisionen betalades ut (med lönen månaden efter signering).
+  förlorades, `activated` dagen kundens tjänst aktiverades, `paid` dagen provisionen betalades ut
+  (med lönen den 25:e månaden efter aktiveringen).
 - **next_date / next_action**: när och vad som är nästa steg. Företaget dyker upp under
   "Uppföljningar" det datumet. För ett bokat möte: skriv mötesdatumet i `next_date`.
 
-| id | company | contact | email | phone | website | industry | city | channel | package | status | added | contacted | replied | booked | booked_via | demo | offer | closed | paid | next_date | next_action | notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| id | company | contact | email | phone | website | industry | city | channel | package | status | added | contacted | replied | booked | booked_via | demo | offer | closed | activated | paid | next_date | next_action | notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

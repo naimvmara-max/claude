@@ -292,7 +292,7 @@ export function createLive(d) {
       ? `<label class="grow"><span>Nästa steg</span><input id="lv-action" value="${esc(draft.nextAction)}" placeholder="${esc(o.action || 'Vad händer härnäst?')}"></label>` : '';
     const lost = draft.outcome === 'lost'
       ? `<label><span>Varför</span><select id="lv-lost"><option value="">välj</option>${LOST_REASONS.map((x) => `<option${draft.lostReason === x ? ' selected' : ''}>${x}</option>`).join('')}</select></label>` : '';
-    const won = draft.outcome === 'won' ? '<p class="muted grow">Grattis. Kom ihåg: offerten görs i Drivs CRM och skickas för e-signering. Provisionen räknas när affären har ett paket.</p>' : '';
+    const won = draft.outcome === 'won' ? '<p class="muted grow">Grattis. Kom ihåg: offerten görs i Drivs CRM och skickas för e-signering. Provisionen tjänas in när tjänsten aktiverats och kommer med lönen den 25:e månaden efter: skriv in datumet under Kommando → Pengar.</p>' : '';
     $('#lv-next').innerHTML = `${dateField}${actionField}${pkgSelect}${lost}${won}`;
     $('#lv-date')?.addEventListener('input', (e) => { draft.nextDate = e.target.value; persist(); });
     $('#lv-action')?.addEventListener('input', (e) => { draft.nextAction = e.target.value; persist(); });

@@ -40,10 +40,14 @@ function when(spec) {
 // The same targets as vault/system/business.json (Driv Kundesenter, October 2026).
 const BUSINESS = {
   role: 'Säljare, Driv Kundesenter (AI-kundtjänst) till företag i Norge',
-  employer: 'Driv Mobil AS',
+  employer: 'Flowtel Nordic AB (säljuppdrag för Driv Mobil AS)',
   product: 'Driv Kundesenter',
   currency: 'NOK',
+  commission_currency: 'SEK',
   sek_per_nok: 0.95,
+  payday: 25,
+  clawback_months: 6,
+  advance: { when: 'första affären', amount: null, in_writing: false },
   goal_deals_month: 4,
   daily_contacts: 60,
   packages: {
@@ -57,7 +61,7 @@ const BUSINESS = {
   typical_mix: { S: 55, M: 35, L: 10 },
   assumptions: { book_rate: 2, show_rate: 80, close_rate: 10 },
   confirmed: true,
-  confirmed_by: 'provisionsbladet från Driv, okt 2026',
+  confirmed_by: 'anställningsavtalet med Flowtel Nordic AB, bilaga 1 (signerat 2026-10-28)',
   email_language: 'nb',
   // The preview's example companies are made up, so it shows contact persons. A real vault
   // starts in 'company-only' (system/business.json → privacy).
@@ -86,6 +90,9 @@ const EXAMPLE_LEADS = [
   ['Tidevann Restaurant', 'Lise Holm', 'restaurant', 'Bodø', 'email', '', 'lost', 20, 18, 15, null, null, null, 15, null, null, '', 'inte intresserade: har redan en chatbot'],
 ];
 
+// Days ago each won example was activated. Solheim is signed but still waiting for activation.
+const ACTIVATED_AGO = { 'Fjellsport Nett AS': 2, 'Elvebakken Optikk': 33 };
+
 function exampleLeads(now) {
   const day = (offset) => {
     if (offset == null) return '';
@@ -107,6 +114,7 @@ function exampleLeads(now) {
       website: `${slug.slice(0, 18)}.example`,
       added: day(added), contacted: day(contacted), replied: day(replied), booked: day(booked), demo: day(demo), offer: day(offer),
       closed: day(thisMonth ? inMonth(closed) : closed), paid: day(paid),
+      activated: ACTIVATED_AGO[company] == null ? '' : day(Math.min(ACTIVATED_AGO[company], thisMonth ? inMonth(closed) : closed)),
       next_date: nextIn == null ? '' : day(-nextIn), next_action: nextAction, notes,
     });
   });
@@ -200,17 +208,17 @@ export function demoState() {
     tasks: [
       { text: 'Fråga chefen vilket CRM vi använder och be om en demo-miljö', done: false, file: 'demo', line: 4 },
       { text: 'Fråga vad en extra kredit kostar: 299 kr per månad eller en gång?', done: false, file: 'demo', line: 5 },
-      { text: 'Markera Fjellsport och Solheim som utbetalda när lönen kommer', done: false, file: 'demo', line: 6 },
+      { text: 'Skriv in aktiveringsdatum för Solheim när Driv bekräftar', done: false, file: 'demo', line: 6 },
       { text: 'Koppla Gmail till Claude Code', done: true, file: 'demo', line: 7 },
     ],
     contract: [
-      { text: 'Provision per paket i kronor (står i provisionsbladet)', done: true, file: 'demo', line: 20 },
-      { text: 'När provisionen betalas ut (med lönen månaden efter signering)', done: true, file: 'demo', line: 21 },
-      { text: 'Vad som händer med provisionen om kunden säger upp avtalet tidigt eller inte betalar', done: false, file: 'demo', line: 22 },
-      { text: 'Bindningstiden: 12 månader (provisionsbladet) eller 24/36 månader (säljguiden)?', done: false, file: 'demo', line: 23 },
-      { text: 'Anställning eller frilans, och i vilket land (skatt, semesterersättning, pension)', done: false, file: 'demo', line: 24 },
-      { text: 'Grundlön efter två månader: belopp och om provisionen ändras', done: false, file: 'demo', line: 25 },
-      { text: 'Skriftligt OK på att använda egna outreach-verktyg och egna leadlistor', done: false, file: 'demo', line: 26 },
+      { text: 'Provision per paket (bilaga 1, i SEK)', done: true, file: 'demo', line: 20 },
+      { text: 'När provisionen betalas ut (den 25:e månaden efter aktiveringen)', done: true, file: 'demo', line: 21 },
+      { text: 'Vad som händer om kunden säger upp tidigt (återkrav inom 6 månader)', done: true, file: 'demo', line: 22 },
+      { text: 'Förskottet på första affären: belopp och när, skriftligt', done: false, file: 'demo', line: 23 },
+      { text: 'Provanställd eller tillsvidareanställd: vilken ruta kryssades?', done: false, file: 'demo', line: 24 },
+      { text: 'Skriftligt OK för Jarvis och GDPR-läget (med Johan)', done: false, file: 'demo', line: 25 },
+      { text: 'Telefon och dator i tjänsten', done: false, file: 'demo', line: 26 },
     ],
     brief: {
       path: 'demo',

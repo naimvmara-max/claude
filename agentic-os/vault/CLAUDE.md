@@ -12,9 +12,13 @@ that answers at once (opening hours, order status, returns, prices, booking), ca
 in one shared inbox, and an AI assistant that helps the staff. Everything about the product
 is in `projects/product.md`, taken from Driv's seller guide.
 
-He is paid a fixed commission per signed agreement: Small 5 000, Medium 10 000, Large
-20 000 NOK, paid with the salary the month after signing (`system/business.json`). He may
-use his own outreach tools to find leads.
+He is employed by **Flowtel Nordic AB**, which sells for Driv Mobil (contract signed
+2026-10-28, start 2026-11-02, commission only, no base salary). He earns a fixed commission per
+signed and activated deal: Small 5 000, Medium 10 000, Large 20 000 **SEK** before tax, paid
+with the salary on the 25th the month after the customer's service is activated, and taken
+back from later commission if the customer contract ends within 6 months of activation.
+Extra credits and add-ons give no commission. His manager has promised (verbally) an advance
+when the first deal is in. All of it is in `system/business.json` and `projects/sales-job.md`.
 
 Goals, in order:
 1. Book demos with Norwegian companies that really have a customer service load.
@@ -59,7 +63,7 @@ unlikely to work, say so and say what would.
 ## The pipeline table
 
 `ops/pipeline.md` has one Markdown table. Keep its columns and order exactly:
-`id | company | contact | email | phone | website | industry | city | channel | package | status | added | contacted | replied | booked | booked_via | demo | offer | closed | paid | next_date | next_action | notes`
+`id | company | contact | email | phone | website | industry | city | channel | package | status | added | contacted | replied | booked | booked_via | demo | offer | closed | activated | paid | next_date | next_action | notes`
 
 - `status` is one of: researched, drafted, contacted, replied, booked, demo, offer, won, lost.
   `booked` = demo meeting booked, `demo` = demo held, `offer` = offer sent for e-signing.
@@ -70,6 +74,8 @@ unlikely to work, say so and say what would.
   Set it whenever you set `booked`. A company emailed first and booked by phone keeps
   `channel` = `email` and gets `booked_via` = `phone`.
 - `package` is `S`, `M` or `L`. Only a won row with a package earns commission on the dashboard.
+- `activated` is the date the customer's service was activated. Commission is earned then and
+  paid with the salary on the 25th of the following month.
 - `paid` is the date the commission for that deal was paid out. Empty means not paid yet.
 - `next_action` is a short Swedish instruction ("Ring igen", "Följ upp offerten").
 - Escape a `|` inside a cell as `\|`. One line per row.
@@ -101,7 +107,8 @@ unlikely to work, say so and say what would.
   Skills prepare files for the tool; they never upload, launch or send.
 - Anyone who asks not to be contacted is marked `lost` with `opt-out` in notes and never contacted again.
 - Numbers come from a source. If something is unknown, write `okänt`.
-- Dates are `YYYY-MM-DD`, times 24h `HH:MM`, money NOK (SEK only as a rough conversion).
+- Dates are `YYYY-MM-DD`, times 24h `HH:MM`. Customer prices are NOK excl. VAT; Naim's
+  commission is SEK before tax.
 
 ## Personal data (GDPR)
 

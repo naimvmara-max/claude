@@ -9,7 +9,7 @@ import { classify } from '../public/js/classify.js';
 import { answerRule } from '../public/js/rules.js';
 import { parseSchedule, lastDue, describe } from '../lib/scheduler.js';
 import { H, Vault, slugify } from '../lib/vault.js';
-import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan, isGenericEmail, scrubPersonal, privacyMode } from '../public/js/pipeline.js';
+import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan, isGenericEmail, scrubPersonal, privacyMode, payoutDate, clawbackUntil } from '../public/js/pipeline.js';
 import { blockReason } from './guard.mjs';
 import { loadSkills } from '../lib/skills.js';
 import { parseCards, searchCards } from '../public/js/cards.js';
@@ -52,6 +52,8 @@ const routes = {
   'samla invändningarna från veckan': 'skill:objections',
   'sammanfatta samtalet med Fjellsport': 'skill:call-summary',
   'har jag fått betalt för Fjellsport?': 'skill:commission-check',
+  'när får jag betalt?': 'rule:payout',
+  'när kommer förskottet?': 'rule:payout',
   'undersök marknaden för treningssentre i norge': 'skill:deep-research',
   'hej': 'quick',
   // English still works.
@@ -210,19 +212,28 @@ check("goal money uses Driv's typical month (4 deals = 33 000)", () => {
   assert.equal(g.commissionAtGoal, 33000);
 });
 
-check('offers are a stage, and late commission is flagged', () => {
+check('offers are a stage, and commission is paid the month after activation', () => {
   const row = applyStatus({ status: 'demo', demo: '2026-10-10' }, 'offer', '2026-10-11');
   assert.equal(row.offer, '2026-10-11');
   assert.equal(row.next_action, 'Följ upp offerten');
   assert.equal(applyStatus({ status: 'demo' }, 'proposal', '2026-10-11').status, 'offer'); // old name
+  assert.equal(payoutDate('2026-11-20', DRIV), '2026-12-25');
+  assert.equal(payoutDate('2026-12-03', DRIV), '2027-01-25');
+  assert.equal(clawbackUntil('2026-11-20', DRIV), '2027-05-20');
   const st = computeStats([
-    { id: 'L1', company: 'A', status: 'won', package: 'M', closed: '2026-08-20' }, // due with September salary: late
-    { id: 'L2', company: 'B', status: 'won', package: 'S', closed: '2026-09-20' }, // due with October salary
-    { id: 'L3', company: 'C', status: 'won', package: 'L', closed: '2026-10-05' }, // due next month
+    { id: 'L1', company: 'A', status: 'won', package: 'M', closed: '2026-08-20', activated: '2026-08-28' }, // due 25 Sep: late
+    { id: 'L2', company: 'B', status: 'won', package: 'S', closed: '2026-09-20', activated: '2026-10-02' }, // due 25 Nov
+    { id: 'L3', company: 'C', status: 'won', package: 'L', closed: '2026-10-05' }, // signed, not activated: no date yet
+    { id: 'L4', company: 'D', status: 'won', package: 'S', closed: '2026-07-01', activated: '2026-07-10', paid: '2026-08-25' }, // paid, still clawable
   ], { business: DRIV, today: '2026-10-14' });
+  assert.equal(st.commissionCurrency, 'SEK');
+  assert.equal(st.sekPerNok, 0); // no conversion: commission is already SEK
   assert.equal(st.overdueUnpaid, 10000);
   assert.equal(st.unpaid, 35000);
-  assert.equal(st.payoutNextMonth, 20000);
+  assert.deepEqual(st.nextPayout, { date: '2026-11-25', amount: 5000 });
+  assert.equal(st.awaitingActivation.amount, 20000);
+  assert.deepEqual(st.forecast.map((m) => m.amount), [0, 5000, 0]);
+  assert.equal(st.clawback.count, 3); // L1, L2 and L4 were activated within 6 months
 });
 
 check('meetings are counted by the channel that booked them', () => {
@@ -304,6 +315,17 @@ check('the commit guard blocks customer data, not templates', () => {
   assert.ok(blockReason('vault/outputs/call-summary/x.md', () => ''));
   assert.equal(blockReason('vault/samtal/README.md', () => ''), null);
   assert.equal(blockReason('public/js/app.js', () => ''), null);
+});
+
+check('the payout answer follows the contract', () => {
+  const st = computeStats([
+    { id: 'L1', company: 'A', status: 'won', package: 'M', closed: '2026-11-10', activated: '2026-11-20' },
+    { id: 'L2', company: 'B', status: 'won', package: 'S', closed: '2026-11-25' },
+  ], { business: DRIV, today: '2026-11-28' });
+  const a = answerRule('payout', { stats: st });
+  assert.match(a, /10 000 SEK med lönen 25 december/);
+  assert.match(a, /5 000 SEK för 1 affär väntar på aktivering/);
+  assert.match(answerRule('payout', { stats: computeStats([], { business: DRIV, today: '2026-11-02' }) }), /förskott/);
 });
 
 check('tier 1 answers come from saved data', () => {

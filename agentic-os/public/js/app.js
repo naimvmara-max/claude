@@ -3,10 +3,10 @@
 
 import { Core } from './core.js';
 import { classify } from './classify.js';
-import { fmtNum, nok, packageMix } from './rules.js';
+import { fmtNum, money as fmtMoney, packageMix } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped, demoText } from './demo.js';
 import { createLive } from './live.js';
-import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, privacyMode, scrubPersonal, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
+import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, privacyMode, scrubPersonal, payoutDate, clawbackUntil, svDate, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -161,8 +161,13 @@ function renderStatus(connected = true) {
   $('#foot-text').textContent = `V2 · ${app.demo ? 'Demo, inget valv anslutet' : 'Valv anslutet'} · Delade agentterminaler`;
 }
 
+/** Commission in its currency (SEK under the employment contract). */
 function money(v) {
-  return nok(v);
+  return fmtMoney(v, cur());
+}
+
+function cur() {
+  return app.state?.stats?.commissionCurrency || 'SEK';
 }
 
 /** Whole number with Swedish thousands spacing, for big displays where the unit sits beside it. */
@@ -213,12 +218,15 @@ function metrics() {
   const arrow = (d) => (d > 0 ? `▲ ${fmtNum(d)}` : d < 0 ? `▼ ${fmtNum(-d)}` : '· 0');
   const ch = st.channelWeek || {};
   const split = [ch.email ? `${ch.email} mejl` : '', ch.phone ? `${ch.phone} samtal` : '', ch.other ? `${ch.other} annat` : ''].filter(Boolean).join(' · ');
-  const payout = st.overdueUnpaid ? `${nok(st.overdueUnpaid)} försenad utbetalning` : st.payoutNextMonth ? `${nok(st.payoutNextMonth)} med nästa lön` : st.unpaid ? `${nok(st.unpaid)} ej utbetalt` : 'inget väntar på utbetalning';
+  const payout = st.overdueUnpaid ? `${money(st.overdueUnpaid)} försenad utbetalning`
+    : st.nextPayout?.amount ? `${money(st.nextPayout.amount)} ${svDate(st.nextPayout.date)}`
+      : st.awaitingActivation?.count ? `${money(st.awaitingActivation.amount)} väntar på aktivering`
+        : 'inget väntar på utbetalning';
   return [
     { key: 'contacts', icon: 'i-send', label: 'Kontakter i veckan', short: 'Kontakter i veckan', value: fmtNum(st.contactsWeek), delta: `${arrow(st.contactsWeek - st.contactsPrevWeek)} mot förra v.`, up: st.contactsWeek > st.contactsPrevWeek, sub: `idag ${st.contactsToday}${st.dailyTarget ? ` / ${st.dailyTarget}` : ''}${split ? ` · ${split}` : ''}`, history: st.contactsHistory },
     { key: 'booked', icon: 'i-cal', label: 'Bokade möten', short: 'Bokade möten', value: fmtNum(st.bookedMonth), delta: st.contacted30 ? `${pct(st.bookRate30)} av kontakter · 30 d` : 'inga kontakter än', up: false, sub: `denna månad · ${arrow(wkDelta(st.bookedHistory))} denna v.`, history: st.bookedHistory },
     { key: 'demos', icon: 'i-demo', label: 'Hållna demos', short: 'Hållna demos', value: fmtNum(st.demosMonth), delta: `${st.offersOpen || 0} offert${st.offersOpen === 1 ? '' : 'er'} ute`, up: false, sub: `denna månad · ${st.inPlay.count} pågående`, history: st.demosHistory },
-    { key: 'commission', icon: 'i-coin', label: 'Provision denna månad', short: 'Provision (NOK)', value: kr(st.commissionMonth), delta: sek(st.commissionMonth) || `${st.dealsMonth} affärer`, up: false, sub: payout, history: st.commissionHistory },
+    { key: 'commission', icon: 'i-coin', label: 'Provision denna månad', short: `Provision (${cur()})`, value: kr(st.commissionMonth), delta: sek(st.commissionMonth) || `${st.dealsMonth} affärer`, up: false, sub: payout, history: st.commissionHistory },
   ];
 }
 
@@ -255,7 +263,7 @@ function dealSlots(st, big = false) {
     const d = won[i];
     if (!d) return `<span class="slot"><b>${i + 1}</b><small>ledig</small></span>`;
     const name = st.packages[d.package]?.name || 'inget paket';
-    return `<span class="slot on" title="${esc(d.company)} · ${esc(name)} · ${esc(nok(d.commission))}"><b>${esc(d.package || '?')}</b><small>${esc(d.package ? kShort(d.commission) : 'välj paket')}</small></span>`;
+    return `<span class="slot on" title="${esc(d.company)} · ${esc(name)} · ${esc(money(d.commission))}"><b>${esc(d.package || '?')}</b><small>${esc(d.package ? kShort(d.commission) : 'välj paket')}</small></span>`;
   }).join('');
   const extra = won.length > n ? `<span class="label">+ ${won.length - n} affärer till</span>` : '';
   return `<div class="slots${big ? ' big' : ''}" role="img" aria-label="${won.length} av ${target} affärer vunna denna månad">${slots}</div>${extra}`;
@@ -278,9 +286,9 @@ function renderGoal() {
     <i class="b1"></i><i class="b2"></i>
     <div class="label">Affärer denna månad · mål ${g.target || '—'}</div>
     ${dealSlots(st)}
-    <div class="big"><span class="num">${kr(st.commissionMonth)}</span><span class="label">NOK intjänat</span></div>
+    <div class="big"><span class="num">${kr(st.commissionMonth)}</span><span class="label">${cur()} för månadens affärer</span></div>
     <div class="foot">${st.sekPerNok ? `${esc(sek(st.commissionMonth))} · ` : ''}${esc(paceLine(st))}${app.demo ? ' · exempel' : ''}</div>
-    ${st.overdueUnpaid ? `<button class="warn-chip" data-goto="pipeline">${esc(nok(st.overdueUnpaid))} borde ha betalats ut</button>` : ''}
+    ${st.overdueUnpaid ? `<button class="warn-chip" data-goto="money">${esc(money(st.overdueUnpaid))} borde ha betalats ut</button>` : ''}
     ${st.confirmed ? '' : '<button class="warn-chip" data-goto="pace">Beloppen ej bekräftade</button>'}
   </div>`;
   bindQuickLinks('#goal-card');
@@ -399,11 +407,11 @@ function renderCommand() {
     <div class="glass goal-wide">
       <div class="gw-deals"><div class="label">Affärer denna månad</div><div class="num">${g.value}<small> / ${g.target || '—'}</small></div><span class="label">${esc(mix || 'inga vunna än')}</span></div>
       <div class="gw-slots">${dealSlots(st, true)}</div>
-      <div class="gw-money"><div class="label">Provision denna månad</div><div class="num">${kr(st.commissionMonth)}<small> NOK</small></div><span class="label">${esc(sek(st.commissionMonth))}${st.inPlay.commission ? ` · upp till ${esc(nok(st.inPlay.commission))} pågående` : ''}</span></div>
+      <div class="gw-money"><div class="label">Provision denna månad</div><div class="num">${kr(st.commissionMonth)}<small> ${cur()}</small></div><span class="label">${esc(sek(st.commissionMonth))}${st.inPlay.commission ? ` · upp till ${esc(money(st.inPlay.commission))} pågående` : ''}</span></div>
       <div class="gw-pace"><span class="label">Takt</span><span>${esc(paceLine(st))}</span><button class="ghost-btn" data-goto="pace">Öppna Takt</button></div>
     </div>
     ${st.confirmed ? '' : '<p class="warn-note">Provisionen per paket är inte bekräftad skriftligt. <button data-goto="pace">Öppna checklistan</button></p>'}
-    ${st.overdueUnpaid ? `<p class="warn-note">${esc(nok(st.overdueUnpaid))} i provision borde ha kommit med lönen (Driv betalar månaden efter signering). <button data-goto="pipeline">Visa vunna affärer</button></p>` : ''}
+    ${st.overdueUnpaid ? `<p class="warn-note">${esc(money(st.overdueUnpaid))} i provision borde ha kommit med lönen (den 25:e månaden efter aktiveringen). <button data-goto="money">Öppna Pengar</button></p>` : ''}
     ${st.missingPackage ? `<p class="warn-note">${st.missingPackage} vunn${st.missingPackage === 1 ? 'en affär saknar' : 'a affärer saknar'} paket, så ingen provision räknas för ${st.missingPackage === 1 ? 'den' : 'dem'}. <button data-goto="pipeline">Välj paket</button></p>` : ''}
     <div class="metrics">${cards}</div>
     ${channelsHtml(st)}
@@ -426,6 +434,7 @@ function renderCommand() {
   renderPipelineTab();
   renderPaceTab();
   renderPackagesTab();
+  renderMoneyTab();
 
   const outs = s.outputs || [];
   $('#tab-research').innerHTML = `<div class="glass research-list"><span class="label">Rapporter och utkast i outputs/</span>${outs.length
@@ -500,7 +509,7 @@ function renderPipelineTab() {
   const more = groups[filter].length - leads.length;
   const pkgSelect = (r) => `<label class="sr" for="pk-${esc(r.id)}">Paket</label><select id="pk-${esc(r.id)}" data-f="package"><option value="">—</option>${PACKAGES.map((k) => `<option value="${k}"${packageOf(r) === k ? ' selected' : ''}>${esc(st.packages[k].name)}</option>`).join('')}</select>`;
   const nextCell = (r) => (r.status === 'won'
-    ? `<label class="sr" for="pd-${esc(r.id)}">Provision utbetald</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}"><br><span class="muted">${r.paid ? 'provision utbetald' : `utbetald? ${packageOf(r) ? esc(nok(st.packages[packageOf(r)].commission)) : 'välj paket'}`}</span>`
+    ? `<label class="sr" for="ac-${esc(r.id)}">Aktiverad</label><input id="ac-${esc(r.id)}" type="date" data-f="activated" value="${esc(r.activated)}" title="Aktiverad"> <label class="sr" for="pd-${esc(r.id)}">Provision utbetald</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}" title="Utbetald"><br><span class="muted">${r.paid ? 'provision utbetald' : !packageOf(r) ? 'välj paket' : r.activated ? `${esc(money(st.packages[packageOf(r)].commission))} ${esc(svDate(payoutDate(r.activated, s.business)))}` : 'aktiverad? provisionen kommer månaden efter'}</span>`
     : `<label class="sr" for="nd-${esc(r.id)}">Nästa datum</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span>`);
   const site = (w) => esc(/^https?:/.test(w) ? w : `https://${w}`);
   const companyOnly = privacyMode(s.business) === 'company-only';
@@ -534,7 +543,7 @@ function renderPipelineTab() {
         <div class="tabs" role="tablist" aria-label="Filtrera företag">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${FILTER_NAMES[k]} ${groups[k].length}</button>`).join('')}</div>
       </div>
       ${leads.length ? `<div class="table-wrap"><table class="leads">
-        <thead><tr><th>Företag</th><th>Kontakt</th><th>Status</th><th>Paket</th><th>${filter === 'won' ? 'Utbetald' : 'Nästa'}</th><th>Första kontakt</th></tr></thead>
+        <thead><tr><th>Företag</th><th>Kontakt</th><th>Status</th><th>Paket</th><th>${filter === 'won' ? 'Aktiverad · utbetald' : 'Nästa'}</th><th>Första kontakt</th></tr></thead>
         <tbody>${rows}</tbody></table></div>${more > 0 ? `<button class="ghost-btn" id="more-leads">Visa ${more} till</button>` : ''}`
         : all.length ? `<p class="empty">Inga ${FILTER_NAMES[filter]} företag.</p>` : '<p class="empty">Inga företag än. Lägg till ett ovan, eller <button data-run="lead-research">kör /lead-research</button> för att hitta 10.</p>'}
     </div>
@@ -602,7 +611,7 @@ function renderPaceTab() {
           <span class="label">Provision per affär · ${b.confirmed ? `bekräftad${b.confirmed_by ? `: ${esc(b.confirmed_by)}` : ''}` : 'inte bekräftad än'}</span>
           <div class="pkg-grid">${PACKAGES.map((k) => `<div class="pkg">
             <span class="label">${esc(st.packages[k].name)}</span>
-            <b>${kr(st.packages[k].commission)}</b><small>NOK${st.sekPerNok ? ` · ${esc(sek(st.packages[k].commission))}` : ''}</small>
+            <b>${kr(st.packages[k].commission)}</b><small>${cur()}${st.sekPerNok ? ` · ${esc(sek(st.packages[k].commission))}` : ''}</small>
             <small>${st.dealsByPackage[k]} denna månad</small>
             <label>Andel av affärer %<input type="number" min="0" max="100" step="5" data-mix="${k}" value="${esc(mix[k] ?? '')}" placeholder="${typical[k] ?? (k === st.defaultPackage ? 100 : 0)}"></label>
           </div>`).join('')}</div>
@@ -610,12 +619,12 @@ function renderPaceTab() {
           <p class="muted">Belopp från <code>system/business.json</code>. Andelarna är Drivs "typisk måned" (55 % Small, 35 % Medium, 10 % Large) tills du skriver egna.</p>
         </div>
         <div class="glass pace-card">
-          <span class="label">Innan du skriver på · projects/sales-job.md</span>
+          <span class="label">Avtalet · att få skriftligt · projects/sales-job.md</span>
           <ul class="checks" id="contract-checks"></ul>
         </div>
       </div>
     </div>`;
-  renderChecks('#contract-checks', s.contract, 'Ingen checklista under "## Innan jag skriver på" i projects/sales-job.md.');
+  renderChecks('#contract-checks', s.contract, 'Ingen checklista under "## Avtalet" i projects/sales-job.md.');
   $$('#tab-pace [data-pace]').forEach((el) => el.addEventListener('input', () => {
     const cur = paceOverrides();
     if (el.value === '') delete cur[el.dataset.pace]; else cur[el.dataset.pace] = Number(el.value);
@@ -664,7 +673,7 @@ function updatePace() {
   }
   $('#pace-say').textContent = say;
   const mixText = { typical: 'Drivs typiska mix', typed: 'din mix', default: `bara ${st.packages[st.defaultPackage]?.name || 'Medium'}` }[g.mixSource];
-  $('#pace-money').textContent = `${plural(g.target, 'affär', 'affärer')} à ungefär ${nok(g.avgCommission)} (${mixText}) blir ${nok(g.commissionAtGoal)} i månaden${st.sekPerNok ? ` (${sek(g.commissionAtGoal)})` : ''}. Kvar att tjäna denna månad: ${nok(g.commissionLeft)}.`;
+  $('#pace-money').textContent = `${plural(g.target, 'affär', 'affärer')} à ungefär ${money(g.avgCommission)} (${mixText}) blir ${money(g.commissionAtGoal)} i månaden${st.sekPerNok ? ` (${sek(g.commissionAtGoal)})` : ''}. Kvar att tjäna denna månad: ${money(g.commissionLeft)}.`;
 }
 
 // ------------------------------------------------------------------ packages tab
@@ -697,7 +706,7 @@ function renderPackagesTab() {
       <span class="label">Kunden betalar</span>
       <div class="pc-price"><b>${kr(pk[k].price)}</b> <small>kr/mån exkl. moms · ${pk[k].credits} krediter</small></div>
       <p class="pc-ex">${esc(pk[k].example)}</p>
-      <div class="pc-com"><span class="label">Din provision</span><b>${kr(pk[k].commission)} NOK</b><small>per signerat avtal${st.sekPerNok ? ` · ${esc(sek(pk[k].commission))}` : ''}</small></div>
+      <div class="pc-com"><span class="label">Din provision</span><b>${kr(pk[k].commission)} ${cur()}</b><small>per signerad och aktiverad affär${st.sekPerNok ? ` · ${esc(sek(pk[k].commission))}` : ''}</small></div>
     </div>`).join('')}</div>
     <div class="glass pace-card credit-calc">
       <span class="label">Räkna krediter med kunden · steg 3 "Velg pakke"</span>
@@ -705,7 +714,7 @@ function renderPackagesTab() {
       <div class="pace-inputs need-inputs">${NEED_FIELDS.map(([k, label, hint]) => `<label class="rate"><span>${label}</span><input type="number" min="0" step="1" data-need="${k}" value="${esc(need[k] ?? 0)}"><small>${hint} · ${costs[k]} kredit${costs[k] === 1 ? '' : 'er'} st.</small></label>`).join('')}</div>
       <div class="pace-out" id="credit-out" aria-live="polite"></div>
       <p class="pace-say" id="credit-say"></p>
-      <p class="muted">Chatt-widgeten kostar 0 krediter. Drivs regel: välj det minsta paketet som täcker behovet. Rabatt bestäms med ledningen innan offerten skickas. Bindningstiden är oklar (12 eller 24/36 månader): fråga Driv innan du lovar något.</p>
+      <p class="muted">Chatt-widgeten kostar 0 krediter. Drivs regel: välj det minsta paketet som täcker behovet. Rabatt bestäms med ledningen innan offerten skickas. Avtalstiden i din provisionsplan är 12 månader; bekräfta den mot offerten i CRM:et innan du lovar något.</p>
     </div>`;
   $$('#tab-packages [data-need]').forEach((el) => el.addEventListener('input', () => {
     store.set('credits', { ...need, ...readNeed() });
@@ -718,6 +727,109 @@ function renderPackagesTab() {
     updateCredits();
   }));
   updateCredits();
+}
+
+// ------------------------------------------------------------------ money tab
+
+/**
+ * Pengar: what each signed deal pays and when, under the employment contract: paid with the
+ * salary on the 25th the month after activation, and can be taken back if the customer leaves
+ * within the clawback period.
+ */
+function renderMoneyTab() {
+  const s = app.state;
+  const st = s.stats;
+  const b = s.business || {};
+  const won = (s.leads || []).filter((r) => r.status === 'won').sort((a, c) => String(c.closed).localeCompare(String(a.closed)));
+  const next = st.nextPayout || {};
+  const wait = st.awaitingActivation || { count: 0, amount: 0, deals: [] };
+  const claw = st.clawback || { count: 0, amount: 0 };
+  const slow = wait.deals.filter((d) => d.days > 30);
+  const adv = st.advance;
+  const deals = (count) => `${count} ${count === 1 ? 'affär' : 'affärer'}`;
+  const row = (r) => {
+    const k = packageOf(r);
+    const due = payoutDate(r.activated, b);
+    const until = clawbackUntil(r.activated, b);
+    const status = r.paid ? 'Utbetald' : !r.activated ? 'Väntar på aktivering' : due < st.today ? 'Försenad' : 'Schemalagd';
+    return `<tr data-id="${esc(r.id)}">
+      <td><b>${esc(r.company)}</b><br><span class="muted">${esc(k ? st.packages[k].name : 'paket saknas')} · signerad ${esc(r.closed || '—')}</span></td>
+      <td class="num-cell">${k ? esc(money(st.packages[k].commission)) : '—'}</td>
+      <td><label class="sr" for="ma-${esc(r.id)}">Aktiverad</label><input id="ma-${esc(r.id)}" type="date" data-f="activated" value="${esc(r.activated)}"></td>
+      <td>${due ? esc(svDate(due)) : '<span class="muted">efter aktivering</span>'}</td>
+      <td><label class="sr" for="mp-${esc(r.id)}">Utbetald</label><input id="mp-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}"></td>
+      <td>${until && until >= st.today ? esc(svDate(until)) : '<span class="muted">—</span>'}</td>
+      <td><span class="chip ${status === 'Försenad' ? 'late' : ''}">${status}</span></td>
+    </tr>`;
+  };
+  $('#tab-money').innerHTML = `
+    <div class="money-cards">
+      <div class="glass money-card"><span class="label">Nästa utbetalning</span><b>${next.amount ? esc(money(next.amount)) : '—'}</b><span class="muted">${next.amount ? `med lönen ${esc(svDate(next.date))}` : 'inget schemalagt än'}</span></div>
+      <div class="glass money-card"><span class="label">Väntar på aktivering</span><b>${esc(money(wait.amount))}</b><span class="muted">${wait.count ? `${deals(wait.count)} · betalas den ${Number(b.payday) || 25}:e månaden efter aktiveringen` : 'inga signerade affärer som väntar'}</span></div>
+      <div class="glass money-card"><span class="label">Kan återkrävas</span><b>${esc(money(claw.amount))}</b><span class="muted">om kundavtalet upphör inom ${Number(b.clawback_months) || 0} månader från aktiveringen</span></div>
+      <div class="glass money-card"><span class="label">Förskott</span><b>${adv?.amount ? esc(money(adv.amount)) : 'Belopp ej satt'}</b><span class="muted">${adv ? `när ${esc(adv.when || 'första affären')} sitter${adv.in_writing ? '' : ' · muntligt, be om det skriftligt'}` : 'inget förskott inlagt'}</span></div>
+    </div>
+    ${st.overdueUnpaid ? `<p class="warn-note">${esc(money(st.overdueUnpaid))} borde redan ha kommit med lönen. Kolla lönebeskedet och fråga chefen.</p>` : ''}
+    ${slow.length ? `<p class="warn-note">${slow.map((d) => esc(d.company)).join(', ')}: signerad för mer än 30 dagar sedan men inte aktiverad. Provisionen kommer först efter aktiveringen, så fråga Driv hur det går.</p>` : ''}
+    <div class="glass money-forecast">
+      <span class="label">Schemalagt de kommande tre månaderna</span>
+      <div class="mf-months">${(st.forecast || []).map((m) => `<div><span class="label">${esc(m.label)}</span><b>${esc(money(m.amount))}</b><small>${m.deals ? deals(m.deals) : 'inget schemalagt'}</small></div>`).join('')}</div>
+      <p class="muted">Bara aktiverade affärer har ett datum. ${wait.count ? `${esc(money(wait.amount))} tillkommer månaden efter att de aktiveras. ` : ''}${st.inPlay.count ? `Pågående (möten, demos, offerter): upp till ${esc(money(st.inPlay.commission))} om alla signeras, vilket de inte kommer att göra.` : ''}</p>
+    </div>
+    <div class="glass table-card">
+      <span class="label">Vunna affärer · skriv in aktiveringsdatum och när provisionen kom</span>
+      ${won.length ? `<div class="table-wrap"><table class="leads money-table">
+        <thead><tr><th>Företag</th><th>Provision</th><th>Aktiverad</th><th>Utbetalas</th><th>Utbetald</th><th>Återkrav till</th><th>Status</th></tr></thead>
+        <tbody>${won.map(row).join('')}</tbody></table></div>` : '<p class="empty">Inga vunna affärer än. När du sätter din första blir den en rad här.</p>'}
+    </div>
+    <div class="glass pace-card runway" id="runway"></div>
+    <p class="muted">Enligt anställningsavtalet (6.1–6.2, bilaga 1): provisionen tjänas in när kunden signerat och tjänsten aktiverats, betalas i ${esc(cur())} före skatt med lönen den ${Number(b.payday) || 25}:e månaden efter aktiveringen, och dras från kommande provision om kundavtalet upphör inom ${Number(b.clawback_months) || 0} månader. Extra krediter och tillval ger ingen provision.</p>`;
+  $$('#tab-money tr[data-id] [data-f]').forEach((el) => el.addEventListener('change', () => saveLead(el.closest('tr').dataset.id, { [el.dataset.f]: el.value })));
+  renderRunway();
+}
+
+const RUNWAY_DEFAULTS = { cash: '', costs: '', tax: 30 };
+
+/** How long the money lasts without commission. Stays in this browser only, never in the vault. */
+function renderRunway() {
+  const v = { ...RUNWAY_DEFAULTS, ...store.get('runway', {}) };
+  $('#runway').innerHTML = `
+    <span class="label">Hur länge klarar jag mig? · sparas bara i den här webbläsaren</span>
+    <div class="pace-inputs">
+      <label class="rate"><span>Pengar just nu (kr)</span><input type="number" min="0" step="100" data-rw="cash" value="${esc(v.cash)}" placeholder="t.ex. 8000"></label>
+      <label class="rate"><span>Kostnader per månad (kr)</span><input type="number" min="0" step="100" data-rw="costs" value="${esc(v.costs)}" placeholder="t.ex. 4000"><small>pendling, telefon, mat, abonnemang</small></label>
+      <label class="rate"><span>Skatt på provisionen (%)</span><input type="number" min="0" max="60" step="1" data-rw="tax" value="${esc(v.tax)}"><small>ungefär, se din skattetabell</small></label>
+    </div>
+    <p class="pace-say" id="runway-say" aria-live="polite"></p>`;
+  $$('#runway [data-rw]').forEach((el) => el.addEventListener('input', () => {
+    store.set('runway', { ...v, ...Object.fromEntries($$('#runway [data-rw]').map((x) => [x.dataset.rw, x.value])) });
+    updateRunway();
+  }));
+  updateRunway();
+}
+
+function updateRunway() {
+  const st = app.state.stats;
+  const read = (k) => Number($(`#runway [data-rw="${k}"]`)?.value);
+  const cash = read('cash');
+  const costs = read('costs');
+  const tax = Math.min(60, Math.max(0, read('tax') || 0)) / 100;
+  const avg = goalMath(st, app.state.business, paceOverrides()).avgCommission;
+  const net = avg * (1 - tax);
+  const parts = [];
+  if (costs > 0 && cash >= 0) {
+    const months = cash / costs;
+    const until = new Date();
+    until.setDate(until.getDate() + Math.floor(months * 30.4));
+    parts.push(`Utan provision räcker pengarna ungefär ${months < 1 ? `${Math.max(0, Math.round(months * 30))} dagar` : `${kr(Math.floor(months * 10) / 10)} månader`}, till omkring ${svDate(isoLocal(until))}.`);
+    if (net > 0) parts.push(`En genomsnittlig affär ger ungefär ${kr(net)} kr efter skatt, så ${Math.max(1, Math.ceil(costs / net))} ${Math.ceil(costs / net) <= 1 ? 'affär' : 'affärer'} i månaden täcker kostnaderna.`);
+  } else {
+    parts.push('Fyll i pengar och kostnader per månad, så räknar Jarvis hur länge du klarar dig utan provision.');
+  }
+  parts.push(st.nextPayout?.amount
+    ? `Nästa schemalagda utbetalning: ${money(st.nextPayout.amount)} före skatt, ${svDate(st.nextPayout.date)}.`
+    : 'Tänk på att provisionen kommer först den 25:e månaden efter att kundens tjänst aktiverats; förskottet på första affären kan korta väntan.');
+  $('#runway-say').textContent = parts.join(' ');
 }
 
 function readNeed() {
@@ -737,11 +849,11 @@ function updateCredits() {
   let say = plan.credits === 0
     ? 'Fyll i vad kunden behöver.'
     : plan.fits
-      ? `${plan.credits} krediter ryms i ${p.name} (${p.credits} krediter): ${kr(p.monthly)} kr/mån exkl. moms, ${kr(p.monthly * 12)} kr per år. Din provision: ${kr(p.commission)} NOK.`
+      ? `${plan.credits} krediter ryms i ${p.name} (${p.credits} krediter): ${kr(p.monthly)} kr/mån exkl. moms, ${kr(p.monthly * 12)} kr per år. Din provision: ${money(p.commission)}.`
       : `${plan.credits} krediter är mer än Large (${p.credits}). Large + ${p.extraCredits} extra krediter à ${kr(plan.extraPrice)} kr = ${kr(p.monthly)} kr/mån, om extra krediter debiteras per månad (fråga Driv).`;
   // An honest alternative: a smaller package plus a few extra credits can be cheaper for the customer.
   const alt = plan.options.find((o) => o.key !== p.key && o.extraCredits > 0 && o.extraCredits <= 3 && o.monthly < p.monthly);
-  if (plan.credits && alt) say += ` Alternativ: ${alt.name} + ${alt.extraCredits} extra kredit${alt.extraCredits === 1 ? '' : 'er'} = ${kr(alt.monthly)} kr/mån om extra krediter kostar ${kr(plan.extraPrice)} kr/mån (fråga Driv). Då blir din provision ${kr(alt.commission)} NOK.`;
+  if (plan.credits && alt) say += ` Alternativ: ${alt.name} + ${alt.extraCredits} extra kredit${alt.extraCredits === 1 ? '' : 'er'} = ${kr(alt.monthly)} kr/mån om extra krediter kostar ${kr(plan.extraPrice)} kr/mån (fråga Driv). Då blir din provision ${money(alt.commission)}, eftersom extra krediter inte ger någon provision.`;
   $('#credit-say').textContent = say;
 }
 
@@ -762,7 +874,7 @@ async function saveLead(id, fields, { quiet = false } = {}) {
       if (row) {
         if (fields.booked_via) row.booked_via = fields.booked_via;
         if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, today);
-        for (const k of ['next_date', 'next_action', 'package', 'paid', 'notes']) if (fields[k] != null) row[k] = fields[k];
+        for (const k of ['next_date', 'next_action', 'package', 'activated', 'paid', 'notes']) if (fields[k] != null) row[k] = fields[k];
       }
     } else {
       if (!fields.company) { toast('Skriv in ett företagsnamn.'); return null; }
@@ -1466,7 +1578,7 @@ function setView(view) {
 
 function setTab(tab) {
   app.tab = tab;
-  for (const t of ['overview', 'pipeline', 'pace', 'packages', 'research']) $(`#tab-${t}`).hidden = t !== tab;
+  for (const t of ['overview', 'pipeline', 'pace', 'packages', 'money', 'research']) $(`#tab-${t}`).hidden = t !== tab;
   $$('.tabs button[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
 }
 

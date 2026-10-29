@@ -2,7 +2,7 @@
 // reads them aloud to Naim.
 // Shared by the server and the browser demo.
 
-import { goalMath } from './pipeline.js';
+import { goalMath, svDate } from './pipeline.js';
 
 /** Swedish number style: 30 000 (a normal space keeps it readable aloud and in any font). */
 const sv = (v, digits = 0) => Number(v).toLocaleString('sv-SE', { maximumFractionDigits: digits }).replace(/ | /g, ' ');
@@ -12,10 +12,10 @@ const fmtNum = (n) => {
   return sv(Math.round(Number(n)));
 };
 
-/** Whole kroner, never abbreviated: money is read exactly. */
-const nok = (v) => `${sv(Math.round(Number(v) || 0))} NOK`;
+/** Whole kronor, never abbreviated: money is read exactly. Commission is SEK by the contract. */
+const money = (v, currency = 'SEK') => `${sv(Math.round(Number(v) || 0))} ${currency}`;
 
-export { fmtNum, nok, sv };
+export { fmtNum, money, sv };
 
 const n = (count, one, many) => `${count} ${count === 1 ? one : many}`;
 const pct = (v) => `${sv(v * 100, v < 0.1 ? 1 : 0)} %`;
@@ -53,17 +53,34 @@ export function answerRule(intent, state) {
     case 'numbers': {
       const st = state.stats;
       if (!st || !st.leads) return 'Inga företag i pipelinen ännu, så det finns inget att räkna. Kör /lead-research eller lägg till ett i Kommando, Pipeline.';
+      const m = (v) => money(v, st.commissionCurrency);
       const mix = packageMix(st.dealsByPackage, st.packages);
       const sek = st.sekPerNok && st.commissionMonth ? ` (ungefär ${sv(Math.round(st.commissionMonth * st.sekPerNok))} SEK)` : '';
       const goal = st.goal.target ? ` av ${st.goal.target}` : '';
-      const deals = `Den här månaden: ${n(st.dealsMonth, 'affär', 'affärer')}${goal}${mix ? ` (${mix})` : ''}, ${nok(st.commissionMonth)} i provision${sek}.`;
+      const deals = `Den här månaden: ${n(st.dealsMonth, 'affär', 'affärer')}${goal}${mix ? ` (${mix})` : ''}, ${m(st.commissionMonth)} i provision${sek}.`;
       const week = ` Den här veckan ${n(st.contactsWeek, 'ny kontakt', 'nya kontakter')} (förra veckan ${st.contactsPrevWeek}).`;
       const funnel = ` ${n(st.bookedMonth, 'möte', 'möten')} ${st.bookedMonth === 1 ? 'bokat' : 'bokade'}, ${n(st.demosMonth, 'demo', 'demos')} ${st.demosMonth === 1 ? 'hållen' : 'hållna'} och ${n(st.offersOpen || 0, 'offert', 'offerter')} ute.`;
-      const play = st.inPlay.count ? ` ${n(st.inPlay.count, 'affär', 'affärer')} pågår, ${st.inPlay.count === 1 ? 'värd' : 'värda'} upp till ${nok(st.inPlay.commission)} om ${st.inPlay.count === 1 ? 'den stänger' : 'de stänger'}.` : '';
-      const payout = st.payoutNextMonth ? ` ${nok(st.payoutNextMonth)} kommer med lönen nästa månad.` : '';
-      const late = st.overdueUnpaid ? ` ${nok(st.overdueUnpaid)} borde redan ha betalats ut: kolla med Driv.` : '';
+      const play = st.inPlay.count ? ` ${n(st.inPlay.count, 'affär', 'affärer')} pågår, ${st.inPlay.count === 1 ? 'värd' : 'värda'} upp till ${m(st.inPlay.commission)} om ${st.inPlay.count === 1 ? 'den stänger' : 'de stänger'}.` : '';
+      const payout = st.nextPayout?.amount ? ` ${m(st.nextPayout.amount)} kommer med lönen ${svDate(st.nextPayout.date)}.` : '';
+      const waiting = st.awaitingActivation?.count ? ` ${m(st.awaitingActivation.amount)} väntar på att tjänsten aktiveras.` : '';
+      const late = st.overdueUnpaid ? ` ${m(st.overdueUnpaid)} borde redan ha betalats ut: kolla med chefen.` : '';
       const unconfirmed = st.confirmed ? '' : ' Provisionsbeloppen är inte bekräftade ännu.';
-      return `${deals}${week}${funnel}${play}${payout}${late}${unconfirmed}`;
+      return `${deals}${week}${funnel}${play}${payout}${waiting}${late}${unconfirmed}`;
+    }
+    case 'payout': {
+      const st = state.stats;
+      if (!st) return 'Ingen pipeline-data ännu.';
+      const m = (v) => money(v, st.commissionCurrency);
+      const parts = [st.nextPayout?.amount
+        ? `Nästa utbetalning: ${m(st.nextPayout.amount)} med lönen ${svDate(st.nextPayout.date)}.`
+        : 'Ingen provision är schemalagd för utbetalning ännu.'];
+      const w = st.awaitingActivation;
+      if (w?.count) parts.push(`${m(w.amount)} för ${n(w.count, 'affär', 'affärer')} väntar på aktivering. Provisionen kommer med lönen den 25:e månaden efter att tjänsten aktiverats.`);
+      if (st.overdueUnpaid) parts.push(`${m(st.overdueUnpaid)} borde redan ha kommit: kolla med chefen.`);
+      const c = st.clawback;
+      if (c?.count) parts.push(`${m(c.amount)} kan fortfarande återkrävas om kunden säger upp avtalet, längst till ${svDate(c.deals.map((d) => d.until).sort().at(-1))}.`);
+      if (!st.won && st.advance) parts.push(`Din första affär ger ett förskott${st.advance.amount ? ` på ${m(st.advance.amount)}` : ''}${st.advance.in_writing ? '' : ' (muntligt, inte skrivet i avtalet)'}.`);
+      return parts.join(' ');
     }
     case 'pace': {
       const st = state.stats;
