@@ -4,7 +4,8 @@
 
 import { classify } from './classify.js';
 import { answerRule } from './rules.js';
-import { computeStats, COLUMNS } from './pipeline.js';
+import { computeStats, COLUMNS, isoLocal } from './pipeline.js';
+import { callStats } from './calls.js';
 
 // tools/build-demo.mjs replaces this with system/backbone.json.
 const BACKBONE = /*__BACKBONE__*/ null;
@@ -93,6 +94,31 @@ const EXAMPLE_LEADS = [
 // Days ago each won example was activated. Solheim is signed but still waiting for activation.
 const ACTIVATED_AGO = { 'Fjellsport Nett AS': 2, 'Elvebakken Optikk': 33 };
 
+/**
+ * Two weeks of made-up call attempts, so the best-times table has a shape: more answers before
+ * ten and after one than around lunch. Fictional, like the companies.
+ */
+function exampleAttempts(now, leads) {
+  const out = [];
+  const outcomes = ['noanswer', 'noanswer', 'gatekeeper', 'wrong', 'noanswer', 'callback', 'notnow', 'noanswer', 'gatekeeper', 'meeting'];
+  const reachBias = { 8: 0.5, 9: 0.45, 10: 0.3, 11: 0.2, 12: 0.1, 13: 0.4, 14: 0.35, 15: 0.25, 16: 0.15 };
+  let k = 0;
+  for (let ago = 13; ago >= 1; ago -= 1) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - ago);
+    if (d.getDay() === 0 || d.getDay() === 6) continue;
+    for (let i = 0; i < 6; i += 1) {
+      k += 1;
+      const hour = 8 + ((k * 7) % 9);
+      const reached = ((k * 37) % 100) / 100 < reachBias[hour];
+      const outcome = reached ? ['callback', 'notnow', 'meeting', 'talk'][k % 4] : outcomes[k % 5];
+      const lead = leads[k % leads.length];
+      out.push({ date: isoLocal(d), time: `${String(hour).padStart(2, '0')}:${String((k * 13) % 60).padStart(2, '0')}`, id: lead.id, company: lead.company, outcome, note: '' });
+    }
+  }
+  return out;
+}
+
 function exampleLeads(now) {
   const day = (offset) => {
     if (offset == null) return '';
@@ -110,7 +136,7 @@ function exampleLeads(now) {
     const slug = company.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/å/g, 'a').replace(/[^a-z]+/g, '');
     return Object.assign(row, {
       id: `L${String(i + 1).padStart(3, '0')}`, company, contact, industry, city, channel, package: pkg, status,
-      email: `post@${slug.slice(0, 18)}.example`, phone: channel === 'phone' ? `+47 ${String(40000000 + i * 1234567).replace(/(\d{3})(\d{2})(\d{3})/, '$1 $2 $3')}` : '',
+      email: `post@${slug.slice(0, 18)}.example`, phone: `+47 ${String(22000000 + i * 1234567).replace(/(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4')}`, // made-up switchboard numbers
       website: `${slug.slice(0, 18)}.example`,
       added: day(added), contacted: day(contacted), replied: day(replied), booked: day(booked), demo: day(demo), offer: day(offer),
       closed: day(thisMonth ? inMonth(closed) : closed), paid: day(paid),
@@ -175,6 +201,7 @@ export function demoState() {
   }));
   const business = { ...BUSINESS };
   const leads = exampleLeads(now);
+  const attempts = exampleAttempts(now, leads);
   return {
     name: 'JARVIS',
     owner: 'Naim',
@@ -189,6 +216,8 @@ export function demoState() {
     business,
     leads,
     stats: computeStats(leads, { business }),
+    attempts,
+    calls: callStats(attempts, isoLocal(now)),
     directives: [
       { text: 'Ring 30 nätbutiker i Bergen från listan med rekryteringssignaler', done: false, file: 'demo', line: 1 },
       { text: 'Förbered demon med Havgløtt Hotell och följ upp offerten till Nordlys Sykkel', done: false, file: 'demo', line: 2 },

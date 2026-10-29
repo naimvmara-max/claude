@@ -45,6 +45,7 @@ unlikely to work, say so and say what would.
 | `_index.md` | Home note with the embedded HUD | Naim |
 | `ops/pipeline.md` | **The pipeline**: one row per company. Every dashboard number comes from it. | skills, the HUD, Naim |
 | `ops/directives.md`, `ops/tasks.md` | This week's top 3, open loops | /weekly-review, Naim |
+| `ops/calls.md` | Call log from the Ring view: date, time, company id, outcome (`noanswer`, `gatekeeper`, `wrong`, `callback`, `meeting`, `talk`, `notnow`, `optout`). Companies only, no names. | the HUD |
 | `daily-notes/` | One note per day: `## Fokus`, `## Schema`, `## Uppgifter`, `## Logg` | /plan-today, /close-day |
 | `projects/product.md` | **What we sell**: Driv Kundesenter, packages, credits, prices, process. The only source for product claims. | Naim |
 | `projects/sales-job.md` | The job: commission, payout, open questions, contract checklist | Naim |

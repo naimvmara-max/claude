@@ -158,7 +158,7 @@ export class Core {
       return { cx: r.left + r.width / 2, cy: r.top + r.height * 0.47, r: rad, alpha: 1, grid: 1 };
     }
     if (this.view === 'command') return { cx: w * 0.72, cy: h * 0.42, r: Math.min(w, h) * 0.46, alpha: 0.4, grid: 0 };
-    if (this.view === 'live') return { cx: w * 0.5, cy: h * 0.55, r: Math.min(w, h) * 0.6, alpha: 0.07, grid: 0 };
+    if (this.view === 'live' || this.view === 'dialer') return { cx: w * 0.5, cy: h * 0.55, r: Math.min(w, h) * 0.6, alpha: 0.07, grid: 0 };
     return { cx: w * 0.5, cy: h * 0.5, r: Math.min(w, h) * 0.55, alpha: 0.14, grid: 0 };
   }
 

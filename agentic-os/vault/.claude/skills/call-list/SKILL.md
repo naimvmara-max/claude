@@ -7,11 +7,12 @@ description: Build today's call list - companies to cold call or call back, with
 
 ## Read first
 `wiki/sales-playbook.md` (the opener), `wiki/objections.md`, `ops/pipeline.md`,
-`system/business.json` (`daily_contacts`).
+`system/business.json` (`daily_contacts`), and `ops/calls.md`: earlier attempts per company
+from the Ring view, and which hours Naim reaches people best.
 
 ## Do
 1. Pick, in this order, up to half of `daily_contacts`:
-   - companies whose `next_action` is `Call again` or a call, due today or earlier;
+   - companies whose `next_action` starts with `Ring`, due today or earlier;
    - companies that replied by email but have no meeting yet;
    - companies whose email sequence (campaign) ended without a reply: call the decision maker by
      name, and open with the email ("Jeg sendte en e-post til post@ forrige uke …");
@@ -21,7 +22,11 @@ description: Build today's call list - companies to cold call or call back, with
    20-second opener in Norwegian ("Hei, dette er Naim fra Driv …"), the one of Driv's six
    questions that fits best (`wiki/sales-playbook.md`), and the most likely objection with
    Driv's answer from `wiki/objections.md`.
-3. Put them in calling order: callbacks first, then by fit.
+3. Put them in calling order: callbacks first, then by fit. Skip anyone with `opt-out` in notes
+   or an `optout` line in `ops/calls.md`. If `ops/calls.md` has 30 or more attempts, say which
+   hours have reached people most often and suggest calling then.
+4. Remind Naim that the Ring view in Jarvis takes the list one company at a time, one key per
+   outcome, and moves the pipeline itself.
 
 ## Never
 - Never call, text or email anyone. Never add a number that is not published.

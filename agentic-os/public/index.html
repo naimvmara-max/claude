@@ -49,6 +49,7 @@
       <nav class="views" role="tablist" aria-label="Vyer">
         <button role="tab" data-view="hud" aria-selected="true">HUD</button>
         <button role="tab" data-view="live" aria-selected="false" title="Under ett kundsamtal: anteckningar, invändningar och produktkort">Live</button>
+        <button role="tab" data-view="dialer" aria-selected="false" title="Ringläge: dagens samtal, ett tryck per utfall">Ring</button>
         <button role="tab" data-view="command" aria-selected="false">Kommando</button>
         <button role="tab" data-view="backbone" aria-selected="false">Ryggrad</button>
         <button role="tab" data-view="router" aria-selected="false">Router</button>
@@ -126,6 +127,9 @@
 
     <!-- ============ LIVE (built by js/live.js) ============ -->
     <section class="view live-view" id="view-live" aria-label="Live-samtal" hidden></section>
+
+    <!-- ============ RING (built by js/dialer.js) ============ -->
+    <section class="view dialer-view" id="view-dialer" aria-label="Ringläge" hidden></section>
 
     <!-- ============ COMMAND (glass) ============ -->
     <section class="view command" id="view-command" aria-label="Kommando" hidden>

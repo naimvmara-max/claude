@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { parsePipeline, renderPipeline, computeStats, nextId, applyStatus, packageOf, scrubPersonal, COLUMNS, STAGES } from '../public/js/pipeline.js';
+import { parseCalls, callLine, callStats, attemptFields, CALLS_HEADER } from '../public/js/calls.js';
 
 export function localDate(d = new Date()) {
   const p = (n) => String(n).padStart(2, '0');
@@ -241,6 +242,28 @@ export class Vault {
       .filter((m) => m && m[2] === slug)
       .map((m) => ({ path: `samtal/${m[0]}`, date: m[1] }))
       .sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  /** Call attempts from ops/calls.md (Ringläge). */
+  attempts() {
+    return parseCalls(this.read('ops/calls.md', ''));
+  }
+
+  callSummary() {
+    return callStats(this.attempts(), localDate());
+  }
+
+  /** Log one call attempt and move the pipeline row the way the outcome says. */
+  logAttempt({ id, outcome, note = '', date = '' }) {
+    const row = this.pipeline().rows.find((r) => r.id === id);
+    if (!row) throw Object.assign(new Error(`Inget företag med id ${id}. Ladda om och försök igen.`), { status: 404 });
+    const today = localDate();
+    const fields = attemptFields(outcome, row, today, { date, note: String(note).slice(0, 200) });
+    const res = this.updateLead(id, fields);
+    const attempt = { date: today, time: localTime(), id, company: row.company, outcome, note: String(note).slice(0, 200) };
+    if (!this.read('ops/calls.md', '').trim()) this.write('ops/calls.md', CALLS_HEADER);
+    this.append('ops/calls.md', `${callLine(attempt)}\n`);
+    return { ...res, attempt };
   }
 
   /** Newest Markdown files under outputs/, for the Research tab. */

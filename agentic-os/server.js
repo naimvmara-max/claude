@@ -91,6 +91,7 @@ function state() {
     business: vault.business(),
     leads: pipe.rows,
     stats: vault.stats(pipe.rows),
+    calls: vault.callSummary(),
     directives: vault.directives(),
     schedule: vault.schedule(),
     tasks: vault.tasks(),
@@ -307,6 +308,13 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/calls' && req.method === 'GET') {
       const company = String(url.searchParams.get('company') || '').trim();
       return send(res, 200, { calls: company ? vault.calls(company) : [] });
+    }
+    if (p === '/api/attempts' && req.method === 'POST') {
+      const body = await readBody(req);
+      const { row, movedTo, attempt } = vault.logAttempt({ id: String(body.id || ''), outcome: String(body.outcome || ''), note: body.note || '', date: body.date || '' });
+      vault.logRequest({ tier: 1, route: 'call attempt', text: `${row.company}: ${attempt.outcome}` });
+      const fired = movedTo === 'booked' ? scheduler.trigger('meeting-booked', `${row.company} (${row.id}), bokat i telefon${row.next_date ? `, möte ${row.next_date}` : ''}`) : [];
+      return send(res, 200, { lead: row, attempt, fired });
     }
     if (p === '/api/brreg' && req.method === 'GET') {
       const q = Object.fromEntries(['industry', 'municipality', 'name', 'min', 'max', 'page'].map((k) => [k, url.searchParams.get(k) || '']));

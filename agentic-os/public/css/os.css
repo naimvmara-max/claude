@@ -704,6 +704,49 @@ body[data-engine='codex'] .slot.on { border-color: var(--ink); background: rgba(
 .need-inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 @media (max-width: 900px) { .pkg-cards { grid-template-columns: minmax(0, 1fr); } }
 
+/* ---------- ring view: one company at a time, one key per outcome ---------- */
+.dialer { max-width: 1320px; margin: 0 auto; display: grid; gap: 12px; }
+.dl-bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; padding: 12px 18px; }
+.dl-stat { display: grid; gap: 2px; }
+.dl-stat b { font: 400 30px/1 var(--font-display); color: var(--ink); font-variant-numeric: tabular-nums; }
+.dl-stat span { font: 500 9.5px/1.2 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+.dl-bar p { margin: 0 0 0 auto; }
+kbd { font: 500 10px/1 var(--font-mono); padding: 2px 5px; border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 4px; color: var(--ink-2); }
+.dl-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 12px; align-items: start; }
+.dl-card { padding: 18px 20px; display: grid; gap: 12px; min-width: 0; }
+.dl-card p { margin: 0; }
+.dl-top { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.dl-co { margin: 0; font: 400 40px/1.05 var(--font-display); letter-spacing: 0.02em; }
+.dl-phone { justify-self: start; font: 500 20px/1 var(--font-mono); color: var(--accent-ink); background: var(--accent); border-radius: 8px; padding: 12px 16px; text-decoration: none; }
+.dl-phone:hover { filter: brightness(1.08); }
+.dl-hist { font: 400 11.5px/1.5 var(--font-mono); color: var(--mute); }
+.dl-obs { font-size: 13px; color: var(--ink-2); padding: 8px 10px; border-radius: 6px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
+.dl-say { display: grid; gap: 4px; padding-left: 12px; border-left: 2px solid var(--accent); }
+.dl-say p { font-size: 15px; line-height: 1.45; color: var(--ink); }
+.dl-say small { font: 400 11px/1.45 var(--font-mono); color: var(--mute); }
+.dl-phrases { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.dl-phrases .dl-say p { font-size: 13px; color: var(--ink-2); }
+.dl-outcomes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.dl-outcomes button { display: flex; gap: 8px; align-items: center; text-align: left; padding: 11px 12px; border-radius: 8px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.03); font-size: 13px; color: var(--ink); }
+.dl-outcomes button:hover { border-color: var(--accent); background: var(--accent-dim); }
+.dl-outcomes button[data-outcome='meeting'] { border-color: rgba(70, 224, 194, 0.5); }
+.dl-outcomes button[data-outcome='optout'] { color: var(--ink-2); }
+.dl-extra { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.dl-extra label { display: grid; gap: 4px; font: 500 9.5px/1.2 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
+.dl-extra .grow { flex: 1 1 260px; }
+.dl-extra input { min-width: 0; width: 100%; padding: 8px 9px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(0, 0, 0, 0.35); font: 400 13px/1.3 var(--font-body); color: var(--ink); text-transform: none; letter-spacing: 0; color-scheme: dark; }
+.dl-side { display: grid; gap: 12px; min-width: 0; }
+.dl-queue, .dl-best { padding: 14px 16px; display: grid; gap: 8px; }
+.dl-queue ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.dl-queue button { width: 100%; display: flex; justify-content: space-between; gap: 8px; text-align: left; padding: 6px 9px; border-radius: 6px; border: 1px solid var(--line); background: none; font-size: 12.5px; color: var(--ink-2); }
+.dl-queue button.on { border-color: var(--accent); color: var(--ink); background: var(--accent-dim); }
+.dl-queue small { font: 400 10px/1.4 var(--font-mono); color: var(--mute); white-space: nowrap; }
+.dl-best p { margin: 0; }
+.dl-hours { display: grid; gap: 4px; }
+.dl-hours > div { display: grid; grid-template-columns: 22px minmax(0, 1fr) 72px; gap: 8px; align-items: center; font: 400 10.5px/1 var(--font-mono); color: var(--mute); }
+.dl-hours i { height: 8px; width: var(--w); border-radius: 2px; background: linear-gradient(90deg, var(--good) var(--r), rgba(255, 255, 255, 0.12) var(--r)); }
+@media (max-width: 980px) { .dl-grid { grid-template-columns: minmax(0, 1fr); } .dl-outcomes { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dl-bar p { margin: 0; } }
+
 /* ---------- lead finder: the Norwegian business register ---------- */
 .lead-finder { padding: 12px 16px; display: grid; gap: 10px; }
 .lead-finder > summary { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; cursor: pointer; list-style: none; }

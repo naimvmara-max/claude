@@ -154,6 +154,16 @@ Vad, Nytta, Lyssna efter, Tips och Fråga Driv. Ändra fritt, men behåll format
 - Typ: fras
 - Säg: «Hei, dette er Naim fra Driv. Jeg ringer om kundeservicen deres, har du et halvt minutt?»
 
+## Växeln
+- Typ: fras
+- Säg: «Hei, dette er Naim fra Driv. Hvem er det som har ansvaret for kundeservice hos dere?»
+- Tips: Fråga efter rollen, inte efter "någon som bestämmer". Frågar de vad det gäller: «Det gjelder hvordan dere svarer kundene på chat og e-post.»
+
+## Telefonsvarer
+- Typ: fras
+- Säg: «Hei, dette er Naim fra Driv. Jeg ringer angående kundeservicen deres. Jeg prøver igjen i morgen, eller du kan ringe meg på …»
+- Tips: Säg numret långsamt, två gånger. Ingen säljpitch på svararen: målet är att de tar samtalet nästa gång.
+
 ## Etter e-posten
 - Typ: fras
 - Säg: «Jeg sendte en e-post til post@ forrige uke om kundeservicen deres. Fikk du sett på den?»

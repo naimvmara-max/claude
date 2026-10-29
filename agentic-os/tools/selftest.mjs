@@ -12,6 +12,7 @@ import { H, Vault, slugify } from '../lib/vault.js';
 import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan, isGenericEmail, scrubPersonal, privacyMode, payoutDate, clawbackUntil } from '../public/js/pipeline.js';
 import { blockReason } from './guard.mjs';
 import { normalizeEnhet, brregUrl, searchBrreg, readPage, assertPublicUrl, checkSite } from '../lib/leads.js';
+import { attemptFields, parseCalls, callLine, callQueue, callStats, addWorkdays } from '../public/js/calls.js';
 import { loadSkills } from '../lib/skills.js';
 import { parseCards, searchCards } from '../public/js/cards.js';
 
@@ -369,6 +370,47 @@ check('website check finds chat widgets and generic mailboxes, and refuses the l
   const site = await checkSite('x.no', { fetchImpl, lookup });
   assert.equal(site.hasChat, false);
   assert.match(site.observation, /Ingen chatt.*kontaktformulär.*kontakt@x\.no/);
+});
+
+check('one key per call outcome moves the pipeline and is logged', () => {
+  assert.equal(addWorkdays('2026-11-06', 1), '2026-11-09'); // Friday -> Monday
+  const fresh = { id: 'L1', company: 'A AS', status: 'researched', channel: 'email', notes: '' };
+  assert.deepEqual(attemptFields('noanswer', fresh, '2026-11-06'), { channel: 'phone', status: 'contacted', next_action: 'Ring igen', next_date: '2026-11-09' });
+  const meet = attemptFields('meeting', { ...fresh, status: 'contacted', contacted: '2026-11-02' }, '2026-11-06', { date: '2026-11-12' });
+  assert.deepEqual([meet.status, meet.booked_via, meet.next_date, meet.channel], ['booked', 'phone', '2026-11-12', undefined]);
+  assert.match(attemptFields('optout', fresh, '2026-11-06').notes, /opt-out/);
+  const line = callLine({ date: '2026-11-06', time: '09:14', id: 'L1', company: 'A | B AS', outcome: 'noanswer', note: '' });
+  assert.equal(parseCalls(`# x\n${line}`)[0].company, 'A | B AS');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aos-'));
+  fs.cpSync(path.join(root, 'vault/system'), path.join(tmp, 'system'), { recursive: true });
+  fs.cpSync(path.join(root, 'vault/ops'), path.join(tmp, 'ops'), { recursive: true });
+  const v = new Vault(tmp);
+  const { row } = v.addLead({ company: 'Ring AS', phone: '22 00 00 00' });
+  const res = v.logAttempt({ id: row.id, outcome: 'gatekeeper' });
+  assert.equal(res.row.status, 'contacted');
+  assert.equal(res.row.channel, 'phone');
+  assert.equal(v.attempts().length, 1);
+  assert.equal(v.callSummary().today.attempts, 1);
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+check('the call queue puts due call-backs first and waits after a call today', () => {
+  const rows = [
+    { id: 'L1', company: 'New', status: 'researched', phone: '1', added: '2026-11-01' },
+    { id: 'L2', company: 'Back', status: 'contacted', phone: '2', contacted: '2026-11-03', channel: 'phone', next_date: '2026-11-05', next_action: 'Ring igen' },
+    { id: 'L3', company: 'Mail', status: 'contacted', phone: '3', contacted: '2026-11-02', channel: 'email', next_date: '2026-11-06', next_action: 'Uppföljning 1' },
+    { id: 'L4', company: 'NoPhone', status: 'researched', phone: '' },
+    { id: 'L5', company: 'Done', status: 'lost', phone: '5' },
+    { id: 'L6', company: 'Today', status: 'researched', phone: '6' },
+    { id: 'L7', company: 'Stop', status: 'contacted', phone: '7', next_date: '2026-11-05', next_action: 'Ring igen', notes: 'opt-out' },
+  ];
+  const q = callQueue(rows, { L6: [{ date: '2026-11-06', time: '09:00', outcome: 'noanswer' }] }, '2026-11-06');
+  assert.deepEqual(q.map((x) => x.r.id), ['L2', 'L3', 'L1']);
+  assert.equal(q[1].why, 'Efter mejlet');
+  const many = Array.from({ length: 40 }, (_, i) => ({ date: '2026-11-05', time: i % 2 ? '09:10' : '12:10', id: 'L1', outcome: i % 2 ? 'callback' : 'noanswer' }));
+  const st = callStats(many, '2026-11-06');
+  assert.equal(st.total, 40);
+  assert.equal(st.best[0], 9);
 });
 
 check('tier 1 answers come from saved data', () => {

@@ -7,6 +7,8 @@ import { fmtNum, money as fmtMoney, packageMix } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped, demoText } from './demo.js';
 import { createLive } from './live.js';
 import { createLeadFinder } from './leadfinder.js';
+import { createDialer } from './dialer.js';
+import { attemptFields, callStats } from './calls.js';
 import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, privacyMode, scrubPersonal, payoutDate, clawbackUntil, svDate, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -36,7 +38,7 @@ const app = {
 const core = new Core($('#core'));
 core.setSlot($('#core-slot'));
 
-const VIEWS = ['hud', 'live', 'command', 'backbone', 'router'];
+const VIEWS = ['hud', 'live', 'dialer', 'command', 'backbone', 'router'];
 
 // ------------------------------------------------------------------ api
 
@@ -132,6 +134,7 @@ function renderAll() {
   renderSkillList();
   renderDock();
   live.update();
+  if (app.view === 'dialer') dialer.update();
   if (!$('#answer').children.length) renderWelcome();
   syncCore();
 }
@@ -1576,6 +1579,7 @@ function setView(view) {
   $$('.views button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.view === view)));
   if (location.hash.slice(1) !== view) history.replaceState(null, '', `#${view}`);
   if (view === 'live') live.show();
+  if (view === 'dialer') dialer.show();
   else document.body.classList.remove('share-safe');
 }
 
@@ -1651,6 +1655,7 @@ function bind() {
     const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
     if (e.key === 'Escape' && app.listening) { stopListening(true); return; }
     if (app.view === 'live' && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); live.save(); return; }
+    if (app.view === 'dialer' && !typing && dialer.key(e)) return;
     if (e.key === '/' && !typing) {
       e.preventDefault();
       if (app.view === 'live') { live.focusSearch(); return; }
@@ -1705,6 +1710,34 @@ async function addLeads(list) {
   if (dropped) toast(`${added} företag tillagda. GDPR-läge: ${dropped} personuppgift${dropped === 1 ? '' : 'er'} sparades inte.`);
   return added;
 }
+
+/** One call attempt from the Ring view: log it and move the pipeline row. */
+async function logAttempt(id, outcome, opts = {}) {
+  if (!app.demo) {
+    const res = await api('/api/attempts', { id, outcome, ...opts });
+    await refresh();
+    return res;
+  }
+  const row = app.state.leads.find((r) => r.id === id);
+  if (!row) throw new Error('Företaget finns inte längre.');
+  const today = isoLocal();
+  const fields = attemptFields(outcome, row, today, opts);
+  if (fields.booked_via) row.booked_via = fields.booked_via;
+  if (fields.status && fields.status !== row.status) applyStatus(row, fields.status, today);
+  for (const k of ['channel', 'next_date', 'next_action', 'notes']) if (fields[k] != null) row[k] = fields[k];
+  const now = new Date();
+  app.state.attempts.push({ date: today, time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, id, company: row.company, outcome, note: opts.note || '' });
+  app.state.calls = callStats(app.state.attempts, today);
+  app.state.stats = computeStats(app.state.leads, { business: app.state.business });
+  renderAll();
+  return { fired: [] };
+}
+
+const dialer = createDialer({
+  $, $$, esc, store, toast, loadText, logAttempt, openLive,
+  getState: () => app.state,
+  isDemo: () => app.demo,
+});
 
 const finder = createLeadFinder({
   $, $$, esc, store, api, toast, addLeads,
