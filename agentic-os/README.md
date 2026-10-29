@@ -1,14 +1,15 @@
 # Jarvis · Agentic OS v2
 
 A personal operating system for Naim's **sales job**: selling **Driv Kundesenter** (Driv Mobil AS)
-to companies in Norway, paid per signed agreement. One HUD and one brain on top of an Obsidian
+to companies in Norway, employed by Flowtel Nordic AB on commission only. One HUD and one brain on top of an Obsidian
 vault, driving Claude Code (or Codex) to find companies, draft emails in Norwegian, build call
 lists, prepare demos, count credits for the offer and keep the pipeline and commission current.
 
 The HUD, Jarvis's answers and every note written for Naim are in **Swedish**; anything written
-for a customer is in Norwegian bokmål. Product facts, prices and commission come from Driv's
-seller guide and commission sheet (October 2026), copied into `vault/projects/product.md` and
-`vault/system/business.json`.
+for a customer is in Norwegian bokmål. Product facts and prices come from Driv's seller guide
+(October 2026), in `vault/projects/product.md`; commission and payout terms come from the signed
+employment contract (28 October 2026), in `vault/system/business.json` and
+`vault/projects/sales-job.md`.
 
 Preview on example data (no install): https://claude.ai/artifact/1CYR9f65iAVeMkjkibuJ4m
 
@@ -32,8 +33,8 @@ shows zeros.
 | Meetings booked | companies with a `booked` date this month; the share of the last 30 days' contacts that booked |
 | Demos held | companies with a `demo` date this month; offers out; how many booked, demoed or offered deals are still open ("in play") |
 | Deals this month | won companies with a `closed` date this month, one slot per deal in `goal_deals_month` (4), filled with the package |
-| Commission | the `package` of each deal won this month × the commission for that package; ≈ SEK with `sek_per_nok` |
-| Payout | Driv pays commission with the salary the month after signing: this month's deals are "next salary"; unpaid deals two months on are flagged as late |
+| Commission | the `package` of each deal won this month × the commission for that package, in SEK before tax (`commission_currency`) |
+| Payout (Kommando → Pengar) | commission is earned when the customer has signed and the service is activated (`activated` column), and paid with the salary on the 25th the month after (`payday`). The tab shows the next payout, deals waiting for activation, what can still be clawed back (`clawback_months`, 6), the first-deal advance, three months of scheduled payouts and a runway calculator that stays in the browser. An activated deal past its payday and unpaid is flagged as late |
 | Pace (Kommando → Takt) | works back from the deal goal: deals → demos → meetings → contacts, a workday for the rest of the month. Uses your own conversion rates once you have 100 contacts, 5 meetings and 5 demos, and the starting guesses in `assumptions` until then. Commission at goal uses Driv's typical mix (55 % S, 35 % M, 10 % L) |
 | Packages (Kommando → Paket) | Driv's three packages with price, credits and commission, and a credit calculator for step 3 of Driv's process: count credits with the customer and pick the smallest package that covers them |
 | Follow-ups due | open companies whose `next_date` is today or earlier, plus contacted ones with no answer after 3 days (2 for phone) |
@@ -41,9 +42,44 @@ shows zeros.
 | Channels (Kommando → Översikt) | email, cold calls and calls after email side by side this month: contacts, replies, meetings, demos, deals, commission, meetings per 100 contacts. Contacts count by first contact; meetings and deals by how the meeting was booked (`booked_via`, set by choosing "Möte bokat · via mejl/samtal") |
 
 Driv's numbers: Small 4 695, Medium 7 595, Large 13 595 NOK per month excl. VAT (5, 15, 30
-credits); commission 5 000, 10 000, 20 000 NOK per signed agreement. Open questions (binding
-period 12 vs 24/36 months, extra-credit price, clawback) and the contract checklist are in
-`vault/projects/sales-job.md` and in Kommando → Takt.
+credits). Commission under the contract: 5 000, 10 000, 20 000 SEK per signed and activated deal,
+none on extra credits or add-ons. What still needs to be in writing (the advance, SEK vs NOK,
+probation) is in `vault/projects/sales-job.md` and in Kommando → Takt.
+
+## Finding companies (Kommando → Pipeline → Hitta företag)
+
+Searches the Norwegian business register (Enhetsregisteret, Brønnøysund: open API, no key) by
+industry code, municipality, size or a word in the name. Enkeltpersonforetak are never listed,
+bankrupt companies and companies already in the pipeline are dropped, and only generic company
+mailboxes (post@, kontakt@ …) are kept. **Kolla** reads a company's homepage and contact page for
+an existing chat widget (Intercom, Zendesk, Tidio and 17 more), published generic addresses and a
+contact form, and the observation goes into the lead's notes. No model is involved. The industry
+presets are SN2007 codes; if a search finds nothing, the code may have changed (SN2025): look the
+company up on brreg.no and type its code.
+
+## The Ring view (cold calling)
+
+**Ring** takes today's calls one company at a time: due call-backs first, then calls after an
+email, then new companies with a published number. Call, press **1–8** for what happened (no
+answer, switchboard, wrong person, call back, meeting booked, talking, not interested, do not
+contact) and the pipeline row moves, the attempt is logged in `vault/ops/calls.md` and the next
+company comes up. **6** opens Live for the conversation. After 30 calls the side panel shows which
+hours reach people best, from your own calls.
+
+## Personal data (GDPR) and showing Jarvis to others
+
+The contract (10.2) says customer data may only be kept in systems the employer points to.
+`privacy.mode` in `vault/system/business.json` is `company-only` until that is approved in
+writing: the Bridge then drops contact names and personal email addresses, the HUD says what it
+left out, and the skills write roles instead of names. `vault/projects/gdpr-jarvis.md` is the
+one-page explanation for the employer. `npm run gdpr` lists where personal data sits.
+
+Customer data never goes to git: call notes, reports, daily notes, inbox drops and the call log
+are git-ignored, and a pre-commit hook (installed by `npm start`) refuses a commit that adds rows
+to the pipeline template.
+
+**Visningsläge** (in the bottom bar) hides commission, the Pengar tab, deal amounts, contact
+persons, the contract checklist and the runway while you show Jarvis to someone.
 
 ## The Live view (during a call)
 
@@ -88,9 +124,10 @@ booked → demo → offer → won/lost. Moving a company to **Möte bokat** star
 | Sales | /offer: demo notes → credit count, package and the covering email for the CRM offer | manual |
 | Sales | /objections: collect objections, true answers into `wiki/objections.md` | manual |
 | Sales | /call-summary: a saved call → summary, needs, package, objections, next step and a bokmål follow-up email as a Gmail draft | when you save a call in Live with the box ticked |
+| Sales | /chef-rapport: the week's activity, meetings, demos, offers and deals, what worked and what blocks, as a Swedish email draft for the manager; no commission, no customer personal data | Fridays 15:30 |
 | Productivity | /plan-today (with the pace), /close-day, /weekly-review | weekdays 07:00, 21:30, Sundays 19:00 |
 | Research | /morning-intel (buying signals, competitors, one idea), /deep-research | weekdays 06:30, manual |
-| Commission | /commission-check: earned vs paid out, against the contract | 1st of the month |
+| Commission | /commission-check: earned, waiting for activation, paid and clawable, against the contract | 1st of the month |
 | Memory | /vault-cleanup | Sundays 18:00 |
 
 **Cold email in Norway goes only to generic company addresses** (post@, kontakt@): under
@@ -139,7 +176,8 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
 6. **Obsidian (optional):** open `agentic-os/vault` as a vault, Settings → Community plugins →
    turn off Restricted mode → enable *Agentic OS HUD*.
 
-`npm run check` runs 56 offline checks (Swedish and English routing, schedules, pipeline, commission, credits, pace maths, the Live cards and saved calls).
+`npm run check` runs 67 offline checks (Swedish and English routing, schedules, pipeline, commission and payout, credits, pace maths, the Live cards and saved calls, GDPR mode and the commit guard, the register search and site check, the Ring view).
+`npm run gdpr` shows the GDPR mode and where personal data sits in the vault.
 `npm run demo` builds `dist/jarvis-demo.html`, a single-file demo that needs no server.
 
 ## Troubleshooting
@@ -178,7 +216,7 @@ reads Swedish badly. More voices: Windows Settings → Time & language → Speec
 ## How a request flows
 
 1. You speak or type. The HUD sends the text to `POST /api/ask`.
-2. The router scores a fixed list of choices (9 rules, a quick answer, 18 skills) and picks one.
+2. The router scores a fixed list of choices (10 rules, a quick answer, 19 skills) and picks one.
    You see the odds and can re-route with one tap.
 3. Tier 1 answers from the pipeline and notes ("how am I doing?", "am I on pace?", "who should I follow up with?").
 4. Tier 2 asks Claude Haiku through Claude Code on your plan (or the API, if you set one up).
@@ -192,6 +230,7 @@ reads Swedish badly. More voices: Windows Settings → Time & language → Speec
 - The Bridge listens on `127.0.0.1` only and rejects other hosts and cross-site requests.
 - Headless runs can only use the tools in `vault/.claude/settings.json`. `rm`, `curl` and `git push` are denied.
 - Never guessed email addresses or phone numbers, an opt-out line in every email, and anyone who opts out is marked lost.
+- The site check fetches only public http(s) websites on ports 80 and 443; addresses that resolve to the local network are refused.
 
 ## API
 
@@ -211,6 +250,9 @@ reads Swedish badly. More voices: Windows Settings → Time & language → Speec
 | POST | `/api/trigger/:event` | `{ input? }`, e.g. `meeting-booked`, `call-saved` |
 | POST | `/api/calls` | `{ company, lead?, text, summarize? }`: saves the call note to `samtal/`, starts /call-summary if `summarize` |
 | GET | `/api/calls?company=` | earlier call notes for a company |
+| POST | `/api/attempts` | `{ id, outcome, note?, date? }`: one call attempt from the Ring view; logs it and moves the row |
+| GET | `/api/brreg?industry=&municipality=&min=&max=&name=&page=` | search the Norwegian business register |
+| POST | `/api/sitecheck` | `{ url }`: chat widget, generic addresses and contact form on a company's website |
 | GET | `/api/file?path=` | Markdown or JSON from the vault |
 
 See `docs/VISUAL-STACK.md` for the design references and connectors that were checked.
