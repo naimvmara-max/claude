@@ -226,9 +226,9 @@ export function createLive(d) {
       <h3 class="lv-co">${esc(r.company)}</h3>
       <p class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}${site ? ` · ${site}` : ''}</p>
       <dl class="lv-facts">
-        <dt>Kontakt</dt><dd>${esc(r.contact || '—')}</dd>
+        <dt class="private">Kontakt</dt><dd class="private">${esc(r.contact || '—')}</dd>
         <dt>Telefon</dt><dd>${r.phone ? `<a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a>` : '—'}</dd>
-        <dt>E-post</dt><dd>${esc(r.email || '—')}</dd>
+        <dt class="private">E-post</dt><dd class="private">${esc(r.email || '—')}</dd>
         <dt>Status</dt><dd>${esc(STAGE_LABELS[r.status] || r.status)}${packageOf(r) ? ` · ${esc(business().packages?.[packageOf(r)]?.name || packageOf(r))}` : ''}</dd>
         <dt>Nästa</dt><dd>${esc(r.next_action || '—')}${r.next_date ? ` · ${esc(r.next_date)}` : ''}</dd>
       </dl>

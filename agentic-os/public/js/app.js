@@ -267,7 +267,7 @@ function dealSlots(st, big = false) {
     const d = won[i];
     if (!d) return `<span class="slot"><b>${i + 1}</b><small>ledig</small></span>`;
     const name = st.packages[d.package]?.name || 'inget paket';
-    return `<span class="slot on" title="${esc(d.company)} · ${esc(name)} · ${esc(money(d.commission))}"><b>${esc(d.package || '?')}</b><small>${esc(d.package ? kShort(d.commission) : 'välj paket')}</small></span>`;
+    return `<span class="slot on" title="${esc(d.company)} · ${esc(name)}"><b>${esc(d.package || '?')}</b><small class="${d.package ? 'private' : ''}">${esc(d.package ? kShort(d.commission) : 'välj paket')}</small></span>`;
   }).join('');
   const extra = won.length > n ? `<span class="label">+ ${won.length - n} affärer till</span>` : '';
   return `<div class="slots${big ? ' big' : ''}" role="img" aria-label="${won.length} av ${target} affärer vunna denna månad">${slots}</div>${extra}`;
@@ -398,7 +398,7 @@ function renderCommand() {
     : '<p class="empty">Ingen brief än. /morning-intel körs vardagar 06:30. <button data-run="morning-intel">Kör den nu</button></p>';
   const ordered = [...s.skills.filter((x) => x.quick), ...s.skills.filter((x) => !x.quick)];
   const wf = ordered.slice(0, 10).map((sk) => `<button class="wf" data-skill="${esc(sk.name)}" title="/${esc(sk.name)}">${esc(sk.label)}</button>`).join('');
-  const cards = metrics().map((m) => `<div class="glass metric">
+  const cards = metrics().map((m) => `<div class="glass metric" data-key="${m.key}">
       <span class="label">${esc(m.short)}</span>
       <span class="num">${esc(m.value)}</span>
       <span class="delta ${m.up ? 'up' : ''}">${esc(m.delta)}</span>
@@ -513,13 +513,13 @@ function renderPipelineTab() {
   const more = groups[filter].length - leads.length;
   const pkgSelect = (r) => `<label class="sr" for="pk-${esc(r.id)}">Paket</label><select id="pk-${esc(r.id)}" data-f="package"><option value="">—</option>${PACKAGES.map((k) => `<option value="${k}"${packageOf(r) === k ? ' selected' : ''}>${esc(st.packages[k].name)}</option>`).join('')}</select>`;
   const nextCell = (r) => (r.status === 'won'
-    ? `<label class="sr" for="ac-${esc(r.id)}">Aktiverad</label><input id="ac-${esc(r.id)}" type="date" data-f="activated" value="${esc(r.activated)}" title="Aktiverad"> <label class="sr" for="pd-${esc(r.id)}">Provision utbetald</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}" title="Utbetald"><br><span class="muted">${r.paid ? 'provision utbetald' : !packageOf(r) ? 'välj paket' : r.activated ? `${esc(money(st.packages[packageOf(r)].commission))} ${esc(svDate(payoutDate(r.activated, s.business)))}` : 'aktiverad? provisionen kommer månaden efter'}</span>`
+    ? `<label class="sr" for="ac-${esc(r.id)}">Aktiverad</label><input id="ac-${esc(r.id)}" type="date" data-f="activated" value="${esc(r.activated)}" title="Aktiverad"> <label class="sr" for="pd-${esc(r.id)}">Provision utbetald</label><input id="pd-${esc(r.id)}" type="date" data-f="paid" value="${esc(r.paid)}" title="Utbetald"><br><span class="muted private">${r.paid ? 'provision utbetald' : !packageOf(r) ? 'välj paket' : r.activated ? `${esc(money(st.packages[packageOf(r)].commission))} ${esc(svDate(payoutDate(r.activated, s.business)))}` : 'aktiverad? provisionen kommer månaden efter'}</span>`
     : `<label class="sr" for="nd-${esc(r.id)}">Nästa datum</label><input id="nd-${esc(r.id)}" type="date" data-f="next_date" value="${esc(r.next_date)}"><br><span class="muted">${esc(r.next_action)}</span>`);
   const site = (w) => esc(/^https?:/.test(w) ? w : `https://${w}`);
   const companyOnly = privacyMode(s.business) === 'company-only';
   const rows = leads.map((r) => `<tr data-id="${esc(r.id)}" class="st-${esc(r.status)}">
       <td><b>${esc(r.company)}</b> <button class="row-live" data-live="${esc(r.id)}" title="Öppna ${esc(r.company)} i Live">Live</button>${r.website ? `<br><a href="${site(r.website)}" target="_blank" rel="noopener">${esc(r.website.replace(/^https?:\/\//, ''))}</a>` : ''}${r.industry || r.city ? `<br><span class="muted">${esc([r.industry, r.city].filter(Boolean).join(' · '))}</span>` : ''}</td>
-      <td>${esc(r.contact)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ''}${r.phone ? `<br><a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a>` : ''}</td>
+      <td class="private">${esc(r.contact)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ''}${r.phone ? `<br><a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a>` : ''}</td>
       <td><label class="sr" for="st-${esc(r.id)}">Status</label><select id="st-${esc(r.id)}" data-f="status">${statusOptions(r)}</select></td>
       <td>${pkgSelect(r)}</td>
       <td>${nextCell(r)}</td>
@@ -547,7 +547,7 @@ function renderPipelineTab() {
         <div class="tabs" role="tablist" aria-label="Filtrera företag">${['open', 'won', 'lost', 'all'].map((k) => `<button role="tab" data-filter="${k}" aria-selected="${k === filter}">${FILTER_NAMES[k]} ${groups[k].length}</button>`).join('')}</div>
       </div>
       ${leads.length ? `<div class="table-wrap"><table class="leads">
-        <thead><tr><th>Företag</th><th>Kontakt</th><th>Status</th><th>Paket</th><th>${filter === 'won' ? 'Aktiverad · utbetald' : 'Nästa'}</th><th>Första kontakt</th></tr></thead>
+        <thead><tr><th>Företag</th><th class="private">Kontakt</th><th>Status</th><th>Paket</th><th>${filter === 'won' ? 'Aktiverad · utbetald' : 'Nästa'}</th><th>Första kontakt</th></tr></thead>
         <tbody>${rows}</tbody></table></div>${more > 0 ? `<button class="ghost-btn" id="more-leads">Visa ${more} till</button>` : ''}`
         : all.length ? `<p class="empty">Inga ${FILTER_NAMES[filter]} företag.</p>` : '<p class="empty">Inga företag än. Lägg till ett ovan, eller <button data-run="lead-research">kör /lead-research</button> för att hitta 10.</p>'}
     </div>
@@ -613,7 +613,7 @@ function renderPaceTab() {
         <p class="muted">Det du skriver här stannar i den här webbläsaren och ändrar bara kalkylen. Startgissningarna ligger i <code>system/business.json</code> under <code>assumptions</code>. Affärer stänger ofta veckor efter första kontakten, så kontakter sent i månaden betalar mest nästa månad.</p>
       </div>
       <div class="col" style="gap:12px">
-        <div class="glass pace-card">
+        <div class="glass pace-card private">
           <span class="label">Provision per affär · ${b.confirmed ? `bekräftad${b.confirmed_by ? `: ${esc(b.confirmed_by)}` : ''}` : 'inte bekräftad än'}</span>
           <div class="pkg-grid">${PACKAGES.map((k) => `<div class="pkg">
             <span class="label">${esc(st.packages[k].name)}</span>
@@ -624,7 +624,7 @@ function renderPaceTab() {
           <p class="pace-say" id="pace-money"></p>
           <p class="muted">Belopp från <code>system/business.json</code>. Andelarna är Drivs "typisk måned" (55 % Small, 35 % Medium, 10 % Large) tills du skriver egna.</p>
         </div>
-        <div class="glass pace-card">
+        <div class="glass pace-card private">
           <span class="label">Avtalet · att få skriftligt · projects/sales-job.md</span>
           <ul class="checks" id="contract-checks"></ul>
         </div>
@@ -850,17 +850,22 @@ function updateCredits() {
     ['Krediter', plan.credits],
     ['Paket', `${p.name}${p.extraCredits ? ` + ${p.extraCredits}` : ''}`],
     ['Kunden betalar', `${kr(p.monthly)}`],
-    ['Din provision', `${kr(p.commission)}`],
-  ].map(([l, v]) => `<div><span class="label">${l}</span><b>${esc(v)}</b></div>`).join('');
+    ['Din provision', `${kr(p.commission)}`, 'private'],
+  ].map(([l, v, cls]) => `<div class="${cls || ''}"><span class="label">${l}</span><b>${esc(v)}</b></div>`).join('');
   let say = plan.credits === 0
     ? 'Fyll i vad kunden behöver.'
     : plan.fits
-      ? `${plan.credits} krediter ryms i ${p.name} (${p.credits} krediter): ${kr(p.monthly)} kr/mån exkl. moms, ${kr(p.monthly * 12)} kr per år. Din provision: ${money(p.commission)}.`
+      ? `${plan.credits} krediter ryms i ${p.name} (${p.credits} krediter): ${kr(p.monthly)} kr/mån exkl. moms, ${kr(p.monthly * 12)} kr per år.`
       : `${plan.credits} krediter är mer än Large (${p.credits}). Large + ${p.extraCredits} extra krediter à ${kr(plan.extraPrice)} kr = ${kr(p.monthly)} kr/mån, om extra krediter debiteras per månad (fråga Driv).`;
   // An honest alternative: a smaller package plus a few extra credits can be cheaper for the customer.
   const alt = plan.options.find((o) => o.key !== p.key && o.extraCredits > 0 && o.extraCredits <= 3 && o.monthly < p.monthly);
-  if (plan.credits && alt) say += ` Alternativ: ${alt.name} + ${alt.extraCredits} extra kredit${alt.extraCredits === 1 ? '' : 'er'} = ${kr(alt.monthly)} kr/mån om extra krediter kostar ${kr(plan.extraPrice)} kr/mån (fråga Driv). Då blir din provision ${money(alt.commission)}, eftersom extra krediter inte ger någon provision.`;
-  $('#credit-say').textContent = say;
+  let mine = plan.credits && plan.fits ? `Din provision: ${money(p.commission)}.` : '';
+  if (plan.credits && alt) {
+    say += ` Alternativ: ${alt.name} + ${alt.extraCredits} extra kredit${alt.extraCredits === 1 ? '' : 'er'} = ${kr(alt.monthly)} kr/mån om extra krediter kostar ${kr(plan.extraPrice)} kr/mån (fråga Driv).`;
+    mine += ` Med alternativet blir din provision ${money(alt.commission)}, eftersom extra krediter inte ger någon provision.`;
+  }
+  // The commission part is hidden in presentation mode, so it sits in its own span.
+  $('#credit-say').innerHTML = `${esc(say)}${mine ? ` <span class="private">${esc(mine.trim())}</span>` : ''}`;
 }
 
 /**
@@ -1583,6 +1588,16 @@ function setView(view) {
   else document.body.classList.remove('share-safe');
 }
 
+/** Visningsläge: hide commission, money, contact persons and private finances while showing Jarvis to someone. */
+function setPresent(on) {
+  document.body.classList.toggle('present', on);
+  store.set('present', on);
+  const b = $('#present-toggle');
+  b.setAttribute('aria-pressed', String(on));
+  b.textContent = on ? 'Visningsläge på' : 'Visningsläge';
+  if (on && app.tab === 'money') setTab('overview');
+}
+
 function setTab(tab) {
   app.tab = tab;
   for (const t of ['overview', 'pipeline', 'pace', 'packages', 'money', 'research']) $(`#tab-${t}`).hidden = t !== tab;
@@ -1642,6 +1657,12 @@ function bind() {
   $('#pause').addEventListener('click', (e) => { e.currentTarget.textContent = core.togglePause() ? 'Starta rörelse' : 'Pausa rörelse'; });
   $('#ask-form').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#ask-input').value; $('#ask-input').value = ''; ask(v); });
   $('#talk').addEventListener('click', startListening);
+  $('#present-toggle').addEventListener('click', () => {
+    const on = !document.body.classList.contains('present');
+    setPresent(on);
+    toast(on ? 'Visningsläge på: provision, pengar och kontaktpersoner är dolda. Jarvis svar kan fortfarande nämna provision om du frågar.' : 'Visningsläge av.');
+  });
+  setPresent(store.get('present', false));
   $('#dock-talk').addEventListener('click', () => { if (app.view !== 'hud') setView('hud'); startListening(); });
   $('#browse-skills').addEventListener('click', () => $('#skills-dlg').showModal());
   $('#open-transcript').addEventListener('click', () => { renderTranscript(); $('#transcript-dlg').showModal(); });

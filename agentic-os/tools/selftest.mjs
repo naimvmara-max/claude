@@ -58,6 +58,8 @@ const routes = {
   'skriv offerten till Nordlys Sykkel': 'skill:offer',
   'samla invändningarna från veckan': 'skill:objections',
   'sammanfatta samtalet med Fjellsport': 'skill:call-summary',
+  'skriv veckorapporten till chefen': 'skill:chef-rapport',
+  'hur gick veckan?': 'skill:weekly-review',
   'har jag fått betalt för Fjellsport?': 'skill:commission-check',
   'när får jag betalt?': 'rule:payout',
   'när kommer förskottet?': 'rule:payout',

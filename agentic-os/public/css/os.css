@@ -957,3 +957,11 @@ body.embed .hud .right { order: 2; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 .lf-actions .dock-btn { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+
+/* ---------- visningsläge: showing Jarvis to someone ---------- */
+body.present .private, body.present .pc-com, body.present .gw-money, body.present #goal-card .big,
+body.present #goal-card .warn-chip, body.present .metric[data-key='commission'], body.present .warn-note,
+body.present .tabs button[data-tab='money'], body.present #tab-money, body.present #runway,
+body.present .chan th:nth-child(7), body.present .chan td:nth-child(7) { display: none !important; }
+body.present #present-toggle { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+@media (min-width: 761px) { body.present .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

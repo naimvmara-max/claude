@@ -167,6 +167,17 @@
       "triggers": ["summarize the call", "call summary", "after the call", "call notes", "sammanfatta samtalet", "efter samtalet", "samtalsanteckningar", "samtalssammanfattning", "sammanfatta mötet"]
     },
     {
+      "name": "chef-rapport",
+      "domain": "sales",
+      "task": "Rapportera till chefen",
+      "does": "veckans siffror som mejlutkast",
+      "connectors": ["Valv", "Gmail"],
+      "schedule": "weekly fri 15:30",
+      "quick": false,
+      "label": "Veckorapport till chefen",
+      "triggers": ["report to my manager", "report to my boss", "manager report", "veckorapport", "veckorapporten", "rapport till chefen", "chefrapport", "chefsrapport", "rapportera till chefen", "rapport till vasanth"]
+    },
+    {
       "name": "plan-today",
       "domain": "productivity",
       "task": "Planera dagen",
