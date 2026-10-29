@@ -6,6 +6,7 @@ import { classify } from './classify.js';
 import { fmtNum, money as fmtMoney, packageMix } from './rules.js';
 import { demoState, demoAsk, demoRun, demoFile, demoStopped, demoText } from './demo.js';
 import { createLive } from './live.js';
+import { createLeadFinder } from './leadfinder.js';
 import { computeStats, applyStatus, nextId, goalMath, creditPlan, packageOf, channelOf, bookedVia, privacyMode, scrubPersonal, payoutDate, clawbackUntil, svDate, COLUMNS, STAGES, STAGE_LABELS, SOURCE_LABELS, PACKAGES, CHANNELS, CHANNEL_LABELS, CREDIT_COSTS, MIN_SAMPLE, isoLocal } from './pipeline.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -551,6 +552,8 @@ function renderPipelineTab() {
       <div class="glass chart-card" data-key="contacts"><span class="label">Nya kontakter per vecka (mejl + samtal)</span>${areaChart({ label: 'Nya kontakter per vecka', history: st.contactsHistory, value: st.contactsWeek }, METRIC_COLORS.contacts)}</div>
       <div class="glass chart-card" data-key="booked"><span class="label">Bokade möten per vecka</span>${areaChart({ label: 'Bokade möten per vecka', history: st.bookedHistory, value: st.bookedHistory.at(-1)?.v ?? 0 }, METRIC_COLORS.booked)}</div>
     </div>`;
+  // The register search keeps its form and results across refreshes: the same node goes back on top.
+  $('#tab-pipeline').prepend(finder.node);
   $$('#tab-pipeline .chart-card').forEach((card) => wireChart(card, { history: card.dataset.key === 'contacts' ? st.contactsHistory : st.bookedHistory }));
   bindQuickLinks('#tab-pipeline');
   bindLiveLinks('#tab-pipeline');
@@ -1669,6 +1672,45 @@ async function loadText(path) {
   if (app.demo) return demoText(path);
   return (await api(`/api/file?path=${encodeURIComponent(path)}`)).text;
 }
+
+/** Add several companies from the register search; returns how many were added. */
+async function addLeads(list) {
+  let added = 0;
+  let dropped = 0;
+  if (app.demo) {
+    for (const f of list) {
+      if (app.state.leads.some((r) => r.company.toLowerCase() === f.company.toLowerCase())) continue;
+      const clean = scrubPersonal(f, app.state.business);
+      dropped += clean.dropped.length;
+      const row = Object.fromEntries(COLUMNS.map((c) => [c, '']));
+      Object.assign(row, clean.fields, { id: nextId(app.state.leads), added: isoLocal() });
+      applyStatus(row, 'researched', isoLocal());
+      app.state.leads.push(row);
+      added += 1;
+    }
+    app.state.stats = computeStats(app.state.leads, { business: app.state.business });
+    renderAll();
+  } else {
+    for (const f of list) {
+      try {
+        const res = await api('/api/leads', f);
+        added += 1;
+        dropped += res.dropped?.length || 0;
+      } catch (err) {
+        if (!/finns redan/.test(err.message)) { toast(err.message); break; }
+      }
+    }
+    await refresh();
+  }
+  if (dropped) toast(`${added} företag tillagda. GDPR-läge: ${dropped} personuppgift${dropped === 1 ? '' : 'er'} sparades inte.`);
+  return added;
+}
+
+const finder = createLeadFinder({
+  $, $$, esc, store, api, toast, addLeads,
+  getState: () => app.state,
+  isDemo: () => app.demo,
+});
 
 const live = createLive({
   $, $$, esc, store, api, toast, saveLead, addLead, loadText, openFile, Recognition, listenLang, voiceBlockedReason,

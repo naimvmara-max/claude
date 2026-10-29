@@ -704,6 +704,24 @@ body[data-engine='codex'] .slot.on { border-color: var(--ink); background: rgba(
 .need-inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 @media (max-width: 900px) { .pkg-cards { grid-template-columns: minmax(0, 1fr); } }
 
+/* ---------- lead finder: the Norwegian business register ---------- */
+.lead-finder { padding: 12px 16px; display: grid; gap: 10px; }
+.lead-finder > summary { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; cursor: pointer; list-style: none; }
+.lead-finder > summary::-webkit-details-marker { display: none; }
+.lead-finder > summary::before { content: '▸'; color: var(--accent); }
+.lead-finder[open] > summary::before { content: '▾'; }
+.lf-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; align-items: end; }
+.lf-form label { display: grid; gap: 4px; font: 500 9.5px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+.lf-form input, .lf-form select { min-width: 0; width: 100%; padding: 8px 9px; border-radius: 6px; border: 1px solid var(--line-2); background: rgba(0, 0, 0, 0.35); font: 400 12.5px/1.2 var(--font-body); color: var(--ink); text-transform: none; letter-spacing: 0; }
+.lf-form button { height: 35px; }
+.lf-results { display: grid; gap: 10px; min-width: 0; }
+.lf-results p { margin: 0; }
+.lf-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.lf-table { min-width: 720px; }
+.lf-table input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px; }
+.lf-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip.lf-good { color: var(--good); border-color: rgba(70, 224, 194, 0.45); }
+
 /* ---------- money tab: payouts under the employment contract ---------- */
 .money-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .money-card { padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
@@ -895,3 +913,4 @@ body.embed .hud .right { order: 2; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+.lf-actions .dock-btn { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }

@@ -17,6 +17,7 @@ import { loadSkills } from './lib/skills.js';
 import { JobRunner } from './lib/jobs.js';
 import { Scheduler, describe } from './lib/scheduler.js';
 import { quickAnswer, modelClassify } from './lib/quick.js';
+import { searchBrreg, checkSite } from './lib/leads.js';
 import { classify, TIER1_INTENTS } from './public/js/classify.js';
 import { answerRule } from './public/js/rules.js';
 
@@ -306,6 +307,19 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/calls' && req.method === 'GET') {
       const company = String(url.searchParams.get('company') || '').trim();
       return send(res, 200, { calls: company ? vault.calls(company) : [] });
+    }
+    if (p === '/api/brreg' && req.method === 'GET') {
+      const q = Object.fromEntries(['industry', 'municipality', 'name', 'min', 'max', 'page'].map((k) => [k, url.searchParams.get(k) || '']));
+      const existing = new Set(vault.pipeline().rows.map((r) => r.company.toLowerCase()));
+      return send(res, 200, await searchBrreg(q, { existing }));
+    }
+    if (p === '/api/sitecheck' && req.method === 'POST') {
+      const body = await readBody(req);
+      try {
+        return send(res, 200, await checkSite(String(body.url || '')));
+      } catch (err) {
+        return send(res, err.status || 502, { error: err.status ? err.message : `Kunde inte läsa webbplatsen: ${err.message}` });
+      }
     }
     const trig = p.match(/^\/api\/trigger\/([a-z0-9-]+)$/);
     if (trig && req.method === 'POST') {

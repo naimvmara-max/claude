@@ -11,6 +11,7 @@ import { parseSchedule, lastDue, describe } from '../lib/scheduler.js';
 import { H, Vault, slugify } from '../lib/vault.js';
 import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan, isGenericEmail, scrubPersonal, privacyMode, payoutDate, clawbackUntil } from '../public/js/pipeline.js';
 import { blockReason } from './guard.mjs';
+import { normalizeEnhet, brregUrl, searchBrreg, readPage, assertPublicUrl, checkSite } from '../lib/leads.js';
 import { loadSkills } from '../lib/skills.js';
 import { parseCards, searchCards } from '../public/js/cards.js';
 
@@ -18,7 +19,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vault = new Vault(path.join(root, 'vault'));
 const { skills } = loadSkills(vault);
 let passed = 0;
-const check = (name, fn) => { fn(); passed += 1; console.log(`  ok  ${name}`); };
+const pending = [];
+const check = (name, fn) => {
+  const ok = () => { passed += 1; console.log(`  ok  ${name}`); };
+  const r = fn();
+  if (r && typeof r.then === 'function') pending.push(r.then(ok)); else ok();
+};
 
 check('every skill in the backbone has a SKILL.md', () => {
   const bb = vault.readJson('system/backbone.json');
@@ -328,9 +334,47 @@ check('the payout answer follows the contract', () => {
   assert.match(answerRule('payout', { stats: computeStats([], { business: DRIV, today: '2026-11-02' }) }), /förskott/);
 });
 
+// The register's JSON shape (Enhetsregisteret API), trimmed to the fields Jarvis reads.
+const ENHETER = { _embedded: { enheter: [
+  { organisasjonsnummer: '911111111', navn: 'FJORDKYST NETTBUTIKK AS', organisasjonsform: { kode: 'AS' }, naeringskode1: { kode: '47.910', beskrivelse: 'Detaljhandel via Internett' }, antallAnsatte: 14, hjemmeside: 'www.fjordkyst.no', epostadresse: 'post@fjordkyst.no', telefon: '55 00 00 01', forretningsadresse: { poststed: 'BERGEN', kommune: 'BERGEN' } },
+  { organisasjonsnummer: '922222222', navn: 'Kari Nordmann', organisasjonsform: { kode: 'ENK' }, naeringskode1: { kode: '47.910' }, epostadresse: 'kari@nordmann.no' },
+  { organisasjonsnummer: '933333333', navn: 'Gammel AS', organisasjonsform: { kode: 'AS' }, konkurs: true },
+  { organisasjonsnummer: '944444444', navn: 'Vågen Sport AS', organisasjonsform: { kode: 'AS' }, epostadresse: 'ola.hansen@vagen.no', hjemmeside: 'https://vagen.no/' },
+] }, page: { totalElements: 4, number: 0, totalPages: 1 } };
+
+check('register search keeps companies, drops ENK, bankrupt and named addresses', async () => {
+  const u = new URL(brregUrl({ industry: '47.910', municipality: '4601', min: 3, max: 200 }));
+  assert.equal(u.searchParams.get('naeringskode'), '47.910');
+  assert.equal(u.searchParams.get('kommunenummer'), '4601');
+  assert.ok(!u.searchParams.get('organisasjonsform').includes('ENK'));
+  const n = normalizeEnhet(ENHETER._embedded.enheter[0]);
+  assert.deepEqual([n.name, n.city, n.website, n.email, n.employees], ['FJORDKYST NETTBUTIKK AS', 'Bergen', 'www.fjordkyst.no', 'post@fjordkyst.no', 14]);
+  const r = await searchBrreg({ industry: '47.910' }, { existing: new Set(), fetchImpl: async () => ({ ok: true, json: async () => ENHETER }) });
+  assert.deepEqual(r.results.map((x) => x.orgnr), ['911111111', '944444444']);
+  assert.equal(r.results[1].email, ''); // ola.hansen@ is a person: never kept
+  assert.deepEqual(r.skipped, { enk: 1, closed: 1, existing: 0, namedEmail: 1 });
+});
+
+check('website check finds chat widgets and generic mailboxes, and refuses the local network', async () => {
+  const page = readPage('<script src="https://code.tidio.co/abc.js"></script><a href="mailto:post@x.no">post@x.no</a> kari@x.no <a href="/kontakt-oss">Kontakt oss</a>', 'https://x.no/');
+  assert.deepEqual(page.chat, ['Tidio']);
+  assert.deepEqual(page.generic, ['post@x.no']);
+  assert.equal(page.contact, 'https://x.no/kontakt-oss');
+  const lookup = async (host) => [{ address: host === 'intern.example' ? '192.168.1.10' : '93.184.216.34' }];
+  await assert.rejects(assertPublicUrl('http://127.0.0.1:3217/api/state', lookup));
+  await assert.rejects(assertPublicUrl('intern.example', lookup));
+  await assert.rejects(assertPublicUrl('ftp://x.no', lookup));
+  const pages = { 'https://x.no/': '<form><input type="email"></form><p>kontakt@x.no</p>' };
+  const fetchImpl = async (u) => ({ ok: true, status: 200, headers: new Map(), text: async () => pages[String(u)] || '' });
+  const site = await checkSite('x.no', { fetchImpl, lookup });
+  assert.equal(site.hasChat, false);
+  assert.match(site.observation, /Ingen chatt.*kontaktformulär.*kontakt@x\.no/);
+});
+
 check('tier 1 answers come from saved data', () => {
   const a = answerRule('priorities', { directives: [{ text: 'Ship it', done: false }] });
   assert.match(a, /Ship it/);
 });
 
+await Promise.all(pending);
 console.log(`\n${passed} checks passed`);
