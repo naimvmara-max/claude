@@ -45,38 +45,102 @@ export function brregUrl(q = {}) {
   if (q.name) p.set('navn', String(q.name).trim());
   if (Number(q.min) > 0) p.set('fraAntallAnsatte', String(Number(q.min)));
   if (Number(q.max) > 0) p.set('tilAntallAnsatte', String(Number(q.max)));
-  p.set('organisasjonsform', 'AS,ASA,DA,ANS,SA,NUF');
+  if (!q.anyForm) p.set('organisasjonsform', 'AS,ASA,DA,ANS,SA,NUF');
   p.set('size', String(Math.min(100, Math.max(1, Number(q.size) || 50))));
   if (Number(q.page) > 0) p.set('page', String(Number(q.page)));
   return `${BRREG}?${p}`;
 }
 
-/**
- * Search the register. `existing` is the set of company names already in the pipeline
- * (lower case), so the same company is not added twice.
- */
-export async function searchBrreg(q, { existing = new Set(), fetchImpl = fetch } = {}) {
-  if (!q.industry && !q.name) throw Object.assign(new Error('Välj en bransch eller skriv ett ord i namnet.'), { status: 400 });
-  const url = brregUrl(q);
-  let data;
+async function getEnheter(url, fetchImpl) {
   try {
     const res = await fetchImpl(url, { headers: { Accept: 'application/json', 'User-Agent': UA }, signal: AbortSignal.timeout(12000) });
     if (!res.ok) throw new Error(`Brønnøysund svarade ${res.status}`);
-    data = await res.json();
+    const data = await res.json();
+    return { raw: data?._embedded?.enheter || [], page: data?.page || {} };
   } catch (err) {
     throw Object.assign(new Error(`Kunde inte nå Brønnøysundregistret: ${err.message}`), { status: 502 });
   }
-  const raw = data?._embedded?.enheter || [];
-  const all = raw.map(normalizeEnhet);
-  const skipped = { enk: 0, closed: 0, existing: 0, namedEmail: 0 };
-  const results = all.filter((r) => {
+}
+
+const codeCache = new Map();
+
+/**
+ * Which industry code companies with these words in their name have, most common first,
+ * keeping only codes whose description matches `match`. The register moved to SN2025 in
+ * 2025 and old codes changed meaning (47.910 is no longer web shops), so Jarvis reads the
+ * current code from the register instead of trusting a fixed list.
+ */
+export async function industryCodes(words, { match = '', fetchImpl = fetch } = {}) {
+  const key = `${words.join('|')}#${match}`;
+  if (codeCache.has(key)) return codeCache.get(key);
+  const tally = new Map();
+  for (const w of words) {
+    const { raw } = await getEnheter(brregUrl({ name: w, size: 100, anyForm: true }), fetchImpl);
+    for (const e of raw) {
+      const k = e.naeringskode1?.kode;
+      if (!k) continue;
+      const t = tally.get(k) || { code: k, description: e.naeringskode1.beskrivelse || '', n: 0 };
+      t.n += 1;
+      tally.set(k, t);
+    }
+  }
+  const re = match ? new RegExp(match, 'i') : null;
+  const codes = [...tally.values()].filter((t) => !re || re.test(t.description)).sort((a, b) => b.n - a.n).slice(0, 6);
+  if (codes.length) codeCache.set(key, codes);
+  return codes;
+}
+
+/**
+ * Search the register. `q` holds an industry preset id or a word of your own (Jarvis finds
+ * the code), or an exact code, plus municipality, size and a word in the name. `existing` is
+ * the set of company names already in the pipeline (lower case).
+ */
+export async function searchBrreg(q, { existing = new Set(), fetchImpl = fetch, presets = [] } = {}) {
+  const preset = presets.find((x) => x.id === q.preset);
+  const word = String(q.word || '').trim();
+  let code = String(q.industry || '').trim();
+  let names = q.name ? [String(q.name).trim()] : [];
+  let resolved = null;
+  if (!code && preset?.mode === 'name') {
+    names = preset.words;
+    resolved = { by: preset.words.join(', '), mode: 'name' };
+  } else if (!code && (preset || word)) {
+    const words = preset ? preset.words : [word];
+    const codes = await industryCodes(words, { match: preset?.match || '', fetchImpl });
+    if (codes.length) {
+      code = codes[0].code;
+      resolved = { by: words.join(', '), code, description: codes[0].description, n: codes[0].n, alternatives: codes.slice(1, 5) };
+    } else {
+      names = words;
+      resolved = { by: words.join(', '), mode: 'name', none: true };
+    }
+  }
+  if (!code && !names.length) throw Object.assign(new Error('Välj en bransch, skriv ett eget ord eller ett ord i namnet.'), { status: 400 });
+
+  // One search per name word (or one by code), merged by organisation number.
+  const searches = names.length ? names.map((n) => ({ ...q, industry: code, name: n })) : [{ ...q, industry: code, name: '' }];
+  const seen = new Map();
+  let total = 0;
+  let page = { number: 0, totalPages: 1 };
+  for (const s of searches) {
+    const r = await getEnheter(brregUrl(s), fetchImpl);
+    total += r.page.totalElements ?? r.raw.length;
+    if ((r.page.totalPages ?? 1) > (page.totalPages ?? 1)) page = r.page;
+    for (const e of r.raw) if (!seen.has(e.organisasjonsnummer)) seen.set(e.organisasjonsnummer, e);
+  }
+  const min = Number(q.min) || 0;
+  const max = Number(q.max) || 0;
+  const skipped = { enk: 0, closed: 0, existing: 0, size: 0, namedEmail: 0 };
+  const results = [...seen.values()].map(normalizeEnhet).filter((r) => {
     if (r.form === 'ENK') { skipped.enk += 1; return false; }
     if (r.closed) { skipped.closed += 1; return false; }
     if (existing.has(r.name.toLowerCase())) { skipped.existing += 1; return false; }
+    // The register filters on size too; this keeps it right if it ever ignores the filter.
+    if (r.employees != null && ((min && r.employees < min) || (max && r.employees > max))) { skipped.size += 1; return false; }
     if (r.namedEmailDropped) skipped.namedEmail += 1;
     return true;
   });
-  return { url, total: data?.page?.totalElements ?? raw.length, page: data?.page?.number ?? 0, pages: data?.page?.totalPages ?? 1, results, skipped };
+  return { total, page: page.number ?? 0, pages: page.totalPages ?? 1, results, skipped, resolved, code };
 }
 
 // ---------------------------------------------------------------- website check

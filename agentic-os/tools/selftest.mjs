@@ -11,7 +11,8 @@ import { parseSchedule, lastDue, describe } from '../lib/scheduler.js';
 import { H, Vault, slugify } from '../lib/vault.js';
 import { parsePipeline, renderPipeline, computeStats, applyStatus, goalMath, creditPlan, isGenericEmail, scrubPersonal, privacyMode, payoutDate, clawbackUntil } from '../public/js/pipeline.js';
 import { blockReason } from './guard.mjs';
-import { normalizeEnhet, brregUrl, searchBrreg, readPage, assertPublicUrl, checkSite } from '../lib/leads.js';
+import { normalizeEnhet, brregUrl, searchBrreg, industryCodes, readPage, assertPublicUrl, checkSite } from '../lib/leads.js';
+import { INDUSTRIES } from '../public/js/leadfinder.js';
 import { attemptFields, parseCalls, callLine, callQueue, callStats, addWorkdays } from '../public/js/calls.js';
 import { loadSkills } from '../lib/skills.js';
 import { parseCards, searchCards } from '../public/js/cards.js';
@@ -355,7 +356,34 @@ check('register search keeps companies, drops ENK, bankrupt and named addresses'
   const r = await searchBrreg({ industry: '47.910' }, { existing: new Set(), fetchImpl: async () => ({ ok: true, json: async () => ENHETER }) });
   assert.deepEqual(r.results.map((x) => x.orgnr), ['911111111', '944444444']);
   assert.equal(r.results[1].email, ''); // ola.hansen@ is a person: never kept
-  assert.deepEqual(r.skipped, { enk: 1, closed: 1, existing: 0, namedEmail: 1 });
+  assert.deepEqual(r.skipped, { enk: 1, closed: 1, existing: 0, size: 0, namedEmail: 1 });
+});
+
+check('the industry code is read from the register, not a fixed list (SN2025)', async () => {
+  // Shaped like the register's real answers: a name search returns mixed codes; 47.910 now
+  // means intermediation, not web shops, which is why the code is looked up.
+  const byName = { _embedded: { enheter: [
+    { organisasjonsnummer: '1', navn: 'TANNLEGE A AS', naeringskode1: { kode: '86.230', beskrivelse: 'Tannhelsetjenester' } },
+    { organisasjonsnummer: '2', navn: 'TANNLEGE B AS', naeringskode1: { kode: '86.230', beskrivelse: 'Tannhelsetjenester' } },
+    { organisasjonsnummer: '3', navn: 'TANNLEGE HOLDING AS', naeringskode1: { kode: '64.200', beskrivelse: 'Holdingselskaper' } },
+    { organisasjonsnummer: '4', navn: 'TANNTEKNIKK AS', naeringskode1: { kode: '32.501', beskrivelse: 'Tanntekniske laboratorier' } },
+  ] }, page: { totalElements: 4, number: 0, totalPages: 1 } };
+  const byCode = { _embedded: { enheter: [
+    { organisasjonsnummer: '11', navn: 'SMIL TANNKLINIKK AS', organisasjonsform: { kode: 'AS' }, naeringskode1: { kode: '86.230', beskrivelse: 'Tannhelsetjenester' }, antallAnsatte: 12, epostadresse: 'post@smil.no', forretningsadresse: { poststed: 'BERGEN' } },
+    { organisasjonsnummer: '12', navn: 'STOR TANN AS', organisasjonsform: { kode: 'AS' }, naeringskode1: { kode: '86.230' }, antallAnsatte: 900 },
+  ] }, page: { totalElements: 2, number: 0, totalPages: 1 } };
+  const urls = [];
+  const fetchImpl = async (u) => { urls.push(String(u)); return { ok: true, json: async () => (String(u).includes('naeringskode=') ? byCode : byName) }; };
+  const codes = await industryCodes(['tannlege'], { match: 'tann', fetchImpl });
+  assert.deepEqual(codes.map((c) => c.code), ['86.230', '32.501']);
+  const r = await searchBrreg({ preset: 'tannlege', municipality: '4601', min: 3, max: 200 }, { fetchImpl, presets: INDUSTRIES });
+  assert.equal(r.resolved.code, '86.230');
+  assert.match(urls.at(-1), /naeringskode=86\.230.*kommunenummer=4601/);
+  assert.deepEqual(r.results.map((x) => x.name), ['SMIL TANNKLINIKK AS']); // 900 employees is outside 3-200
+  assert.equal(r.skipped.size, 1);
+  const shops = await searchBrreg({ preset: 'nettbutikk' }, { fetchImpl: async (u) => ({ ok: true, json: async () => ({ _embedded: { enheter: [{ organisasjonsnummer: String(u).includes('netthandel') ? '22' : '21', navn: 'X', organisasjonsform: { kode: 'AS' } }] }, page: {} }) }), presets: INDUSTRIES });
+  assert.equal(shops.resolved.mode, 'name');
+  assert.equal(shops.results.length, 2); // one search per word, merged
 });
 
 check('website check finds chat widgets and generic mailboxes, and refuses the local network', async () => {

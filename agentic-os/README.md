@@ -49,13 +49,17 @@ probation) is in `vault/projects/sales-job.md` and in Kommando → Takt.
 ## Finding companies (Kommando → Pipeline → Hitta företag)
 
 Searches the Norwegian business register (Enhetsregisteret, Brønnøysund: open API, no key) by
-industry code, municipality, size or a word in the name. Enkeltpersonforetak are never listed,
+industry, municipality, size or a word in the name. Enkeltpersonforetak are never listed,
 bankrupt companies and companies already in the pipeline are dropped, and only generic company
 mailboxes (post@, kontakt@ …) are kept. **Kolla** reads a company's homepage and contact page for
 an existing chat widget (Intercom, Zendesk, Tidio and 17 more), published generic addresses and a
-contact form, and the observation goes into the lead's notes. No model is involved. The industry
-presets are SN2007 codes; if a search finds nothing, the code may have changed (SN2025): look the
-company up on brreg.no and type its code.
+contact form, and the observation goes into the lead's notes. No model is involved.
+
+There is no fixed list of industry codes: the register moved to SN2025 and old codes changed
+meaning (47.910 used to be web shops and is now intermediation for retail). For an industry
+("Tannlege") or a word of your own ("sykkel"), the Bridge looks at which code companies with that
+word in their name have, keeps the most common one whose description fits, and shows it with the
+alternatives to click. Web shops have no code of their own in SN2025, so they are found by name.
 
 ## The Ring view (cold calling)
 

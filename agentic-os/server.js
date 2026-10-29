@@ -18,6 +18,7 @@ import { JobRunner } from './lib/jobs.js';
 import { Scheduler, describe } from './lib/scheduler.js';
 import { quickAnswer, modelClassify } from './lib/quick.js';
 import { searchBrreg, checkSite } from './lib/leads.js';
+import { INDUSTRIES } from './public/js/leadfinder.js';
 import { classify, TIER1_INTENTS } from './public/js/classify.js';
 import { answerRule } from './public/js/rules.js';
 
@@ -317,9 +318,9 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { lead: row, attempt, fired });
     }
     if (p === '/api/brreg' && req.method === 'GET') {
-      const q = Object.fromEntries(['industry', 'municipality', 'name', 'min', 'max', 'page'].map((k) => [k, url.searchParams.get(k) || '']));
+      const q = Object.fromEntries(['preset', 'word', 'industry', 'municipality', 'name', 'min', 'max', 'page'].map((k) => [k, url.searchParams.get(k) || '']));
       const existing = new Set(vault.pipeline().rows.map((r) => r.company.toLowerCase()));
-      return send(res, 200, await searchBrreg(q, { existing }));
+      return send(res, 200, await searchBrreg(q, { existing, presets: INDUSTRIES }));
     }
     if (p === '/api/sitecheck' && req.method === 'POST') {
       const body = await readBody(req);
