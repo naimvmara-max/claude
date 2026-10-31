@@ -290,7 +290,7 @@ const server = http.createServer(async (req, res) => {
       const { row, movedTo, dropped } = vault.updateLead(leadMatch[1], await readBody(req));
       let fired = [];
       // Moving a company to "Meeting booked" fires the meeting-booked event (/demo-prep prepares the demo).
-      if (movedTo === 'booked') fired = scheduler.trigger('meeting-booked', `${row.company} (${row.id}), contact ${row.contact || 'unknown'}, ${row.website || ''}${row.next_date ? `, meeting ${row.next_date}` : ''}`);
+      if (movedTo === 'booked') fired = scheduler.trigger('meeting-booked', `${row.company} (${row.id}), ${row.website || ''}${row.next_date ? `, möte ${row.next_date}` : ''}${/\d{2}:\d{2}/.test(row.next_action) ? ` kl. ${row.next_action.match(/\d{2}:\d{2}/)[0]}` : ''}`);
       return send(res, 200, { lead: row, fired, dropped });
     }
     if (p === '/api/calls' && req.method === 'POST') {
@@ -312,9 +312,9 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/attempts' && req.method === 'POST') {
       const body = await readBody(req);
-      const { row, movedTo, attempt } = vault.logAttempt({ id: String(body.id || ''), outcome: String(body.outcome || ''), note: body.note || '', date: body.date || '' });
+      const { row, movedTo, attempt } = vault.logAttempt({ id: String(body.id || ''), outcome: String(body.outcome || ''), note: body.note || '', date: body.date || '', time: String(body.time || '') });
       vault.logRequest({ tier: 1, route: 'call attempt', text: `${row.company}: ${attempt.outcome}` });
-      const fired = movedTo === 'booked' ? scheduler.trigger('meeting-booked', `${row.company} (${row.id}), bokat i telefon${row.next_date ? `, möte ${row.next_date}` : ''}`) : [];
+      const fired = movedTo === 'booked' ? scheduler.trigger('meeting-booked', `${row.company} (${row.id}), bokat i telefon${row.next_date ? `, möte ${row.next_date}` : ''}${/\d{2}:\d{2}/.test(row.next_action) ? ` kl. ${row.next_action.match(/\d{2}:\d{2}/)[0]}` : ''}`) : [];
       return send(res, 200, { lead: row, attempt, fired });
     }
     if (p === '/api/brreg' && req.method === 'GET') {

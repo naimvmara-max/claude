@@ -704,6 +704,16 @@ body[data-engine='codex'] .slot.on { border-color: var(--ink); background: rgba(
 .need-inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 @media (max-width: 900px) { .pkg-cards { grid-template-columns: minmax(0, 1fr); } }
 
+/* live listening: transcript and the answer to what the customer just said */
+.lv-listen { border-color: rgba(79, 178, 255, 0.35); }
+.lv-suggest { display: grid; gap: 8px; }
+.lv-suggest:empty { display: none; }
+.lv-sug { display: grid; gap: 4px; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(70, 224, 194, 0.5); background: rgba(70, 224, 194, 0.07); }
+.lv-sug .lv-say { margin: 0; font-size: 15px; line-height: 1.45; color: var(--ink); }
+.lv-sug small { font-size: 12px; color: var(--ink-2); }
+.lv-transcript { max-height: 160px; overflow-y: auto; display: grid; gap: 3px; font: 400 12px/1.45 var(--font-mono); color: var(--ink-2); }
+.lv-transcript p { margin: 0; }
+
 /* ---------- ring view: one company at a time, one key per outcome ---------- */
 .dialer { max-width: 1320px; margin: 0 auto; display: grid; gap: 12px; }
 .dl-bar { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; padding: 12px 18px; }

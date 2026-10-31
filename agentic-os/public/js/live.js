@@ -3,7 +3,8 @@
 // save: the note goes to samtal/ in the vault, the pipeline row moves, and /call-summary can
 // write the follow-up email. Nothing here shows commission, so it is safe to share the screen.
 
-import { parseCards, searchCards } from './cards.js';
+import { parseCards, searchCards, matchObjections } from './cards.js';
+import { meetingIcs, downloadIcs } from './ics.js';
 import { creditPlan, packageOf, privacyMode, STAGE_LABELS, PACKAGES, isoLocal } from './pipeline.js';
 
 const CALL_TYPES = { phone: 'Kallt samtal', followup: 'Uppföljning', demo: 'Demo' };
@@ -40,8 +41,8 @@ const SHARE_HIDDEN = ['objections', 'fras'];
 
 const blankDraft = () => ({
   lead: '', company: '', type: 'phone', notes: '', answers: {}, numbers: {}, perDay: '', systems: '',
-  heard: [], startedAt: null, elapsed: 0, running: false,
-  outcome: 'none', nextDate: '', nextAction: '', lostReason: '', pkg: '', summarize: true,
+  heard: [], startedAt: null, elapsed: 0, running: false, transcript: '', consent: false,
+  outcome: 'none', nextDate: '', meetingTime: '', nextAction: '', lostReason: '', pkg: '', summarize: true,
 });
 
 /**
@@ -132,7 +133,12 @@ export function createLive(d) {
             </div>
           </section>
           <section class="lv-col lv-mid internal">
-            <div class="glass lv-card lv-hook">«Kundene får svar på sekunder – også klokken 23:41.» <span>Sälj nyttan, inte funktionerna.</span></div>
+            <div class="glass lv-card lv-listen internal">
+              <div class="lv-notes-head"><span class="label">Lyssna på samtalet · transkript och förslag</span><button class="ghost-btn" id="lv-listen" title="Transkriberar ljudet från datorns ljudingång (Chrome eller Edge)">Lyssna</button></div>
+              <label class="check"><input type="checkbox" id="lv-consent"> Kunden har sagt ja till AI-transkribering («Før vi starter …» under Fraser)</label>
+              <div class="lv-suggest" id="lv-suggest" aria-live="polite"></div>
+              <div class="lv-transcript" id="lv-transcript"></div>
+            </div>
             <div class="glass lv-card internal">
               <div class="lv-notes-head"><label class="label" for="lv-notes">Anteckningar</label><button class="ghost-btn" id="lv-dictate" title="Skriv med rösten (Chrome eller Edge)">Diktera</button></div>
               <textarea id="lv-notes" placeholder="${privacyMode(business()) === 'full' ? 'Skriv medan ni pratar: vad de säger, siffror, namn, vem som bestämmer …  Ctrl+S sparar.' : 'Skriv medan ni pratar: vad de säger, siffror, vem som bestämmer. GDPR-läge: skriv roll, inte namn (t.ex. «daglig leder»).  Ctrl+S sparar.'}"></textarea>
@@ -171,6 +177,8 @@ export function createLive(d) {
     $('#lv-save').addEventListener('click', save);
     $('#lv-notes').addEventListener('input', (e) => { draft.notes = e.target.value; if (!draft.running && !draft.elapsed) startTimer(); persist(); });
     $('#lv-dictate').addEventListener('click', dictate);
+    $('#lv-listen').addEventListener('click', listen);
+    $('#lv-consent').addEventListener('change', (e) => { draft.consent = e.target.checked; persist(); });
     $$('#view-live [data-num]').forEach((el) => el.addEventListener('input', () => { draft.numbers[el.dataset.num] = el.value; persist(); renderPlan(); }));
     $('#lv-perday').addEventListener('input', (e) => { draft.perDay = e.target.value; persist(); });
     $('#lv-systems').addEventListener('input', (e) => { draft.systems = e.target.value; persist(); });
@@ -288,12 +296,14 @@ export function createLive(d) {
     const pkgSelect = ['meeting', 'demo', 'offer', 'won'].includes(draft.outcome)
       ? `<label><span>Paket</span><select id="lv-pkg"><option value="">vet inte än</option>${PACKAGES.map((k) => `<option value="${k}"${draft.pkg === k ? ' selected' : ''}>${esc(pk[k]?.name || k)}</option>`).join('')}</select></label>` : '';
     const dateField = o.date ? `<label><span>${o.date}</span><input type="date" id="lv-date" value="${esc(draft.nextDate)}"></label>` : '';
+    const timeField = draft.outcome === 'meeting' ? `<label><span>Tid</span><input type="time" id="lv-mtime" step="900" value="${esc(draft.meetingTime)}"></label>` : '';
     const actionField = draft.outcome !== 'won' && draft.outcome !== 'lost'
       ? `<label class="grow"><span>Nästa steg</span><input id="lv-action" value="${esc(draft.nextAction)}" placeholder="${esc(o.action || 'Vad händer härnäst?')}"></label>` : '';
     const lost = draft.outcome === 'lost'
       ? `<label><span>Varför</span><select id="lv-lost"><option value="">välj</option>${LOST_REASONS.map((x) => `<option${draft.lostReason === x ? ' selected' : ''}>${x}</option>`).join('')}</select></label>` : '';
     const won = draft.outcome === 'won' ? '<p class="muted grow">Grattis. Kom ihåg: offerten görs i Drivs CRM och skickas för e-signering. Provisionen tjänas in när tjänsten aktiverats och kommer med lönen den 25:e månaden efter: skriv in datumet under Kommando → Pengar.</p>' : '';
-    $('#lv-next').innerHTML = `${dateField}${actionField}${pkgSelect}${lost}${won}`;
+    $('#lv-next').innerHTML = `${dateField}${timeField}${actionField}${pkgSelect}${lost}${won}`;
+    $('#lv-mtime')?.addEventListener('input', (e) => { draft.meetingTime = e.target.value; persist(); });
     $('#lv-date')?.addEventListener('input', (e) => { draft.nextDate = e.target.value; persist(); });
     $('#lv-action')?.addEventListener('input', (e) => { draft.nextAction = e.target.value; persist(); });
     $('#lv-pkg')?.addEventListener('change', (e) => { draft.pkg = e.target.value; persist(); });
@@ -372,6 +382,78 @@ export function createLive(d) {
 
   // ---------------------------------------------------------------- dictation
 
+  // ---------------------------------------------------------------- listening
+
+  let listener = null;
+  let interim = '';
+
+  /**
+   * Transcribe the call from the computer's sound input. Chrome's speech service hears the
+   * default input device, so the softphone's sound has to reach it (README: Lyssna på samtal).
+   * Only with the customer's yes; the transcript stays in this call's note.
+   */
+  function listen() {
+    if (listener) { stopListening(); return; }
+    if (!draft.consent) { d.toast('Fråga kunden först («Før vi starter …» under Fraser) och kryssa i rutan.'); $('#lv-consent').focus(); return; }
+    const blocked = d.voiceBlockedReason();
+    if (blocked) { d.toast(`${blocked} Öppna Jarvis i Chrome eller Edge för att lyssna.`); return; }
+    try { listener = new d.Recognition(); } catch { listener = null; d.toast('Röstinmatning är blockerad här.'); return; }
+    listener.lang = 'nb-NO';
+    listener.continuous = true;
+    listener.interimResults = true;
+    listener.onresult = (e) => {
+      interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i += 1) {
+        const t = e.results[i][0].transcript.trim();
+        if (!t) continue;
+        if (e.results[i].isFinal) {
+          const now = new Date();
+          draft.transcript += `${draft.transcript ? '\n' : ''}[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}] ${t}`;
+          persist();
+        } else interim += `${t} `;
+      }
+      renderTranscript();
+    };
+    // Chrome ends a session after a pause; keep listening until Naim stops it.
+    listener.onend = () => { if (listener) { try { listener.start(); } catch { stopListening(); } } };
+    listener.onerror = (e) => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { d.toast('Mikrofonen nekades. Tillåt den vid adressfältet.'); stopListening(); }
+      else if (!['no-speech', 'aborted'].includes(e.error)) d.toast(`Lyssna: ${e.error}`);
+    };
+    listener.start();
+    if (!draft.running) startTimer();
+    $('#lv-listen').textContent = 'Sluta lyssna';
+    $('#lv-listen').classList.add('on');
+    renderTranscript();
+  }
+
+  function stopListening() {
+    const l = listener;
+    listener = null;
+    interim = '';
+    try { l?.stop(); } catch { /* already stopped */ }
+    $('#lv-listen').textContent = 'Lyssna';
+    $('#lv-listen').classList.remove('on');
+    renderTranscript();
+  }
+
+  function renderTranscript() {
+    const box = $('#lv-transcript');
+    if (!box) return;
+    const lines = draft.transcript.split('\n').filter(Boolean);
+    box.innerHTML = lines.length || interim
+      ? `${lines.slice(-8).map((l) => `<p>${esc(l)}</p>`).join('')}${interim ? `<p class="muted">${esc(interim)}</p>` : ''}`
+      : `<p class="muted">${listener ? 'Lyssnar …' : 'Tryck Lyssna när kunden sagt ja. Softphonens ljud måste nå datorns ljudingång (README: Lyssna på samtal).'}</p>`;
+    box.scrollTop = box.scrollHeight;
+    // The last few lines decide which answer to show.
+    const recent = `${lines.slice(-6).join(' ')} ${interim}`;
+    const hits = matchObjections(objections, recent).slice(0, 2);
+    $('#lv-suggest').innerHTML = hits.map((c) => `<div class="lv-sug"><span class="label">Kunden: ${esc(c.title)}</span><p class="lv-say">${esc(c.fields.svar || '')}</p>${c.fields['följdfråga'] ? `<small>Följdfråga: ${esc(c.fields['följdfråga'])}</small>` : ''}</div>`).join('');
+    let added = false;
+    for (const c of hits) if (!draft.heard.includes(c.title)) { draft.heard.push(c.title); added = true; }
+    if (added) { persist(); renderHeard(); }
+  }
+
   function dictate() {
     const blocked = d.voiceBlockedReason();
     if (blocked) { d.toast(`${blocked} Öppna Jarvis i Chrome eller Edge för att diktera.`); return; }
@@ -434,6 +516,7 @@ export function createLive(d) {
       '',
       '## Invändningar som kom upp',
       draft.heard.length ? draft.heard.map((h) => `- ${h}`).join('\n') : '(inga)',
+      ...(draft.transcript.trim() ? ['', '## Transkript (AI, kunden informerad)', draft.transcript.trim()] : []),
     ].filter((line, i, all) => !(line === '' && all[i - 1] === '')).join('\n');
   }
 
@@ -450,7 +533,7 @@ export function createLive(d) {
       case 'meeting':
         f.status = 'booked';
         f.booked_via = 'phone';
-        f.next_action = action || 'Demomöte';
+        f.next_action = action || `Demomöte${draft.meetingTime ? ` ${draft.meetingTime}` : ''}`;
         if (draft.nextDate) f.next_date = draft.nextDate;
         break;
       case 'demo': f.status = 'demo'; f.next_action = action || 'Skicka offert'; if (draft.nextDate) f.next_date = draft.nextDate; break;
@@ -488,9 +571,18 @@ export function createLive(d) {
       const fields = leadFields(r);
       let moved = null;
       if (r && Object.keys(fields).length) moved = await d.saveLead(r.id, fields, { quiet: true });
-      const started = [saved?.fired?.length ? '/call-summary skriver uppföljningen' : '', moved?.fired?.length ? '/demo-prep förbereder demon' : ''].filter(Boolean);
+      const started = [saved?.fired?.length ? '/call-summary skriver uppföljningen' : '', moved?.fired?.length ? '/demo-prep och /book-meeting förbereder demon' : ''].filter(Boolean);
+      // A booked meeting with a date and a time goes straight into the calendar as a file.
+      if (draft.outcome === 'meeting' && draft.nextDate && draft.meetingTime) {
+        downloadIcs(`demo-${draft.company.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.ics`, meetingIcs({
+          title: `Demo Driv Kundesenter · ${draft.company}`,
+          date: draft.nextDate, time: draft.meetingTime, minutes: 30,
+          description: [r?.phone ? `Telefon: ${r.phone}` : '', r?.website ? `Webb: ${r.website}` : '', draft.notes.trim().slice(0, 600)].filter(Boolean).join('\n'),
+        }));
+        started.push('kalenderfilen är hämtad, öppna den så hamnar mötet i kalendern');
+      }
       if (d.isDemo()) {
-        d.toast(`Demo: i riktiga Jarvis sparas anteckningen i samtal/ och ${draft.company} flyttas i pipelinen.`);
+        d.toast(`Demo: i riktiga Jarvis sparas anteckningen i samtal/ och ${draft.company} flyttas i pipelinen.${started.length ? ` ${started.at(-1)}.` : ''}`);
         if (draft.summarize) d.demoJob('call-summary', `Samtalssammanfattning · ${draft.company}`);
       } else {
         d.toast(`Sparat i ${saved.path}${started.length ? ` · ${started.join(' · ')}` : ''}.`);
@@ -504,6 +596,7 @@ export function createLive(d) {
   }
 
   function reset() {
+    if (listener) stopListening();
     draft = { ...blankDraft(), summarize: draft.summarize };
     d.store.set('live', draft);
     fill();
@@ -534,6 +627,8 @@ export function createLive(d) {
     renderOutcome();
     renderHeard();
     renderCards();
+    $('#lv-consent').checked = Boolean(draft.consent);
+    renderTranscript();
   }
 
   async function loadContent() {

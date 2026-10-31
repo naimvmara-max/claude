@@ -32,6 +32,10 @@ När Jarvis kör en uppgift, till exempel sammanfattar ett samtal, skickas de fi
 behöver till Anthropic, som behandlar dem och svarar. Det är en behandling hos en tredje part
 (ett amerikanskt bolag). Med GDPR-läget innehåller filerna i princip bara företagsuppgifter.
 
+**Lyssna på samtal** (godkänt av chefen): bara när kunden sagt ja i början av samtalet. Då går
+ljudet till Chromes taltjänst (Google) för att bli text, och transkriptet sparas i samtalets
+anteckning i valvet. Utan kundens ja används det inte.
+
 Anthropic har olika villkor för privata planer och företagsplaner, bland annat om data får
 användas för att träna modeller och om det finns ett personuppgiftsbiträdesavtal. De aktuella
 villkoren behöver kontrolleras innan kontaktpersoner hanteras i Jarvis.

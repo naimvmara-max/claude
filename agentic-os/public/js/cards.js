@@ -38,3 +38,19 @@ export function searchCards(cards, query) {
     return words.every((w) => hay.includes(w));
   });
 }
+
+/**
+ * Objection cards whose keywords (the "Nyckelord" line) occur in `text`, newest mention first.
+ * Used while listening to a call: what the customer just said brings up the right answer.
+ */
+export function matchObjections(cards, text) {
+  const hay = fold(text);
+  const hits = [];
+  for (const c of cards) {
+    const words = String(c.fields.nyckelord || '').split(',').map((w) => fold(w.trim())).filter(Boolean);
+    let at = -1;
+    for (const w of words) at = Math.max(at, hay.lastIndexOf(w));
+    if (at >= 0) hits.push({ card: c, at });
+  }
+  return hits.sort((a, b) => b.at - a.at).map((h) => h.card);
+}

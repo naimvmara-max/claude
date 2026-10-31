@@ -24,7 +24,7 @@ const texts = Object.fromEntries(['wiki/objections.md', 'wiki/product-cards.md']
   .map((p) => [p, fs.readFileSync(path.join(root, 'vault', p), 'utf8')]));
 
 // Each module becomes an IIFE that returns its exports; imports become destructuring.
-const order = ['classify', 'pipeline', 'calls', 'rules', 'cards', 'core', 'live', 'dialer', 'leadfinder', 'demo', 'app'];
+const order = ['classify', 'pipeline', 'calls', 'rules', 'cards', 'ics', 'core', 'live', 'dialer', 'leadfinder', 'demo', 'app'];
 const parts = order.map((name) => {
   let src = fs.readFileSync(pub(`js/${name}.js`), 'utf8');
   const exported = new Set();

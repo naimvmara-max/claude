@@ -58,7 +58,7 @@ export function addWorkdays(iso, n) {
  * What one outcome changes on the pipeline row. The status is applied first (it stamps the
  * dates), then these fields win, the same way the HUD and the Bridge update a lead.
  */
-export function attemptFields(outcome, row, today, { date = '', note = '' } = {}) {
+export function attemptFields(outcome, row, today, { date = '', time = '', note = '' } = {}) {
   const o = BY_ID[outcome];
   if (!o) throw Object.assign(new Error(`Okänt utfall "${outcome}".`), { status: 400 });
   const f = {};
@@ -71,7 +71,7 @@ export function attemptFields(outcome, row, today, { date = '', note = '' } = {}
     case 'gatekeeper': f.next_action = 'Ring igen: be om den som har ansvar för kundservice'; f.next_date = addWorkdays(today, 2); break;
     case 'wrong': f.next_action = 'Ring rätt person'; f.next_date = addWorkdays(today, 1); break;
     case 'callback': f.next_action = 'Ring tillbaka (de bad om det)'; f.next_date = date || addWorkdays(today, 2); break;
-    case 'meeting': f.status = 'booked'; f.booked_via = 'phone'; f.next_action = 'Demomöte'; f.next_date = date || ''; break;
+    case 'meeting': f.status = 'booked'; f.booked_via = 'phone'; f.next_action = `Demomöte${time ? ` ${time}` : ''}`; f.next_date = date || ''; break;
     case 'talk': break;
     case 'notnow': f.status = 'lost'; addNote('inte intresserad (samtal)'); break;
     case 'optout': f.status = 'lost'; addNote('opt-out: vill inte bli kontaktad'); f.next_action = ''; f.next_date = ''; break;

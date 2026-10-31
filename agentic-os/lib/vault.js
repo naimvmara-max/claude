@@ -254,11 +254,11 @@ export class Vault {
   }
 
   /** Log one call attempt and move the pipeline row the way the outcome says. */
-  logAttempt({ id, outcome, note = '', date = '' }) {
+  logAttempt({ id, outcome, note = '', date = '', time = '' }) {
     const row = this.pipeline().rows.find((r) => r.id === id);
     if (!row) throw Object.assign(new Error(`Inget företag med id ${id}. Ladda om och försök igen.`), { status: 404 });
     const today = localDate();
-    const fields = attemptFields(outcome, row, today, { date, note: String(note).slice(0, 200) });
+    const fields = attemptFields(outcome, row, today, { date, time: /^\d{2}:\d{2}$/.test(time) ? time : '', note: String(note).slice(0, 200) });
     const res = this.updateLead(id, fields);
     const attempt = { date: today, time: localTime(), id, company: row.company, outcome, note: String(note).slice(0, 200) };
     if (!this.read('ops/calls.md', '').trim()) this.write('ops/calls.md', CALLS_HEADER);

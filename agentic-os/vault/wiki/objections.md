@@ -5,12 +5,13 @@ enligt `projects/product.md`. Svaren är på norska så att du kan säga dem dir
 svenska. /objections lägger till nya under samma format och räknar hur ofta de kommer upp.
 
 Format per invändning: en rubrik med det kunden säger, sedan raderna Svar, Följdfråga,
-Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn kan läsa det.
+Tips, Nyckelord (det Live lyssnar efter), Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn kan läsa det.
 
 ## «Vi har ikke så mange henvendelser.»
 - Svar: «Da passer Small. AI-agenten tar kveld og helg, så ingen venter, og dere betaler bare for det dere trenger.»
 - Följdfråga: «Hva skjer med de få spørsmålene som kommer etter stengetid i dag?»
 - Tips: Liten volym är inget nej. Gå på svarstiden, inte volymen.
+- Nyckelord: ikke så mange, ikke mange henvendelser, få henvendelser, lite henvendelser, inte så många
 - Kategori: behov
 - Källa: Driv
 
@@ -18,6 +19,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Det får de. AI-en tar de enkle sakene og sender resten videre til dere, med hele samtalen oppsummert, så kunden slipper å gjenta seg.»
 - Följdfråga: «Hvor mange av spørsmålene i dag er sånne som åpningstider eller ordrestatus?»
 - Tips: Poängen är att människorna får mer tid till de svåra ärendena.
+- Nyckelord: menneske, ekte person, snakke med en person, en människa
 - Kategori: tillit
 - Källa: Driv
 
@@ -25,6 +27,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Den bruker deres eget innhold, og dere styrer når den er aktiv. Det den ikke kan svare sikkert på, går til en kollega.»
 - Följdfråga: «Hvilke spørsmål ville dere vært tryggest på at den tar først?»
 - Tips: Föreslå att börja smalt: bara öppettider och orderstatus, eller bara utanför öppettid.
+- Nyckelord: svarer feil, feil svar, stoler ikke, svarar fel
 - Kategori: tillit
 - Källa: Driv
 
@@ -32,6 +35,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Hvordan vet dere i dag at alle kunder har fått svar?»
 - Följdfråga: «Og hvem ser hvilke saker som ligger og venter når noen er syk eller på ferie?»
 - Tips: Argumentera inte. Låt dem själva säga att en delad inkorg inte visar det. Visa sedan ärendehanteringen.
+- Nyckelord: outlook, gmail, innboksen, klarer oss
 - Kategori: nuläge
 - Källa: Driv
 
@@ -39,6 +43,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «La oss regne sammen hvor mange timer i uken som går til like spørsmål.»
 - Följdfråga: «Hvor mange spørsmål får dere om dagen, og hvor lang tid tar hvert svar?»
 - Tips: Räkna högt med dem. 20 likadana frågor om dagen à 3 minuter är 5 timmar i veckan. Nämn aldrig rabatt, den bestäms med ledningen.
+- Nyckelord: dyrt, for mye penger, koster for mye, för dyrt
 - Kategori: pris
 - Källa: Driv
 
@@ -46,6 +51,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: Fråga Driv vad de hjälper till med i uppstarten innan du lovar något. Till dess: «Det skal jeg sjekke nøyaktig, så du får et ærlig svar på hva som kreves av dere.»
 - Följdfråga: «Når hadde det passet best å starte?»
 - Tips: Öppen fråga i Drivs egen guide. Lova ingen uppstartstid.
+- Nyckelord: ikke tid, oppstart, for travelt, ingen tid
 - Kategori: tid
 - Källa: Driv (öppen)
 
@@ -53,6 +59,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: Fråga Driv först: fast pris, lokal support eller kortare bindning? Till dess: «Det sjekker jeg og kommer tilbake til deg med i dag.»
 - Följdfråga: «Hva er viktigst for dere: fleksibilitet eller fast pris?»
 - Tips: Provisionsplanen säger 12 månader, säljguiden 24 eller 36. Lova ingenting förrän offerten i CRM:et visar det.
+- Nyckelord: bindingstid, binding, bindningstid
 - Kategori: avtal
 - Källa: Driv (öppen)
 
@@ -60,6 +67,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Hvor stor andel av spørsmålene svarer den på uten en person? Og blir resten saker med ansvarlig og svarfrist, eller havner de i innboksen?»
 - Följdfråga: «Hva skjer i dag når chatboten ikke kan svare?»
 - Tips: Kritisera inte deras verktyg. Skillnaden är helheten: chatt, AI-agent och ärendehantering i ett.
+- Nyckelord: chatbot, har chat, allerede chat, har redan
 - Kategori: nuläge
 - Källa: fält
 
@@ -67,6 +75,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Gjerne. Så jeg sender det riktige: hvilket spørsmål stiller kundene dere oftest? Og hvilken adresse skal jeg bruke?»
 - Följdfråga: «Skal vi sette av 20 minutter etter at du har lest det, så viser jeg hvordan det ville sett ut hos dere?»
 - Tips: Be om adressen. När kunden själv ber om mejl får du skriva till hens adress. Boka en tid direkt.
+- Nyckelord: send meg, send det på, på e-post, mail meg, skicka mejl
 - Kategori: avfärdande
 - Källa: fält
 
@@ -74,6 +83,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Helt greit. Når passer det bedre, og hva må skje før det?»
 - Följdfråga: «Er det noe jeg kan sende deg før det, så du har det klart?»
 - Tips: Sätt datumet direkt i Nästa steg innan du lägger på.
+- Nyckelord: ring meg senere, ikke nå, ring senere, ta det senere
 - Kategori: tid
 - Källa: fält
 
@@ -81,6 +91,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Selvfølgelig. Hva er det dere må tenke gjennom, så jeg kan sende akkurat det som hjelper?»
 - Följdfråga: «Hvem andre er med på beslutningen?»
 - Tips: Ta reda på den verkliga tveksamheten: pris, tid, vem som bestämmer eller tillit.
+- Nyckelord: tenke på, tenke over, tenke gjennom, vurdere, fundera
 - Kategori: beslut
 - Källa: fält
 
@@ -88,6 +99,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Det skjønner jeg. Skal vi sette opp 20 minutter der hun eller han er med, så slipper du å forklare alt selv?»
 - Följdfråga: «Hva tror du sjefen kommer til å spørre om først?»
 - Tips: Försök få med beslutsfattaren i nästa möte i stället för att din kontakt ska sälja vidare.
+- Nyckelord: sjefen, daglig leder, styret, ledelsen, chefen
 - Kategori: beslut
 - Källa: fält
 
@@ -95,6 +107,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Kommunikasjonen er kryptert, og det er tilgangsstyring og logg på hvem som gjorde hva. Hvor dataene lagres og databehandleravtalen sjekker jeg med Driv og sender deg skriftlig.»
 - Följdfråga: «Er det noe spesielt dere må ha på plass fra deres side?»
 - Tips: Var datan lagras och biträdesavtalet: fråga Driv. Gissa aldrig.
+- Nyckelord: gdpr, personvern, lagres dataene, databehandler
 - Kategori: säkerhet
 - Källa: fält
 
@@ -102,6 +115,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Den tar bare de enkle spørsmålene den er satt opp til, og gir resten videre med sammendrag. Ifølge Lynes kan en AI-agent håndtere 30–50 % av innkommende saker.»
 - Följdfråga: «Hvor stor del av spørsmålene deres er de samme hver dag?»
 - Tips: Säg alltid «ifølge Lynes». Det är ingen garanti.
+- Nyckelord: hype, tror ikke på ai, ai er bare
 - Kategori: tillit
 - Källa: fält
 
@@ -109,6 +123,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Forståelig. Når legger dere budsjettet for neste periode? Da kan vi ta en kort prat før det, så det er med i vurderingen.»
 - Följdfråga: «Hvor mye tid bruker teamet på rutinespørsmål i dag?»
 - Tips: Sätt nästa steg till veckan innan deras budget läggs.
+- Nyckelord: budsjett, budget, ikke råd
 - Kategori: pris
 - Källa: fält
 
@@ -116,6 +131,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Så bra. Hva skjer med spørsmålene som kommer etter stengetid i dag?»
 - Följdfråga: «Og hvordan måler dere svartid og kundetilfredshet?»
 - Tips: Drivs sex frågor öppnar ofta upp det här. Svarar de «det gjør vi ikke» är statistiken en vinst.
+- Nyckelord: fungerer fint, fornøyd, går fint, funkar bra
 - Kategori: nuläge
 - Källa: fält
 
@@ -123,6 +139,7 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «Det sjekker jeg med Driv. Det jeg kan gjøre nå, er å vise hvordan det ville sett ut på nettsiden deres.»
 - Följdfråga: «Hva må en prøveperiode vise for at dere skal si ja?»
 - Tips: Lova ingen provperiod. Fråga Driv.
+- Nyckelord: gratis, prøve først, prøveperiode, testperiode
 - Kategori: avtal
 - Källa: fält
 
@@ -130,5 +147,6 @@ Tips, Kategori och Källa. Ändra fritt, men behåll formatet så att Live-vyn k
 - Svar: «For kundene deres er det bare ett klikk på nettsiden, uten app og uten innlogging. For teamet havner alt i én felles innboks med sammendrag, så de slipper å lete.»
 - Följdfråga: «Hvor mange forskjellige steder kommer henvendelsene inn i dag?»
 - Tips: Uppstartshjälpen: fråga Driv innan du lovar något.
+- Nyckelord: nytt system, lære, kapasitet, opplæring
 - Kategori: tid
 - Källa: fält

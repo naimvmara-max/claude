@@ -6,6 +6,7 @@
 import { parseCards } from './cards.js';
 import { CALL_OUTCOMES, callQueue } from './calls.js';
 import { STAGE_LABELS, svDate } from './pipeline.js';
+import { meetingIcs, downloadIcs } from './ics.js';
 
 const OUTCOME_LABEL = Object.fromEntries(CALL_OUTCOMES.map((o) => [o.id, o.label]));
 
@@ -79,6 +80,7 @@ export function createDialer(d) {
       <div class="dl-outcomes">${CALL_OUTCOMES.map((o) => `<button data-outcome="${o.id}"><kbd>${o.key}</kbd>${esc(o.label)}</button>`).join('')}</div>
       <div class="dl-extra">
         <label>Datum (ring tillbaka / möte)<input type="date" id="dl-date"></label>
+        <label>Tid (möte)<input type="time" id="dl-time" step="900"></label>
         <label class="grow">Kort anteckning (roll, inte namn)<input id="dl-note" maxlength="200" placeholder="t.ex. ring efter 14, daglig leder på semester"></label>
         <button class="ghost-btn" id="dl-skip">Hoppa över →</button>
       </div>`;
@@ -127,6 +129,7 @@ export function createDialer(d) {
     if (busy || !current) return;
     const o = CALL_OUTCOMES.find((x) => x.id === outcome);
     const date = $('#dl-date')?.value || '';
+    const time = $('#dl-time')?.value || '';
     const note = $('#dl-note')?.value.trim() || '';
     const q = queue();
     const i = q.findIndex((x) => x.r.id === current);
@@ -136,9 +139,12 @@ export function createDialer(d) {
     current = q[i + 1]?.r.id || q[0]?.r.id || '';
     busy = true;
     try {
-      const res = await d.logAttempt(id, outcome, { date, note });
+      const res = await d.logAttempt(id, outcome, { date, time, note });
       d.store.set('dialer', current);
-      d.toast(`${o.label} · ${company}${res?.fired?.length ? ' · /demo-prep förbereder demon' : ''}`);
+      // A booked meeting with a date and a time goes into the calendar as a file.
+      const ics = outcome === 'meeting' && date && time;
+      if (ics) downloadIcs(`demo-${company.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.ics`, meetingIcs({ title: `Demo Driv Kundesenter · ${company}`, date, time, minutes: 30, description: note }));
+      d.toast(`${o.label} · ${company}${res?.fired?.length ? ' · /demo-prep förbereder demon' : ''}${ics ? ' · kalenderfilen är hämtad: öppna den' : ''}`);
       if (outcome === 'talk') d.openLive(id);
     } catch (err) {
       current = id;

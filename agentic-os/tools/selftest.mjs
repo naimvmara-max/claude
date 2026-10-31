@@ -15,7 +15,8 @@ import { normalizeEnhet, brregUrl, searchBrreg, industryCodes, readPage, assertP
 import { INDUSTRIES } from '../public/js/leadfinder.js';
 import { attemptFields, parseCalls, callLine, callQueue, callStats, addWorkdays } from '../public/js/calls.js';
 import { loadSkills } from '../lib/skills.js';
-import { parseCards, searchCards } from '../public/js/cards.js';
+import { parseCards, searchCards, matchObjections } from '../public/js/cards.js';
+import { meetingIcs } from '../public/js/ics.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vault = new Vault(path.join(root, 'vault'));
@@ -60,6 +61,7 @@ const routes = {
   'samla invändningarna från veckan': 'skill:objections',
   'sammanfatta samtalet med Fjellsport': 'skill:call-summary',
   'skriv veckorapporten till chefen': 'skill:chef-rapport',
+  'boka in mötet med Fjordkyst': 'skill:book-meeting',
   'hur gick veckan?': 'skill:weekly-review',
   'har jag fått betalt för Fjellsport?': 'skill:commission-check',
   'när får jag betalt?': 'rule:payout',
@@ -283,6 +285,21 @@ check('Live view cards parse from the vault', () => {
   assert.ok(searchCards(cards, 'kreditt').some((c) => c.title === 'Kreditter forklart'));
 });
 
+check('what the customer says brings up the right answer, and a meeting becomes a calendar file', () => {
+  const objections = parseCards(vault.read('wiki/objections.md'));
+  assert.ok(objections.every((c) => c.fields.nyckelord), 'every objection needs keywords');
+  const hit = (t) => matchObjections(objections, t)[0]?.title;
+  assert.equal(hit('Ja, men det er jo for dyrt for oss'), '«Det er for dyrt.»');
+  assert.equal(hit('vi bruker Outlook i dag, og så må jeg snakke med sjefen'), '«Jeg må snakke med sjefen.»'); // newest mention first
+  assert.equal(hit('hva med GDPR'), '«Hva med personvern og GDPR?»');
+  assert.equal(matchObjections(objections, 'hei, takk for sist').length, 0);
+  const ics = meetingIcs({ title: 'Demo, Test AS', date: '2026-11-05', time: '10:00', minutes: 30 });
+  assert.match(ics, /DTSTART:20261105T100000/);
+  assert.match(ics, /DTEND:20261105T103000/);
+  assert.match(ics, /SUMMARY:Demo\\, Test AS/);
+  assert.ok(!/ATTENDEE/.test(ics)); // no guests: nothing is sent
+});
+
 check('call notes are saved per company and day, and listed back', () => {
   assert.equal(slugify('Havgløtt Hotell AS'), 'havglott-hotell-as');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aos-'));
@@ -406,8 +423,8 @@ check('one key per call outcome moves the pipeline and is logged', () => {
   assert.equal(addWorkdays('2026-11-06', 1), '2026-11-09'); // Friday -> Monday
   const fresh = { id: 'L1', company: 'A AS', status: 'researched', channel: 'email', notes: '' };
   assert.deepEqual(attemptFields('noanswer', fresh, '2026-11-06'), { channel: 'phone', status: 'contacted', next_action: 'Ring igen', next_date: '2026-11-09' });
-  const meet = attemptFields('meeting', { ...fresh, status: 'contacted', contacted: '2026-11-02' }, '2026-11-06', { date: '2026-11-12' });
-  assert.deepEqual([meet.status, meet.booked_via, meet.next_date, meet.channel], ['booked', 'phone', '2026-11-12', undefined]);
+  const meet = attemptFields('meeting', { ...fresh, status: 'contacted', contacted: '2026-11-02' }, '2026-11-06', { date: '2026-11-12', time: '10:00' });
+  assert.deepEqual([meet.status, meet.booked_via, meet.next_date, meet.channel, meet.next_action], ['booked', 'phone', '2026-11-12', undefined, 'Demomöte 10:00']);
   assert.match(attemptFields('optout', fresh, '2026-11-06').notes, /opt-out/);
   const line = callLine({ date: '2026-11-06', time: '09:14', id: 'L1', company: 'A | B AS', outcome: 'noanswer', note: '' });
   assert.equal(parseCalls(`# x\n${line}`)[0].company, 'A | B AS');

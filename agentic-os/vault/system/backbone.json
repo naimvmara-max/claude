@@ -167,6 +167,17 @@
       "triggers": ["summarize the call", "call summary", "after the call", "call notes", "sammanfatta samtalet", "efter samtalet", "samtalsanteckningar", "samtalssammanfattning", "sammanfatta mötet"]
     },
     {
+      "name": "book-meeting",
+      "domain": "sales",
+      "task": "Boka in möten",
+      "does": "kalender + bekräftelse som utkast",
+      "connectors": ["Kalender", "Gmail"],
+      "schedule": "event meeting-booked",
+      "quick": false,
+      "label": "Boka in mötet",
+      "triggers": ["book the meeting", "add the meeting to my calendar", "boka in mötet", "boka mötet", "lägg mötet i kalendern", "lägg in mötet", "kalenderinbjudan"]
+    },
+    {
       "name": "chef-rapport",
       "domain": "sales",
       "task": "Rapportera till chefen",

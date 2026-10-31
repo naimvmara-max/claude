@@ -109,6 +109,34 @@ with the **Live** button on a company in Kommando → Pipeline or in the follow-
 
 Both card files are plain Markdown: edit them in Obsidian and the Live view shows the change.
 
+### Listening to a call (Lyssna)
+
+With the customer's yes (the phrase «Før vi starter: jeg bruker et AI-verktøy som skriver notater
+…» is under Fraser), tick the box and press **Lyssna**. Jarvis writes a running transcript, and
+when the customer says something that matches an objection's keywords (`Nyckelord` in
+`vault/wiki/objections.md`: "for dyrt", "Outlook", "sjefen", "GDPR" …) the answer and the
+follow-up question appear at once. The transcript is saved in the call note, so /call-summary
+works from what was actually said. It uses Chrome's (or Edge's) speech service in Norwegian, which
+means the audio goes to Google while you listen: it is only for calls where the customer agreed.
+
+Chrome hears the default recording device, so the softphone's sound has to reach it. On Windows,
+the free VB-Audio **Voicemeeter** mixes both sides:
+1. Install Voicemeeter and restart. Set your headset as output **A1** in Voicemeeter.
+2. In the softphone, set the speaker/output to **Voicemeeter Input**; keep its microphone as your headset.
+3. In Voicemeeter, route your headset microphone (hardware input 1) and the Voicemeeter Input
+   strip to **B1** (and the Voicemeeter Input strip to A1 too, so you still hear the customer).
+4. In Chrome: Settings → Privacy and security → Site settings → Microphone, choose
+   **Voicemeeter Out B1** for Jarvis.
+Test with a colleague first: both voices should appear in the transcript.
+
+### Booking the meeting
+
+Choosing **Möte bokat** with a date and a time (in Live or in Ring) downloads a calendar file
+(.ics); opening it adds the meeting to Outlook or Google Calendar, with a reminder 15 minutes
+before. In the full setup the new /book-meeting skill also creates the event through the calendar
+connector in Claude Code, checks for clashes, and drafts the confirmation email in bokmål. It never
+adds the customer as a guest, because that would send an invitation without you.
+
 You can add companies and move them through the stages in **Kommando → Pipeline**, edit the table
 in Obsidian, or let the skills do it. Stages: researched → drafted → contacted → replied →
 booked → demo → offer → won/lost. Moving a company to **Möte bokat** starts /demo-prep.
@@ -127,6 +155,7 @@ booked → demo → offer → won/lost. Moving a company to **Möte bokat** star
 | Sales | /demo-prep: their customer service, questions, which package and why | when a company moves to "Möte bokat" |
 | Sales | /offer: demo notes → credit count, package and the covering email for the CRM offer | manual |
 | Sales | /objections: collect objections, true answers into `wiki/objections.md` | manual |
+| Sales | /book-meeting: a booked meeting → an event in your calendar (no guests) and a confirmation email draft in bokmål | when a company moves to "Möte bokat" |
 | Sales | /call-summary: a saved call → summary, needs, package, objections, next step and a bokmål follow-up email as a Gmail draft | when you save a call in Live with the box ticked |
 | Sales | /chef-rapport: the week's activity, meetings, demos, offers and deals, what worked and what blocks, as a Swedish email draft for the manager; no commission, no customer personal data | Fridays 15:30 |
 | Productivity | /plan-today (with the pace), /close-day, /weekly-review | weekdays 07:00, 21:30, Sundays 19:00 |
@@ -180,7 +209,7 @@ You need Node 20 or newer, Chrome or Edge (for voice), and a Claude **Pro or Max
 6. **Obsidian (optional):** open `agentic-os/vault` as a vault, Settings → Community plugins →
    turn off Restricted mode → enable *Agentic OS HUD*.
 
-`npm run check` runs 67 offline checks (Swedish and English routing, schedules, pipeline, commission and payout, credits, pace maths, the Live cards and saved calls, GDPR mode and the commit guard, the register search and site check, the Ring view).
+`npm run check` runs 70 offline checks (Swedish and English routing, schedules, pipeline, commission and payout, credits, pace maths, the Live cards and saved calls, GDPR mode and the commit guard, the register search and site check, the Ring view).
 `npm run gdpr` shows the GDPR mode and where personal data sits in the vault.
 `npm run demo` builds `dist/jarvis-demo.html`, a single-file demo that needs no server.
 
@@ -220,7 +249,7 @@ reads Swedish badly. More voices: Windows Settings → Time & language → Speec
 ## How a request flows
 
 1. You speak or type. The HUD sends the text to `POST /api/ask`.
-2. The router scores a fixed list of choices (10 rules, a quick answer, 19 skills) and picks one.
+2. The router scores a fixed list of choices (10 rules, a quick answer, 20 skills) and picks one.
    You see the odds and can re-route with one tap.
 3. Tier 1 answers from the pipeline and notes ("how am I doing?", "am I on pace?", "who should I follow up with?").
 4. Tier 2 asks Claude Haiku through Claude Code on your plan (or the API, if you set one up).

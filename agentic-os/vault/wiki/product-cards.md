@@ -154,6 +154,11 @@ Vad, Nytta, Lyssna efter, Tips och Fråga Driv. Ändra fritt, men behåll format
 - Typ: fras
 - Säg: «Hei, dette er Naim fra Driv. Jeg ringer om kundeservicen deres, har du et halvt minutt?»
 
+## Samtycke till transkribering
+- Typ: fras
+- Säg: «Før vi starter: jeg bruker et AI-verktøy som skriver notater fra samtalen, så jeg kan følge opp riktig. Er det greit for deg?»
+- Tips: Säg det innan du startar Lyssna. Säger de nej: stäng av och anteckna som vanligt.
+
 ## Växeln
 - Typ: fras
 - Säg: «Hei, dette er Naim fra Driv. Hvem er det som har ansvaret for kundeservice hos dere?»
